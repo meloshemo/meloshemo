@@ -1,4 +1,4 @@
-# Hi, I'm Mel 👋
+# Hi, I'm Melih 👋
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/osman-melih-y%C4%B1lmaz-274ba5201?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)
 
