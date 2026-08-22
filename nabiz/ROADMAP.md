@@ -1,32 +1,44 @@
 # Nabız — Çalışma Planı
 
-Strateji önce, kod sonra. Faz 1–4 tamamlandı (`docs/`). Sıradaki fazlar aşağıda,
-her biri ayrı doküman + onay adımı ile ilerler.
+## ✅ Strateji fazı tamamlandı
+| Faz | Doküman |
+|---|---|
+| 0 Executive Summary | `docs/00-executive-summary.md` |
+| 1 Market Research | `docs/01-market-research.md` |
+| 2 Competitor Analysis | `docs/02-competitor-analysis.md` |
+| 3 Product Strategy & MVP Scope | `docs/03-product-strategy.md` |
+| 4 Brand & Naming | `docs/04-brand.md` |
+| 4b İsim kararı (nihai) | `docs/04b-isim-karari.md` |
+| 5 Business Model & Unit Economics | `docs/05-business-model.md` |
+| 6 UX/UI Specification | `docs/06-ux-ui-spec.md` |
+| 7 Technical Architecture | `docs/07-architecture.md` |
+| 8 Database Schema | `docs/08-database.md` |
+| 9 API Specification | `docs/09-api-spec.md` |
+| 10 Admin Panel | `docs/10-admin-panel.md` |
+| 11 Anti-Abuse | `docs/11-anti-abuse.md` |
+| 12 SEO & Programmatic SEO | `docs/12-seo.md` |
+| 13 Growth Strategy | `docs/13-growth.md` |
+| 14 Launch Plan | `docs/14-launch.md` |
+| 15 Monetization | `docs/15-monetization.md` |
+| 16 Scaling & Global | `docs/16-scaling-and-global.md` |
+| — Risk Analizi (20 risk) | `docs/17-risks.md` |
+| — Legal / KVKK | `docs/18-legal-kvkk.md` |
+| — İlk 100 soru | `docs/19-ilk-100-soru.md` |
+| — Pitch Deck | `docs/20-pitch-deck.md` |
 
-## Sırada (strateji)
-- [ ] **PHASE 5 — Business Model & Unit Economics**: 3 senaryo (10K / 100K / 1M MAU), CAC/ARPU/LTV, sponsorlu sezon fiyatlandırması, "Türkiye'nin Seçimi" ödül programının ticari + hukuki modeli.
-- [ ] **PHASE 6 — UX/UI Spec**: 11 ekran (home, poll, result, trending, city, category, tournament, leaderboard, search, share, admin), mobile-first, mikro animasyonlar, WCAG 2.2 AA, reduced-motion.
-- [ ] **PHASE 7 — Technical Architecture**: stack karşılaştırması (Next.js+Supabase+Vercel vs Firebase vs Cloudflare-native), realtime yolu, cache katmanları, $0–20/ay hedefi ve 10K/100K/1M ölçek maliyetleri.
-- [ ] **PHASE 8 — Database Schema**: PostgreSQL şema + ilişkiler + agregasyon tabloları (hot path'te COUNT yok).
-- [ ] **PHASE 9 — API Spec**: endpointler, oy idempotency, hız limitleri, hata sözleşmesi.
-- [ ] **PHASE 10 — Admin Panel**: soru CRUD, zamanlama, editoryal kontrol listesi (siyaset/nefret filtresi), şüpheli oy paneli, metrikler.
-- [ ] **PHASE 11 — Anti-Abuse**: katmanlı savunma (cookie → IP/ASN hız limiti → davranış sinyalleri → seçici CAPTCHA), fingerprint'in KVKK sınırları, "gösterilen sonuç" vs "kayda geçen sonuç" ayrımı.
-- [ ] **PHASE 12 — SEO & Programmatic SEO**: soru sayfaları, şehir×kategori kombinasyonları, spam'e dönüşmeden ölçekleme kuralları (her sayfa gerçek veri eşiği geçmeden index'lenmez).
-- [ ] **PHASE 13 — Growth**: 100 / 1K / 10K / 100K / 1M için ayrı planlar; TikTok–Reels–WhatsApp odaklı.
-- [ ] **PHASE 14 — Launch Plan**: Day 0 / 1 / 7 / 30 ve ilk viral sorular.
-- [ ] **PHASE 15 — Monetization uygulaması**
-- [ ] **PHASE 16 — Scaling & Global (Pulse)**
-- [ ] **EK** — 100 başlangıç sorusu, risk analizi (20 risk + çözüm), KVKK/GDPR kontrol listesi, pitch deck.
+## 🔜 Uygulama (MVP — 4 hafta)
+- [ ] **H1** Monorepo iskeleti · Drizzle şema + migration · seed (81 il, kategoriler, 40 soru)
+- [ ] **H1** Oy yolu: Worker + Durable Object + idempotency + hız limiti
+- [ ] **H2** Web: ana akış, oy kartı, sonuç animasyonu, şehir kırılımı
+- [ ] **H2** OG paylaşım kartı üretimi (3 format)
+- [ ] **H3** SEO sayfaları (soru/şehir/kategori) + sitemap + eşik kuralı + schema.org
+- [ ] **H3** Admin panel: soru CRUD, editoryal kontrol listesi, metrikler
+- [ ] **H4** Anti-abuse v1 + gece temizlik işi + şeffaflık sayfası
+- [ ] **H4** Testler (unit + e2e + k6 yük), CI, prod deploy, yasal metinler
+- [ ] **Day 30** Kapı metrikleri değerlendirmesi (bkz. `docs/14-launch.md`)
 
-## Sonra (kod — strateji onaylanınca)
-- [ ] Monorepo iskeleti (`apps/web`, `apps/admin`, `packages/*`, `infra/`)
-- [ ] Şema + migration'lar
-- [ ] Vote API + anti-abuse v1
-- [ ] Realtime sonuç
-- [ ] OG paylaşım kartı üretimi
-- [ ] Admin panel
-- [ ] Test + CI + deploy
+**Sezon/turnuva Ay 2'de** — MVP retention verisi gelmeden yapılmaz.
 
-## Kod standardı (kodlamaya geçildiğinde bağlayıcı)
-TypeScript strict · modüler · test edilebilir · secret repo'ya girmez ·
+## Kod standardı (bağlayıcı)
+TypeScript strict · modüler · test edilebilir · secret repoya girmez ·
 MVP diye güvenlikten ödün verilmez · gereksiz enterprise karmaşıklık yok.

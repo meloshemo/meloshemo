@@ -1,4 +1,4 @@
-# Nabız 🇹🇷
+# Nabız 🇹🇷 — nabiz.io
 
 **Türkiye şu anda neyi seçiyor?**
 
