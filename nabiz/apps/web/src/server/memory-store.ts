@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Poll } from '@nabiz/core';
 import { CATEGORIES, SEED_POLLS } from '@nabiz/db';
-import { computeResults, computeTrend, leaderOf, slugify } from '@nabiz/core';
+import { computeResults, computeTrend, leaderOf, pulseSeries, slugify, type BucketCounts } from '@nabiz/core';
 import type {
   AdminMetrics, ChampionEntry, CreatePollInput, Repository, RecordVoteInput,
   TrendingEntry, VelocitySignals,
@@ -141,21 +141,46 @@ export class MemoryStore implements Repository {
           && v.at.getTime() >= twoDaysAgo && v.at.getTime() < dayAgo).length,
       }));
 
-      for (const trend of computeTrend(windows)) {
+      const trends = computeTrend(windows);
+      const buckets = trends.length > 0 ? this.hourlyBuckets(poll.id) : [];
+
+      for (const trend of trends) {
         const option = poll.options.find((o) => o.id === trend.optionId);
         if (!option) continue;
+        const rival = poll.options.find((o) => o.id !== option.id);
         entries.push({
           pollSlug: poll.slug,
           question: poll.question,
           optionLabel: option.label,
+          rivalLabel: rival?.label ?? '',
           emoji: option.emoji,
           deltaPoints: trend.deltaPoints,
           currentPct: trend.currentPct,
+          series: pulseSeries(buckets, option.id),
         });
       }
     }
 
     return entries.sort((a, b) => b.deltaPoints - a.deltaPoints).slice(0, limit);
+  }
+
+  /** Saatlik kovalar — nabız çizgisinin kaynağı. */
+  private hourlyBuckets(pollId: string): BucketCounts[] {
+    const byHour = new Map<number, Record<string, number>>();
+    const cutoff = Date.now() - 24 * 3_600_000;
+
+    for (const vote of this.votes) {
+      if (!vote.counted || vote.pollId !== pollId) continue;
+      const at = vote.at.getTime();
+      if (at < cutoff) continue;
+
+      const hour = Math.floor(at / 3_600_000) * 3_600_000;
+      const bucket = byHour.get(hour) ?? {};
+      bucket[vote.optionId] = (bucket[vote.optionId] ?? 0) + 1;
+      byHour.set(hour, bucket);
+    }
+
+    return [...byHour].map(([bucket, counts]) => ({ bucket, counts }));
   }
 
   async getChampionOfTheDay(): Promise<ChampionEntry | null> {

@@ -18,7 +18,8 @@
     "recount": "npx tsx infra/jobs/recount.ts",
     "seed": "npx tsx infra/jobs/seed.ts",
     "db:generate": "npm run generate --workspace @nabiz/db",
-    "db:migrate": "cd packages/db && npx drizzle-kit migrate"
+    "db:migrate": "cd packages/db && npx drizzle-kit migrate",
+    "preflight": "node scripts/preflight.mjs"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

@@ -94,9 +94,12 @@ export interface TrendingEntry {
   pollSlug: string;
   question: string;
   optionLabel: string;
+  rivalLabel: string;
   emoji: string | null;
   deltaPoints: number;
   currentPct: number;
+  /** Son saatlerin pay serisi (0–100) — arayüzdeki nabız çizgisi. */
+  series: number[];
 }
 
 export interface ChampionEntry {

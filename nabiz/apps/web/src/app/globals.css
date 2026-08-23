@@ -88,3 +88,118 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ─── Soru destesi ─────────────────────────────────────────────
+   Kartlar üst üste durur; oy verilen kart seçilen tarafa kayarak çıkar. */
+.deck {
+  position: relative;
+  display: grid;
+  /* Tek hücre: tüm kartlar aynı alana yığılır, arkadakiler ölçeklenip geriye iter. */
+  grid-template-areas: 'stack';
+  margin-bottom: 8px;
+}
+.deck > * { grid-area: stack; }
+
+.deck-ghost {
+  border-radius: var(--radius);
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  transform: translateY(calc(var(--depth) * 10px)) scale(calc(1 - var(--depth) * 0.04));
+  opacity: calc(0.55 / var(--depth));
+  z-index: 0;
+}
+
+.deck-card {
+  position: relative;
+  z-index: 1;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform-origin: center bottom;
+  animation: card-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.deck-card.exit-left { animation: card-out-left 420ms cubic-bezier(0.4, 0, 0.2, 1) 1.28s forwards; }
+.deck-card.exit-right { animation: card-out-right 420ms cubic-bezier(0.4, 0, 0.2, 1) 1.28s forwards; }
+
+@keyframes card-out-left {
+  to { opacity: 0; transform: translateX(-70%) rotate(-7deg); }
+}
+@keyframes card-out-right {
+  to { opacity: 0; transform: translateX(70%) rotate(7deg); }
+}
+
+/* ─── Kişisel özet ───────────────────────────────────────────── */
+.summary {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.summary-score {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+.summary-score b {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.summary-score span { font-size: 13px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.chips { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 999px;
+  background: var(--ink-3); border: 1px solid var(--line);
+  font-size: 13px;
+}
+/* Çoğunlukla aynı tarafta olmak yeşille işaretlenir; ayrışmak bir hata değil,
+   bu yüzden diğer çip nötr kalır — kırmızı bir "yanlış" işareti olurdu. */
+.chip.agreed { border-color: color-mix(in srgb, var(--up) 45%, var(--line)); }
+.chip-pct { color: var(--muted); font-size: 12px; }
+
+/* ─── Nabız (trend) listesi ──────────────────────────────────── */
+.pulse-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pulse-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px;
+  background: var(--ink-2); border: 1px solid var(--line); border-radius: 12px;
+  text-decoration: none;
+}
+.pulse-row:hover { border-color: color-mix(in srgb, var(--paper) 18%, var(--line)); }
+.pulse-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pulse-name { font-weight: 600; font-size: 15px; }
+.pulse-rival { font-size: 12px; color: var(--muted); }
+.pulse-graph { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.pulse-figures { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.pulse-figures b { font-size: 15px; }
+.pulse-delta { font-size: 12px; color: var(--up); font-weight: 600; }
+
+/* ─── Günün şampiyonu ───────────────────────────────────────── */
+.champion {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 12px; text-decoration: none;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--red) 16%, var(--ink-2)), var(--ink-2));
+  border: 1px solid color-mix(in srgb, var(--red) 30%, var(--line));
+}
+.champion-emoji { font-size: 30px; line-height: 1; }
+.champion-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.champion-name { font-weight: 700; font-size: 17px; }
+.champion-pct { margin-left: auto; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Kart yine sıradakine geçer, sadece uçmaz: hareketten rahatsız olan kullanıcı
+     akışı kaybetmemeli. */
+  .deck-card, .deck-card.exit-left, .deck-card.exit-right { animation: none; }
+}

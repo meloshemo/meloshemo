@@ -50,7 +50,9 @@
 - [ ] Sezon / turnuva mekaniği — **MVP retention verisi gelmeden başlanmaz**
 - [ ] Yasal metinlerin avukat kontrolü ve taslak uyarısının kaldırılması
 - [ ] k6 ile ayrı makineden gerçek kapasite ölçümü (hedef: 500 oy/sn'de p95 < 300 ms)
-- [ ] Prod deploy (`docs/22` kontrol listesi)
+- [x] Deploy yapılandırması: vercel.json, cron uç noktası, preflight kontrolü
+- [x] Kart destesi etkileşimi, kişisel uyum özeti, nabız çizgili trend listesi
+- [ ] Prod deploy — **kullanıcı tarafı**: `docs/23-canliya-gecis.md`
 - [ ] **Day 30** kapı metrikleri değerlendirmesi (bkz. `docs/14-launch.md`)
 
 **Sezon/turnuva Ay 2'de** — MVP retention verisi gelmeden yapılmaz.

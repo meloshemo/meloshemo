@@ -17,8 +17,8 @@ Türkiye geneli ve şehir kırılımı.
 ```bash
 npm install
 npm run dev          # DATABASE_URL yoksa bellek içi depo + seed veriyle açılır
-npm test             # 57 birim testi
-npm run test:e2e     # üretim derlemesini başlatıp 25 uçtan uca kontrol
+npm test             # 62 birim testi
+npm run test:e2e     # üretim derlemesini başlatıp 27 uçtan uca kontrol
                      # DATABASE_URL verilirse gerçek Postgres'e karşı koşar
 
 # Postgres ile
@@ -36,6 +36,10 @@ SEO'lu soru sayfaları + schema.org · şehir ve kategori sayfaları · eşik ku
 dinamik paylaşım kartları (WhatsApp / Story / X) · admin paneli + editoryal kontrol listesi ·
 metodoloji sayfası · Postgres deposu, migration'lar, seed ve gece yeniden sayım işi ·
 gizlilik/KVKK/kullanım koşulları taslakları · k6 yük testi senaryosu.
+
+### Canlıya geçiş
+`npm run preflight` ortamın hazır olup olmadığını **deneyerek** doğrular.
+Adım adım yayın rehberi: [`docs/23-canliya-gecis.md`](docs/23-canliya-gecis.md).
 
 ### Henüz olmayanlar
 Turnuva/Sezon mekaniği (Day 30 metrikleri beklenecek) · hesap ve rozetler ·

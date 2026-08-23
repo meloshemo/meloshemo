@@ -1,5 +1,6 @@
 import { CITIES } from '@nabiz/db';
-import { PollFeed } from '@/components/PollFeed';
+import { PollDeck } from '@/components/PollDeck';
+import { TrendingPulse } from '@/components/TrendingPulse';
 import { getRepository } from '@/server/context';
 import { readCityId } from '@/server/session';
 
@@ -32,7 +33,7 @@ export default async function HomePage() {
         Türkiye şu anda neyi seçiyor? · <b>{totalVotes.toLocaleString('tr-TR')}</b> oy
       </p>
 
-      <PollFeed polls={polls} cityId={cityId} />
+      <PollDeck polls={polls} cityId={cityId} />
 
       {cityId !== null && (
         <p className="meta">
@@ -42,29 +43,19 @@ export default async function HomePage() {
         </p>
       )}
 
-      {trending.length > 0 && (
-        <section>
-          <h2 className="section-title">🔥 Şu anda yükselenler</h2>
-          <ul className="meta" style={{ paddingLeft: 18 }}>
-            {trending.map((item) => (
-              <li key={`${item.pollSlug}-${item.optionLabel}`}>
-                <a href={`/${item.pollSlug}`}>{item.optionLabel}</a>{' '}
-                <span style={{ color: '#12b76a' }}>+{item.deltaPoints.toFixed(1)} puan</span>{' '}
-                <span>· şu an %{item.currentPct.toFixed(1)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <TrendingPulse items={trending} />
 
       {champion && (
-        <section>
-          <h2 className="section-title">🏆 Günün şampiyonu</h2>
-          <p className="meta">
-            <a href={`/${champion.pollSlug}`}>{champion.question}</a> →{' '}
-            <b>{champion.optionLabel}</b> %{champion.pct.toFixed(1)}{' '}
-            ({champion.votes.toLocaleString('tr-TR')} oy)
-          </p>
+        <section aria-labelledby="champ-title">
+          <h2 className="section-title" id="champ-title">Günün şampiyonu</h2>
+          <a className="champion" href={`/${champion.pollSlug}`}>
+            <span className="champion-emoji" aria-hidden="true">{champion.emoji ?? '🏆'}</span>
+            <span className="champion-body">
+              <span className="champion-name">{champion.optionLabel}</span>
+              <span className="meta">{champion.question}</span>
+            </span>
+            <span className="champion-pct">%{champion.pct.toFixed(1)}</span>
+          </a>
         </section>
       )}
 

@@ -40,6 +40,7 @@ async function main() {
       SESSION_SECRET: 'e2e-oturum-anahtari-en-az-32-karakter-uzunlukta',
       VOTE_HASH_SALT: 'e2e-tuzu',
       ADMIN_TOKEN,
+      CRON_SECRET: 'e2e-cron-secret',
       // DATABASE_URL verilmişse gerçek Postgres'e karşı koşar (asıl üretim yolu);
       // verilmemişse bellek içi depoya açıkça izin verilir.
       ...(process.env.DATABASE_URL ? {} : { ALLOW_MEMORY_STORE: '1' }),
@@ -176,6 +177,17 @@ async function main() {
       body: JSON.stringify({ cityId: 999 }),
     });
     check('geçersiz şehir reddediliyor', badCity.status === 422);
+
+    const cronNoAuth = await fetch(`${BASE}/api/cron/recount`);
+    check('zamanlanmış iş yetkisiz çağrıyı reddediyor', cronNoAuth.status === 401);
+
+    const cronAuthed = await fetch(`${BASE}/api/cron/recount`, {
+      headers: { authorization: 'Bearer e2e-cron-secret' },
+    });
+    // Bellek içi depoda veritabanı yok → 503; Postgres'e karşı koşarken gerçekten çalışır.
+    check('zamanlanmış iş yetkili çağrıda çalışıyor',
+      cronAuthed.status === 200 || cronAuthed.status === 503,
+      `HTTP ${cronAuthed.status}`);
 
     const cityPage = await (await fetch(`${BASE}/sehir/izmir`)).text();
     check('şehir sayfası açılıyor', cityPage.includes('ne diyor?'));

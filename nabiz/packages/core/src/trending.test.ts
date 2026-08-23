@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeTrend } from './trending';
+import { computeTrend, pulseSeries } from './trending';
 
 describe('computeTrend', () => {
   it('payı artan seçeneği yükselen sayar', () => {
@@ -45,5 +45,35 @@ describe('computeTrend', () => {
       { optionId: 'b', recentCount: 70, priorCount: 30 },
     ]);
     expect(trend.every((t) => t.deltaPoints > 0)).toBe(true);
+  });
+});
+
+describe('pulseSeries', () => {
+  const buckets = [
+    { bucket: 1, counts: { a: 30, b: 70 } },
+    { bucket: 2, counts: { a: 50, b: 50 } },
+    { bucket: 3, counts: { a: 80, b: 20 } },
+  ];
+
+  it('ham sayı değil pay çizer', () => {
+    expect(pulseSeries(buckets, 'a')).toEqual([30, 50, 80]);
+  });
+
+  it('oy gelmeyen saatte son bilinen payı korur — çöküş yanılsaması yaratmaz', () => {
+    const withGap = [...buckets, { bucket: 4, counts: {} }];
+    expect(pulseSeries(withGap, 'a')).toEqual([30, 50, 80, 80]);
+  });
+
+  it('yalnızca son N saati alır', () => {
+    expect(pulseSeries(buckets, 'a', 2)).toEqual([50, 80]);
+  });
+
+  it('sırasız kovaları zamana göre sıralar', () => {
+    const shuffled = [buckets[2]!, buckets[0]!, buckets[1]!];
+    expect(pulseSeries(shuffled, 'a')).toEqual([30, 50, 80]);
+  });
+
+  it('veri yoksa boş döner', () => {
+    expect(pulseSeries([], 'a')).toEqual([]);
   });
 });

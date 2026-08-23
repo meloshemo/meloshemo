@@ -53,3 +53,43 @@ export function computeTrend(
     .filter((entry) => entry.deltaPoints > 0)
     .sort((a, b) => b.deltaPoints - a.deltaPoints);
 }
+
+/** Kaç saatlik pencere nabız çizgisinde gösterilir. */
+export const PULSE_HOURS = 12;
+
+export interface BucketCounts {
+  /** Kovanın başlangıç saati (epoch ms, saate yuvarlanmış). */
+  bucket: number;
+  /** Seçenek kimliği → o saatteki oy sayısı. */
+  counts: Readonly<Record<string, number>>;
+}
+
+/**
+ * Bir seçeneğin saatlik PAY serisi (0–100).
+ *
+ * Ham oy sayısı değil pay çizilir: gece 3'te 4 oy, akşam 8'de 400 oy gelir; ham sayı
+ * çizmek her seçenek için aynı günlük trafik eğrisini gösterir ve hiçbir şey anlatmaz.
+ * Pay serisi ise "bu seçenek güçleniyor mu" sorusunu cevaplar.
+ *
+ * Oy gelmemiş saatler bir önceki bilinen payı korur — sıfıra düşürmek, o saatte seçeneğin
+ * çöktüğü yanılsaması yaratır.
+ */
+export function pulseSeries(
+  buckets: readonly BucketCounts[],
+  optionId: string,
+  hours = PULSE_HOURS,
+): number[] {
+  if (buckets.length === 0) return [];
+
+  const ordered = [...buckets].sort((a, b) => a.bucket - b.bucket).slice(-hours);
+  const series: number[] = [];
+  let last = 50;
+
+  for (const entry of ordered) {
+    const total = Object.values(entry.counts).reduce((sum, n) => sum + n, 0);
+    if (total > 0) last = ((entry.counts[optionId] ?? 0) / total) * 100;
+    series.push(Number(last.toFixed(1)));
+  }
+
+  return series;
+}

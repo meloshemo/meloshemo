@@ -1,7 +1,10 @@
 import { and, count, desc, eq, sql } from 'drizzle-orm';
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { computeResults, computeTrend, leaderOf, type Poll } from '@nabiz/core';
+import {
+  computeResults, computeTrend, leaderOf, pulseSeries,
+  type BucketCounts, type Poll,
+} from '@nabiz/core';
 import { schema } from '@nabiz/db';
 import type {
   AdminMetrics, ChampionEntry, CreatePollInput, RecordVoteInput, Repository,
@@ -256,6 +259,27 @@ export class PostgresStore implements Repository {
       .where(sql`${voteTimeseries.bucket} >= ${twoDaysAgo}::timestamptz`)
       .groupBy(voteTimeseries.pollId, voteTimeseries.optionId);
 
+    // Nabız çizgisi için saatlik kovalar. Ayrı ve tek sorgu: trend listesi en fazla
+    // birkaç soru içerir, soru başına sorgu atmak gereksiz gidiş-dönüş olurdu.
+    const pulseRows = await this.db.select({
+      pollId: voteTimeseries.pollId,
+      optionId: voteTimeseries.optionId,
+      bucket: voteTimeseries.bucket,
+      votes: voteTimeseries.voteCount,
+    })
+      .from(voteTimeseries)
+      .where(sql`${voteTimeseries.bucket} >= ${dayAgo}::timestamptz`);
+
+    const bucketsByPoll = new Map<string, Map<number, Record<string, number>>>();
+    for (const row of pulseRows) {
+      const perPoll = bucketsByPoll.get(row.pollId) ?? new Map<number, Record<string, number>>();
+      const hour = row.bucket.getTime();
+      const counts = perPoll.get(hour) ?? {};
+      counts[row.optionId] = (counts[row.optionId] ?? 0) + Number(row.votes);
+      perPoll.set(hour, counts);
+      bucketsByPoll.set(row.pollId, perPoll);
+    }
+
     const byPoll = new Map<string, Array<{ optionId: string; recentCount: number; priorCount: number }>>();
     for (const row of rows) {
       const bucket = byPoll.get(row.pollId) ?? [];
@@ -275,16 +299,22 @@ export class PostgresStore implements Repository {
       const poll = await this.getPollById(pollId);
       if (!poll || poll.status !== 'live') continue;
 
+      const buckets: BucketCounts[] = [...(bucketsByPoll.get(pollId) ?? new Map())]
+        .map(([bucket, counts]) => ({ bucket, counts }));
+
       for (const trend of trends) {
         const option = poll.options.find((o) => o.id === trend.optionId);
         if (!option) continue;
+        const rival = poll.options.find((o) => o.id !== option.id);
         entries.push({
           pollSlug: poll.slug,
           question: poll.question,
           optionLabel: option.label,
+          rivalLabel: rival?.label ?? '',
           emoji: option.emoji,
           deltaPoints: trend.deltaPoints,
           currentPct: trend.currentPct,
+          series: pulseSeries(buckets, option.id),
         });
       }
     }

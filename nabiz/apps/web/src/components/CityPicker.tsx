@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CITIES } from '@nabiz/db';
+import { CITIES } from '@nabiz/db/seed-data';
 
 /**
  * Şehir seçimi.
