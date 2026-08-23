@@ -46,7 +46,7 @@
 - [x] Yükselenler (pay değişimine göre) ve günün şampiyonu bölümleri
 
 ## 🔜 Sırada
-- [ ] Canlı SSE akışı (Durable Object) — trafik paralelleşince
+- [x] Canlı SSE akışı (yoklama tabanlı; Durable Object yayını trafik paralelleşince)
 - [ ] Sezon / turnuva mekaniği — **MVP retention verisi gelmeden başlanmaz**
 - [ ] Yasal metinlerin avukat kontrolü ve taslak uyarısının kaldırılması
 - [ ] k6 ile ayrı makineden gerçek kapasite ölçümü (hedef: 500 oy/sn'de p95 < 300 ms)

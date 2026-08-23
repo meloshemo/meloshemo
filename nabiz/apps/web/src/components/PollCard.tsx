@@ -104,7 +104,8 @@ export function PollCard({ poll, initialResults = null, cityId = null, onVoted }
   );
 }
 
-function Results({ poll, results }: { poll: Poll; results: PollResults }) {
+function Results({ poll, results: initial }: { poll: Poll; results: PollResults }) {
+  const results = useLiveResults(poll.id, initial);
   const label = (optionId: string) =>
     poll.options.find((o) => o.id === optionId)?.label ?? '—';
 
@@ -148,6 +149,43 @@ function Results({ poll, results }: { poll: Poll; results: PollResults }) {
       </div>
     </div>
   );
+}
+
+/**
+ * Sonuç ekranı açıkken canlı güncelleme.
+ *
+ * Akış kurulamazsa (vekil sunucu SSE'yi kesiyorsa, tarayıcı desteklemiyorsa) sessizce
+ * mevcut sonuçla devam edilir — canlılık bir iyileştirmedir, çalışma şartı değil.
+ * Kullanıcının kendi oyu ve şehir kırılımı korunur: akış yalnızca ülke geneli sayıları taşır.
+ */
+function useLiveResults(pollId: string, initial: PollResults): PollResults {
+  const [live, setLive] = useState(initial);
+
+  useEffect(() => {
+    setLive(initial);
+  }, [initial]);
+
+  useEffect(() => {
+    if (typeof EventSource === 'undefined') return;
+
+    const source = new EventSource(`/api/v1/polls/${pollId}/stream`);
+    source.addEventListener('results', (event) => {
+      try {
+        const data = JSON.parse((event as MessageEvent).data) as
+          Pick<PollResults, 'total' | 'options' | 'asOf'>;
+        setLive((current) => ({ ...current, ...data }));
+      } catch {
+        /* bozuk paket — yok say */
+      }
+    });
+    // Hata durumunda tarayıcı kendi yeniden bağlanma mantığını uygular; ısrarla
+    // kapanan bir akışta arayüz zaten son bilinen sonucu göstermeye devam eder.
+    source.onerror = () => source.close();
+
+    return () => source.close();
+  }, [pollId]);
+
+  return live;
 }
 
 function ShareButton({ poll, results }: { poll: Poll; results: PollResults }) {

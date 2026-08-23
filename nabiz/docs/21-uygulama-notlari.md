@@ -28,11 +28,14 @@ Kabul edilen kayıp; kitlesel değil bireysel.
 MVP ölçeğinde (onlarca soru) kabul edilebilir. Soru sayısı üç haneye çıktığında tek sorguya
 çevrilecek — `buildCityPage` içinde işaretlendi.
 
-## 5. Canlı akış (SSE) henüz yok
-Sonuçlar oy sonrası yanıtla ve 5 sn cache'li `results` uç noktasıyla geliyor. Durable Object
-tabanlı SSE yayını, `docs/07`'deki mimaride tanımlı ama MVP kapsamı dışında: tek kullanıcının
-kendi oyundan sonra gördüğü anlık sonuç, ürünün vaadini zaten karşılıyor. Eşzamanlı canlı
-akış, trafik gerçekten paralelleşince değerli olur.
+## 5. Canlı akış: SSE var, Durable Object henüz yok
+`GET /api/v1/polls/:id/stream` çalışıyor: sunucu agregaları 2 sn'de bir yokluyor ve
+**yalnızca değişiklikte** olay gönderiyor. `docs/07`'deki hedef mimari, yoklama yerine
+Durable Object içinden yayın yapmaktır; bu sürüm ara adımdır ve tek fark, oy ile yayın
+arasındaki en fazla 2 saniyelik gecikmedir.
+
+Bağlantı ömrü 5 dakika ile sınırlı (serverless çalışma süresi limitleri). Arayüz akışa
+bağımlı değildir: akış kurulamazsa mevcut sonuç gösterilmeye devam eder.
 
 ## 6. Yük testi bulgusu: ölçüm ortamı sonucu belirledi
 Tek makinede (4 çekirdek, istemci + Next + Postgres aynı CPU) 150 istek/sn altında p95

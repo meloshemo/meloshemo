@@ -126,6 +126,28 @@ async function main() {
     });
     check('bozuk istek 422 ile reddediliyor', invalid.status === 422);
 
+    // SSE: ilk olayın gerçekten geldiğini doğrula. Akış açılıp hiç veri göndermezse
+    // arayüz "canlı" görünür ama hiçbir zaman güncellenmez — sessiz bir bozulma.
+    const streamController = new AbortController();
+    const stream = await fetch(`${BASE}/api/v1/polls/${pollId}/stream`, {
+      signal: streamController.signal,
+    });
+    let firstEvent = '';
+    if (stream.ok && stream.body) {
+      const reader = stream.body.getReader();
+      const timeout = setTimeout(() => streamController.abort(), 8000);
+      try {
+        const { value } = await reader.read();
+        firstEvent = new TextDecoder().decode(value ?? new Uint8Array());
+      } catch { /* zaman aşımı */ }
+      clearTimeout(timeout);
+      streamController.abort();
+    }
+    check('canlı akış içerik türü doğru',
+      stream.headers.get('content-type')?.includes('text/event-stream') === true);
+    check('canlı akış ilk sonucu gönderiyor',
+      firstEvent.includes('event: results') && firstEvent.includes('"total"'));
+
     const og = await fetch(`${BASE}/og/lahmacun-vs-doner?variant=wa`);
     check('paylaşım kartı üretiliyor', og.ok && og.headers.get('content-type')?.includes('image/png'));
 
