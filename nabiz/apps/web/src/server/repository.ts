@@ -36,6 +36,11 @@ export interface Repository {
    */
   countVelocity(sessionHash: string, ipHash: string): Promise<VelocitySignals>;
 
+  /** Son 24 saatte payı artan seçenekler (ana sayfa "yükselenler" bölümü). */
+  getTrending(limit: number): Promise<TrendingEntry[]>;
+  /** Bugün en çok oy alan sorunun önde gideni. */
+  getChampionOfTheDay(): Promise<ChampionEntry | null>;
+
   createPoll(input: CreatePollInput): Promise<Poll>;
   /** Yalnızca editoryal kontrol listesi işaretlenmiş taslaklar yayınlanabilir. */
   publishPoll(pollId: string): Promise<'published' | 'not_found' | 'editorial_blocked'>;
@@ -83,4 +88,22 @@ export interface VelocitySignals {
   sessionVotesLastMinute: number;
   ipVotesLastMinute: number;
   ipVotesLastHour: number;
+}
+
+export interface TrendingEntry {
+  pollSlug: string;
+  question: string;
+  optionLabel: string;
+  emoji: string | null;
+  deltaPoints: number;
+  currentPct: number;
+}
+
+export interface ChampionEntry {
+  pollSlug: string;
+  question: string;
+  optionLabel: string;
+  emoji: string | null;
+  pct: number;
+  votes: number;
 }

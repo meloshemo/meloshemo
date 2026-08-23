@@ -46,6 +46,19 @@ export const sessionCookieOptions = {
   maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
 } as const;
 
+/**
+ * Şehir çerezi. Oturum çerezinden farklı olarak imzalanmaz ve HttpOnly değildir:
+ * içinde gizli hiçbir şey yok (1–81 arası bir plaka kodu) ve arayüzün mevcut seçimi
+ * okuyabilmesi gerekiyor. Sunucu tarafında her okumada aralık doğrulaması yapılır.
+ */
+export const cityCookieOptions = {
+  httpOnly: false,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+  maxAge: MAX_AGE_DAYS * 24 * 60 * 60,
+} as const;
+
 /** Kullanıcının beyan ettiği şehir. Konum verisi DEĞİLDİR; kullanıcı seçer, atlayabilir. */
 export async function readCityId(): Promise<number | null> {
   const raw = (await cookies()).get(CITY_COOKIE)?.value;

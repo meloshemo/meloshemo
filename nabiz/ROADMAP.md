@@ -42,6 +42,8 @@
 - [x] Yük testi altyapısı (k6 senaryosu + bağımlılıksız yerel koşucu) ve ilk profilleme
 - [x] Deployment planı (`docs/22-deployment.md`)
 - [x] CI artık gerçek Postgres servisiyle koşuyor
+- [x] Şehir seçimi arayüzü (kapsam boşluğuydu: çerez okunuyor ama hiçbir yerde yazılmıyordu)
+- [x] Yükselenler (pay değişimine göre) ve günün şampiyonu bölümleri
 
 ## 🔜 Sırada
 - [ ] Canlı SSE akışı (Durable Object) — trafik paralelleşince

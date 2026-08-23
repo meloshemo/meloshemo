@@ -142,6 +142,19 @@ async function main() {
     const adminApi = await fetch(`${BASE}/api/admin/whatever`, { method: 'POST' });
     check('admin API oturumsuz 401 veriyor', adminApi.status === 401);
 
+    const citySet = await fetch(`${BASE}/api/v1/city`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cityId: 35 }),
+    });
+    check('şehir seçimi kaydediliyor',
+      citySet.ok && Boolean(citySet.headers.get('set-cookie')?.includes('nb_city')));
+
+    const badCity = await fetch(`${BASE}/api/v1/city`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cityId: 999 }),
+    });
+    check('geçersiz şehir reddediliyor', badCity.status === 422);
+
     const cityPage = await (await fetch(`${BASE}/sehir/izmir`)).text();
     check('şehir sayfası açılıyor', cityPage.includes('ne diyor?'));
 

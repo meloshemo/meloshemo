@@ -1,9 +1,12 @@
 import { and, count, desc, eq, sql } from 'drizzle-orm';
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import type { Poll } from '@nabiz/core';
+import { computeResults, computeTrend, leaderOf, type Poll } from '@nabiz/core';
 import { schema } from '@nabiz/db';
-import type { AdminMetrics, CreatePollInput, RecordVoteInput, Repository, VelocitySignals } from './repository';
+import type {
+  AdminMetrics, ChampionEntry, CreatePollInput, RecordVoteInput, Repository,
+  TrendingEntry, VelocitySignals,
+} from './repository';
 
 const { polls, options, votes, voteAggregates, voteTimeseries, abuseEvents, shares, categories } = schema;
 
@@ -234,6 +237,88 @@ export class PostgresStore implements Repository {
       sessionVotesLastMinute: Number(sessionRows[0]?.lastMinute ?? 0),
       ipVotesLastMinute: Number(ipRows[0]?.lastMinute ?? 0),
       ipVotesLastHour: Number(ipRows[0]?.lastHour ?? 0),
+    };
+  }
+
+  async getTrending(limit: number): Promise<TrendingEntry[]> {
+    // Zaman serisinden okunur: ham votes tablosunu taramak, trend gibi sık yenilenen bir
+    // bölüm için en pahalı yol olurdu. vote_timeseries zaten saatlik kovalarda tutuluyor.
+    const dayAgo = new Date(Date.now() - 24 * 3_600_000).toISOString();
+    const twoDaysAgo = new Date(Date.now() - 48 * 3_600_000).toISOString();
+
+    const rows = await this.db.select({
+      pollId: voteTimeseries.pollId,
+      optionId: voteTimeseries.optionId,
+      recent: sql<number>`sum(${voteTimeseries.voteCount}) filter (where ${voteTimeseries.bucket} >= ${dayAgo}::timestamptz)`,
+      prior: sql<number>`sum(${voteTimeseries.voteCount}) filter (where ${voteTimeseries.bucket} < ${dayAgo}::timestamptz)`,
+    })
+      .from(voteTimeseries)
+      .where(sql`${voteTimeseries.bucket} >= ${twoDaysAgo}::timestamptz`)
+      .groupBy(voteTimeseries.pollId, voteTimeseries.optionId);
+
+    const byPoll = new Map<string, Array<{ optionId: string; recentCount: number; priorCount: number }>>();
+    for (const row of rows) {
+      const bucket = byPoll.get(row.pollId) ?? [];
+      bucket.push({
+        optionId: row.optionId,
+        recentCount: Number(row.recent ?? 0),
+        priorCount: Number(row.prior ?? 0),
+      });
+      byPoll.set(row.pollId, bucket);
+    }
+
+    const entries: TrendingEntry[] = [];
+    for (const [pollId, windows] of byPoll) {
+      const trends = computeTrend(windows);
+      if (trends.length === 0) continue;
+
+      const poll = await this.getPollById(pollId);
+      if (!poll || poll.status !== 'live') continue;
+
+      for (const trend of trends) {
+        const option = poll.options.find((o) => o.id === trend.optionId);
+        if (!option) continue;
+        entries.push({
+          pollSlug: poll.slug,
+          question: poll.question,
+          optionLabel: option.label,
+          emoji: option.emoji,
+          deltaPoints: trend.deltaPoints,
+          currentPct: trend.currentPct,
+        });
+      }
+    }
+
+    return entries.sort((a, b) => b.deltaPoints - a.deltaPoints).slice(0, limit);
+  }
+
+  async getChampionOfTheDay(): Promise<ChampionEntry | null> {
+    const [top] = await this.db.select({
+      pollId: voteAggregates.pollId,
+      total: sql<number>`sum(${voteAggregates.voteCount})`,
+    })
+      .from(voteAggregates)
+      .where(eq(voteAggregates.cityId, 0))
+      .groupBy(voteAggregates.pollId)
+      .orderBy(sql`sum(${voteAggregates.voteCount}) desc`)
+      .limit(1);
+
+    if (!top) return null;
+    const poll = await this.getPollById(top.pollId);
+    if (!poll) return null;
+
+    const results = computeResults(await this.getAggregates(poll.id, 0));
+    const leader = leaderOf(results);
+    const option = poll.options.find((o) => o.id === leader?.optionId);
+    if (!leader || !option) return null;
+
+    return {
+      pollSlug: poll.slug,
+      question: poll.question,
+      optionLabel: option.label,
+      emoji: option.emoji,
+      pct: leader.pct,
+      votes: Number(top.total ?? 0),
     };
   }
 

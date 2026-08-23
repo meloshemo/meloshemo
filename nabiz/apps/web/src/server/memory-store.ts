@@ -1,8 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import type { Poll } from '@nabiz/core';
 import { CATEGORIES, SEED_POLLS } from '@nabiz/db';
-import { computeResults, leaderOf, slugify } from '@nabiz/core';
-import type { AdminMetrics, CreatePollInput, Repository, RecordVoteInput, VelocitySignals } from './repository';
+import { computeResults, computeTrend, leaderOf, slugify } from '@nabiz/core';
+import type {
+  AdminMetrics, ChampionEntry, CreatePollInput, Repository, RecordVoteInput,
+  TrendingEntry, VelocitySignals,
+} from './repository';
 
 /**
  * Bellek içi depo — geliştirme ve test içindir.
@@ -119,6 +122,66 @@ export class MemoryStore implements Repository {
       ipVotesLastMinute: ipMinute,
       ipVotesLastHour: ipHour,
     };
+  }
+
+  async getTrending(limit: number): Promise<TrendingEntry[]> {
+    const now = Date.now();
+    const dayAgo = now - 24 * 3_600_000;
+    const twoDaysAgo = now - 48 * 3_600_000;
+    const entries: TrendingEntry[] = [];
+
+    for (const poll of this.polls) {
+      if (poll.status !== 'live') continue;
+
+      const windows = poll.options.map((option) => ({
+        optionId: option.id,
+        recentCount: this.votes.filter((v) => v.counted && v.optionId === option.id
+          && v.at.getTime() >= dayAgo).length,
+        priorCount: this.votes.filter((v) => v.counted && v.optionId === option.id
+          && v.at.getTime() >= twoDaysAgo && v.at.getTime() < dayAgo).length,
+      }));
+
+      for (const trend of computeTrend(windows)) {
+        const option = poll.options.find((o) => o.id === trend.optionId);
+        if (!option) continue;
+        entries.push({
+          pollSlug: poll.slug,
+          question: poll.question,
+          optionLabel: option.label,
+          emoji: option.emoji,
+          deltaPoints: trend.deltaPoints,
+          currentPct: trend.currentPct,
+        });
+      }
+    }
+
+    return entries.sort((a, b) => b.deltaPoints - a.deltaPoints).slice(0, limit);
+  }
+
+  async getChampionOfTheDay(): Promise<ChampionEntry | null> {
+    let best: ChampionEntry | null = null;
+
+    for (const poll of this.polls) {
+      if (poll.status !== 'live') continue;
+      const results = computeResults(await this.getAggregates(poll.id, 0));
+      const total = results.reduce((sum, r) => sum + r.count, 0);
+      if (total === 0 || (best && total <= best.votes)) continue;
+
+      const leader = leaderOf(results);
+      const option = poll.options.find((o) => o.id === leader?.optionId);
+      if (!leader || !option) continue;
+
+      best = {
+        pollSlug: poll.slug,
+        question: poll.question,
+        optionLabel: option.label,
+        emoji: option.emoji,
+        pct: leader.pct,
+        votes: total,
+      };
+    }
+
+    return best;
   }
 
   async createPoll(input: CreatePollInput): Promise<Poll> {
