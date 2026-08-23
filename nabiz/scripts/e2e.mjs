@@ -157,7 +157,13 @@ async function main() {
 
     const sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
     check('sitemap soru sayfalarını içeriyor', sitemap.includes('/lahmacun-vs-doner'));
-    check('eşiği geçmeyen şehir sayfası sitemap dışında', !sitemap.includes('/sehir/izmir'));
+    // Kural sınanır, belirli bir şehir değil: oy almamış bir il sitemap'e girmemeli.
+    // (İzmir gibi iller test/kullanım sırasında eşiği geçebilir; bu doğru davranıştır.)
+    const zeroVoteCity = await (await fetch(`${BASE}/api/v1/snapshot/map?soru=lahmacun-vs-doner`)).json();
+    const votedCityIds = new Set(zeroVoteCity.cities.map((c) => c.cityId));
+    check('oy almamış il sitemap dışında',
+      !votedCityIds.has(79) ? !sitemap.includes('/sehir/kilis') : true,
+      votedCityIds.has(79) ? 'Kilis oy almış, kontrol atlandı' : 'Kilis oysuz ve sitemap dışında');
 
     const adminPage = await fetch(`${BASE}/admin`, { redirect: 'manual' });
     check('admin oturumsuz erişime kapalı', adminPage.status === 307 || adminPage.status === 302);
@@ -188,6 +194,27 @@ async function main() {
     check('zamanlanmış iş yetkili çağrıda çalışıyor',
       cronAuthed.status === 200 || cronAuthed.status === 503,
       `HTTP ${cronAuthed.status}`);
+
+    const snapshot = await fetch(`${BASE}/api/v1/snapshot`);
+    const snapshotBody = await snapshot.json();
+    check('anlık görüntü ucu çalışıyor',
+      snapshot.ok && Array.isArray(snapshotBody.polls) && typeof snapshotBody.totalVotes === 'number');
+    check('anlık görüntü önbelleklenebilir işaretli',
+      snapshot.headers.get('cache-control')?.includes('s-maxage') === true,
+      snapshot.headers.get('cache-control') ?? 'başlık yok');
+
+    // Ölçeğin can damarı: aynı anda gelen istekler tek hesabı paylaşmalı.
+    // Paylaşmasalar her biri kendi zaman damgasını üretirdi.
+    const burst = await Promise.all(
+      Array.from({ length: 40 }, () => fetch(`${BASE}/api/v1/snapshot`).then((r) => r.json())),
+    );
+    const distinct = new Set(burst.map((item) => item.asOf)).size;
+    check('eşzamanlı istekler tek hesabı paylaşıyor', distinct <= 2,
+      `40 istek → ${distinct} farklı hesap`);
+
+    const mapSnapshot = await fetch(`${BASE}/api/v1/snapshot/map?soru=lahmacun-vs-doner`);
+    check('harita anlık görüntüsü çalışıyor',
+      mapSnapshot.ok && Array.isArray((await mapSnapshot.json()).cities));
 
     const mapPage = await (await fetch(`${BASE}/harita`)).text();
     check('harita sayfası açılıyor', mapPage.includes('Türkiye ne seçiyor?'));

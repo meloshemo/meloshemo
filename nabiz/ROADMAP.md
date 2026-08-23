@@ -45,6 +45,9 @@
 - [x] Şehir seçimi arayüzü (kapsam boşluğuydu: çerez okunuyor ama hiçbir yerde yazılmıyordu)
 - [x] Türkiye tercih haritası: 81 il SVG, doğrulanmış diverging ölçek, il paneli, tablo karşılığı
 - [x] Açık/premium palet (açık varsayılan + ayrı seçilmiş koyu tema)
+- [x] Canlı güncelleme her yerde: sayaç, sonuçlar, harita
+- [x] 50K eşzamanlılık mimarisi: tek uçuşlu önbellek, tek sorgu, yazma tamponu
+      (yük testiyle ölçüldü: 1200 istek → 3 hesap, p50 9038 ms → 147 ms)
 - [x] Yükselenler (pay değişimine göre) ve günün şampiyonu bölümleri
 
 ## 🔜 Sırada

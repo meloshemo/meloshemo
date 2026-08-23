@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Poll, PollResults } from '@nabiz/core';
 import { ResultBars } from './ResultBars';
+import { useLiveSnapshot } from './useLiveSnapshot';
 
 export interface DeckResult {
   pollSlug: string;
@@ -113,6 +114,18 @@ export function DeckCard({
     }
   }, [cityId, phase, poll]);
 
+  // Sonuç ekrandayken başkalarının oyları da yansısın: kart kısa süre görünür ama
+  // o sürede bile sayı yerinde durmamalı.
+  const snapshot = useLiveSnapshot();
+  const fresh = results ? snapshot?.polls.find((item) => item.id === poll.id) : undefined;
+  const shown: PollResults | null = results && fresh && fresh.total >= results.total
+    ? {
+        ...results,
+        total: fresh.total,
+        options: fresh.options.map((o) => ({ optionId: o.id, count: o.count, pct: o.pct })),
+      }
+    : results;
+
   const cityLine = results?.city
     ? results.city.options
         .map((o) => `${poll.options.find((p) => p.id === o.optionId)?.label} %${o.pct.toFixed(1)}`)
@@ -127,19 +140,19 @@ export function DeckCard({
       <h2 className="question" id={`q-${poll.id}`}>{poll.question}</h2>
       {poll.sponsorName && <p className="kicker">Sponsorlu içerik · {poll.sponsorName}</p>}
 
-      {results ? (
+      {shown ? (
         <>
-          <ResultBars poll={poll} results={results} />
+          <ResultBars poll={poll} results={shown} />
           {cityLine && <p className="meta">📍 Senin şehrin: {cityLine}</p>}
           <p className="meta">
-            {results.total.toLocaleString('tr-TR')} oy ·{' '}
+            {shown.total.toLocaleString('tr-TR')} oy ·{' '}
             <a href={`/${poll.slug}`}>detay</a> · <a href="/nasil-sayiyoruz">nasıl sayıyoruz?</a>
           </p>
           <div className="actions">
             <button
               type="button"
               className="btn primary"
-              onClick={() => { setHeld(true); void share(poll, results); }}
+              onClick={() => { setHeld(true); void share(poll, shown); }}
             >
               Paylaş
             </button>

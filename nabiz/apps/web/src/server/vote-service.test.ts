@@ -137,3 +137,4 @@ describe('classifyUserAgent', () => {
     expect(classifyUserAgent(null)).toBeNull();
   });
 });
+

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Poll, PollResults } from '@nabiz/core';
 import { buildShareText } from '@nabiz/share';
+import { useLiveSnapshot } from './useLiveSnapshot';
 
 interface Props {
   poll: Poll;
@@ -154,36 +155,39 @@ function Results({ poll, results: initial }: { poll: Poll; results: PollResults 
 /**
  * Sonuç ekranı açıkken canlı güncelleme.
  *
- * Akış kurulamazsa (vekil sunucu SSE'yi kesiyorsa, tarayıcı desteklemiyorsa) sessizce
- * mevcut sonuçla devam edilir — canlılık bir iyileştirmedir, çalışma şartı değil.
- * Kullanıcının kendi oyu ve şehir kırılımı korunur: akış yalnızca ülke geneli sayıları taşır.
+ * Kalıcı bağlantı (SSE) yerine CDN önbellekli anlık görüntü yoklanır. Sebep ölçek:
+ * 50.000 eşzamanlı kullanıcıda SSE, sunucuda 50.000 açık soket demektir; yoklama ise
+ * kenar önbelleğinden karşılanır ve kaynağa binen yük kullanıcı sayısından bağımsızdır.
+ *
+ * Akış kurulamazsa arayüz son bilinen sonucu göstermeye devam eder: canlılık bir
+ * iyileştirmedir, çalışma şartı değil. Kullanıcının kendi oyu ve şehir kırılımı korunur.
  */
 function useLiveResults(pollId: string, initial: PollResults): PollResults {
   const [live, setLive] = useState(initial);
+  const snapshot = useLiveSnapshot();
 
   useEffect(() => {
     setLive(initial);
   }, [initial]);
 
   useEffect(() => {
-    if (typeof EventSource === 'undefined') return;
+    const fresh = snapshot?.polls.find((poll) => poll.id === pollId);
+    if (!fresh) return;
 
-    const source = new EventSource(`/api/v1/polls/${pollId}/stream`);
-    source.addEventListener('results', (event) => {
-      try {
-        const data = JSON.parse((event as MessageEvent).data) as
-          Pick<PollResults, 'total' | 'options' | 'asOf'>;
-        setLive((current) => ({ ...current, ...data }));
-      } catch {
-        /* bozuk paket — yok say */
-      }
+    setLive((current) => {
+      // Geriye giden bir sayı gösterme: kendi oyumuz anlık görüntüye henüz
+      // yansımamış olabilir.
+      if (fresh.total < current.total) return current;
+      return {
+        ...current,
+        total: fresh.total,
+        options: fresh.options.map((option) => ({
+          optionId: option.id, count: option.count, pct: option.pct,
+        })),
+        asOf: new Date(snapshot!.asOf),
+      };
     });
-    // Hata durumunda tarayıcı kendi yeniden bağlanma mantığını uygular; ısrarla
-    // kapanan bir akışta arayüz zaten son bilinen sonucu göstermeye devam eder.
-    source.onerror = () => source.close();
-
-    return () => source.close();
-  }, [pollId]);
+  }, [pollId, snapshot]);
 
   return live;
 }

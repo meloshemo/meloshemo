@@ -33,6 +33,7 @@ export function TurkeyMap({ states }: { states: Map<number, ProvinceState> }) {
             key={province.id}
             href={state?.href ?? `/sehir/${province.slug}`}
             className={state?.selected ? 'province selected' : 'province'}
+            data-city={province.id}
           >
             <title>{state?.title ?? province.name}</title>
             {/* Veri yoksa inline fill verilmez: CSS'teki nötr taban rengi devreye girer.

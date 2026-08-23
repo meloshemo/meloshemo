@@ -124,6 +124,16 @@ export class MemoryStore implements Repository {
     };
   }
 
+  async getAllAggregates() {
+    const rows: Array<{ pollId: string; optionId: string; count: number }> = [];
+    for (const [key, count] of this.aggregates) {
+      const [pollId, cityId, optionId] = key.split('|');
+      if (cityId !== '0') continue;
+      rows.push({ pollId: pollId!, optionId: optionId!, count });
+    }
+    return rows;
+  }
+
   async getCityBreakdown(pollId: string): Promise<CityBreakdownRow[]> {
     const rows: CityBreakdownRow[] = [];
     for (const [key, count] of this.aggregates) {

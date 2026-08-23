@@ -8,6 +8,15 @@ import type { Poll } from '@nabiz/core';
  * ve ileride sıcak yolu Durable Object'e taşırken uygulama kodunun değişmemesi demektir.
  */
 export interface Repository {
+  /**
+   * Sayaçlar yazma anında mı güncellenir, yoksa tamponlanıp biraz sonra mı?
+   *
+   * Postgres deposu sayaçları tamponlar (yoğun anda aynı satıra yüzlerce yazma yerine
+   * tek toplu yazma). O yüzden kullanıcının KENDİ oyu, sayaçlara henüz işlenmemiş
+   * olabilir ve sonuç ekranına ayrıca eklenmelidir — insan kendi oyunu anında görmeli.
+   */
+  readonly aggregatesEventuallyConsistent?: boolean;
+
   listLivePolls(limit: number): Promise<Poll[]>;
   listPollsByCategory(categorySlug: string): Promise<Poll[]>;
   /** Sitemap ve arşiv için — taslak sorular dahil edilmez. */
@@ -17,6 +26,14 @@ export interface Repository {
 
   /** cityId = 0 → Türkiye geneli. */
   getAggregates(pollId: string, cityId: number): Promise<Array<{ optionId: string; count: number }>>;
+
+  /**
+   * TÜM canlı soruların ülke geneli sayaçları — tek sorguda.
+   *
+   * Anlık görüntü ucu her istekte soru başına ayrı sorgu atarsa (N+1), 40 soruda
+   * istek başına 40 sorgu eder ve yoğun saatte veritabanı bunun altında kalır.
+   */
+  getAllAggregates(): Promise<Array<{ pollId: string; optionId: string; count: number }>>;
 
   /** Bu oturumun bu soruya verdiği oy (varsa). */
   findVote(pollId: string, sessionHash: string): Promise<{ optionId: string } | null>;

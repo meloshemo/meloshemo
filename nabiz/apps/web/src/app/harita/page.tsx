@@ -5,6 +5,7 @@ import {
   MAP_MIN_VOTES, participationScore,
 } from '@nabiz/core';
 import { CITIES } from '@nabiz/db/seed-data';
+import { LiveMap } from '@/components/LiveMap';
 import { MapLegend } from '@/components/MapLegend';
 import { TurkeyMap, type ProvinceState } from '@/components/TurkeyMap';
 import { getRepository } from '@/server/context';
@@ -131,6 +132,7 @@ export default async function MapPage({ searchParams }: Params) {
       <section className="map-wrap">
         <TurkeyMap states={states} />
         <MapLegend aLabel={optionA.label} bLabel={optionB.label} />
+        <LiveMap slug={poll.slug} minVotes={MAP_MIN_VOTES} />
         <p className="meta">
           {painted === 0
             ? `Henüz hiçbir ilde ${MAP_MIN_VOTES} oy birikmedi. Boyalı iller, eşiği geçtikçe belirecek.`

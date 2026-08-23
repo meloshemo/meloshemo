@@ -6,6 +6,7 @@ import {
   type BucketCounts, type Poll,
 } from '@nabiz/core';
 import { schema } from '@nabiz/db';
+import { AggregateBuffer, type BufferedIncrement } from './aggregate-buffer';
 import type {
   AdminMetrics, ChampionEntry, CityBreakdownRow, CreatePollInput, RecordVoteInput,
   Repository, TrendingEntry, VelocitySignals,
@@ -29,15 +30,70 @@ const { polls, options, votes, voteAggregates, voteTimeseries, abuseEvents, shar
 const POLL_CACHE_TTL_MS = 30_000;
 
 export class PostgresStore implements Repository {
+  /** Sayaçlar tamponlanır; kendi oyunu görmek için sonuç katmanı telafi eder. */
+  readonly aggregatesEventuallyConsistent = true;
+
   private readonly db: PostgresJsDatabase;
   private readonly pollCache = new Map<string, { poll: Poll | null; expires: number }>();
   private categoryCache: { rows: Array<{ id: number; slug: string }>; expires: number } | null = null;
+  private readonly aggregates: AggregateBuffer;
 
   constructor(connectionString: string) {
     // Havuz boyutu ortamdan ayarlanır: serverless'ta küçük tutmak zorunludur (bağlantı
     // limiti), uzun ömürlü sunucuda daha büyük olmalı.
     const max = Number(process.env['DATABASE_POOL_MAX'] ?? 10);
     this.db = drizzle(postgres(connectionString, { max, prepare: false }));
+    this.aggregates = new AggregateBuffer((batch) => this.writeAggregates(batch));
+  }
+
+  /**
+   * Tamponlanmış sayaç artışlarını tek seferde yazar.
+   *
+   * Tüm satırlar tek INSERT ... ON CONFLICT ifadesinde gider: aynı anda gelen yüzlerce
+   * oy, aynı satıra yüzlerce ayrı UPDATE yerine tek `+N` günceller.
+   */
+  private async writeAggregates(batch: BufferedIncrement[]): Promise<void> {
+    if (batch.length === 0) return;
+
+    const now = new Date();
+    await this.db.insert(voteAggregates)
+      .values(batch.map((item) => ({
+        pollId: item.pollId,
+        optionId: item.optionId,
+        cityId: item.cityId,
+        voteCount: item.amount,
+        updatedAt: now,
+      })))
+      .onConflictDoUpdate({
+        target: [voteAggregates.pollId, voteAggregates.optionId, voteAggregates.cityId],
+        set: {
+          voteCount: sql`${voteAggregates.voteCount} + excluded.vote_count`,
+          updatedAt: now,
+        },
+      });
+
+    // Zaman serisi de aynı toplamayla yazılır: trend verisi oy başına satır istemez.
+    const buckets = new Map<string, { pollId: string; optionId: string; bucket: Date; amount: number }>();
+    for (const item of batch) {
+      if (item.cityId !== 0) continue; // zaman serisi ülke geneli üzerinden tutulur
+      const bucket = new Date(now);
+      bucket.setMinutes(0, 0, 0);
+      const key = `${item.pollId}|${item.optionId}`;
+      const existing = buckets.get(key);
+      if (existing) existing.amount += item.amount;
+      else buckets.set(key, { pollId: item.pollId, optionId: item.optionId, bucket, amount: item.amount });
+    }
+
+    if (buckets.size > 0) {
+      await this.db.insert(voteTimeseries)
+        .values([...buckets.values()].map((b) => ({
+          pollId: b.pollId, optionId: b.optionId, bucket: b.bucket, voteCount: b.amount,
+        })))
+        .onConflictDoUpdate({
+          target: [voteTimeseries.pollId, voteTimeseries.optionId, voteTimeseries.bucket],
+          set: { voteCount: sql`${voteTimeseries.voteCount} + excluded.vote_count` },
+        });
+    }
   }
 
   private cacheGet(key: string): Poll | null | undefined {
@@ -149,7 +205,13 @@ export class PostgresStore implements Repository {
       .where(eq(options.pollId, pollId))
       .orderBy(options.position);
 
-    return rows.map((r) => ({ optionId: r.optionId, count: Number(r.count ?? 0) }));
+    // Tampondaki bekleyen artışlar eklenir: sayaçların tamponlanması, okunan değerin
+    // geride kalması anlamına gelmemeli.
+    const pending = this.aggregates.pendingFor(pollId, cityId);
+    return rows.map((r) => ({
+      optionId: r.optionId,
+      count: Number(r.count ?? 0) + (pending.get(r.optionId) ?? 0),
+    }));
   }
 
   async findVote(pollId: string, sessionHash: string) {
@@ -170,49 +232,40 @@ export class PostgresStore implements Repository {
     const sessionHash = Buffer.from(input.sessionHash, 'hex');
     const ipHash = Buffer.from(input.ipHash, 'hex');
 
-    return this.db.transaction(async (tx) => {
-      const inserted = await tx.insert(votes).values({
-        pollId: input.pollId,
-        optionId: input.optionId,
-        cityId: input.cityId,
-        sessionHash,
-        ipHash,
-        asn: input.asn,
-        country: input.country,
-        trustScore: input.trustScore,
-        isCounted: input.counted,
-        uaClass: input.uaClass,
-        createdAt: input.at,
-      })
-        // Mükerrer oy sessizce yok sayılır: UNIQUE(poll_id, session_hash) ihlali hata değil,
-        // beklenen bir durumdur.
-        .onConflictDoNothing({ target: [votes.pollId, votes.sessionHash] })
-        .returning({ id: votes.id });
+    // Ham oy ANINDA yazılır: dayanıklılığın tek kaynağı burasıdır ve mükerrer oy
+    // koruması (UNIQUE) da burada çalışır. Sayaçlar tampona alınır.
+    const inserted = await this.db.insert(votes).values({
+      pollId: input.pollId,
+      optionId: input.optionId,
+      cityId: input.cityId,
+      sessionHash,
+      ipHash,
+      asn: input.asn,
+      country: input.country,
+      trustScore: input.trustScore,
+      isCounted: input.counted,
+      uaClass: input.uaClass,
+      createdAt: input.at,
+    })
+      // Mükerrer oy sessizce yok sayılır: UNIQUE(poll_id, session_hash) ihlali hata değil,
+      // beklenen bir durumdur.
+      .onConflictDoNothing({ target: [votes.pollId, votes.sessionHash] })
+      .returning({ id: votes.id });
 
-      if (inserted.length === 0) return false;
-      if (!input.counted) return true; // karantina: ham oy yazıldı, agregaya işlenmedi
+    if (inserted.length === 0) return false;
+    if (!input.counted) return true; // karantina: ham oy yazıldı, sayaca işlenmedi
 
-      const bucket = new Date(input.at);
-      bucket.setMinutes(0, 0, 0);
+    this.aggregates.add({ pollId: input.pollId, optionId: input.optionId, cityId: 0 });
+    if (input.cityId !== null) {
+      this.aggregates.add({ pollId: input.pollId, optionId: input.optionId, cityId: input.cityId });
+    }
 
-      for (const cityId of [0, ...(input.cityId !== null ? [input.cityId] : [])]) {
-        await tx.insert(voteAggregates)
-          .values({ pollId: input.pollId, optionId: input.optionId, cityId, voteCount: 1 })
-          .onConflictDoUpdate({
-            target: [voteAggregates.pollId, voteAggregates.optionId, voteAggregates.cityId],
-            set: { voteCount: sql`${voteAggregates.voteCount} + 1`, updatedAt: new Date() },
-          });
-      }
+    return true;
+  }
 
-      await tx.insert(voteTimeseries)
-        .values({ pollId: input.pollId, optionId: input.optionId, bucket, voteCount: 1 })
-        .onConflictDoUpdate({
-          target: [voteTimeseries.pollId, voteTimeseries.optionId, voteTimeseries.bucket],
-          set: { voteCount: sql`${voteTimeseries.voteCount} + 1` },
-        });
-
-      return true;
-    });
+  /** Testler ve düzgün kapanış için: bekleyen sayaçları hemen yaz. */
+  async flushAggregates(): Promise<void> {
+    await this.aggregates.flush();
   }
 
   async countVelocity(sessionHash: string, ipHash: string): Promise<VelocitySignals> {
@@ -241,6 +294,29 @@ export class PostgresStore implements Repository {
       ipVotesLastMinute: Number(ipRows[0]?.lastMinute ?? 0),
       ipVotesLastHour: Number(ipRows[0]?.lastHour ?? 0),
     };
+  }
+
+  async getAllAggregates() {
+    const rows = await this.db
+      .select({
+        pollId: voteAggregates.pollId,
+        optionId: voteAggregates.optionId,
+        count: voteAggregates.voteCount,
+      })
+      .from(voteAggregates)
+      .where(eq(voteAggregates.cityId, 0));
+
+    // Tampondaki bekleyenler de eklenir; sayılar geride kalmamalı.
+    const result = rows.map((r) => ({
+      pollId: r.pollId, optionId: r.optionId, count: Number(r.count),
+    }));
+    for (const item of this.aggregates.allPending()) {
+      if (item.cityId !== 0) continue;
+      const existing = result.find((r) => r.pollId === item.pollId && r.optionId === item.optionId);
+      if (existing) existing.count += item.amount;
+      else result.push({ pollId: item.pollId, optionId: item.optionId, count: item.amount });
+    }
+    return result;
   }
 
   async getCityBreakdown(pollId: string): Promise<CityBreakdownRow[]> {

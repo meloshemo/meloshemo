@@ -1,4 +1,5 @@
 import { CITIES } from '@nabiz/db';
+import { LiveCounter } from '@/components/LiveCounter';
 import { PollDeck } from '@/components/PollDeck';
 import { TrendingPulse } from '@/components/TrendingPulse';
 import { getRepository } from '@/server/context';
@@ -30,7 +31,7 @@ export default async function HomePage() {
       </header>
 
       <p className="counter">
-        Türkiye şu anda neyi seçiyor? · <b>{totalVotes.toLocaleString('tr-TR')}</b> oy
+        Türkiye şu anda neyi seçiyor? · <LiveCounter initial={totalVotes} /> oy
       </p>
 
       <PollDeck polls={polls} cityId={cityId} />
