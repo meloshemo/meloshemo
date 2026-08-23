@@ -31,7 +31,6 @@ export async function GET(request: Request, ctx: { params: Promise<{ slug: strin
   const leader = [...results].sort((a, b) => b.pct - a.pct)[0];
 
   const label = (optionId: string) => poll.options.find((o) => o.id === optionId)?.label ?? '';
-  const emoji = (optionId: string) => poll.options.find((o) => o.id === optionId)?.emoji ?? '';
 
   return new ImageResponse(
     (
@@ -57,9 +56,13 @@ export async function GET(request: Request, ctx: { params: Promise<{ slug: strin
           {results.map((option) => (
             <div key={option.optionId} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <div style={{ fontSize: spec.questionSize * 0.72, display: 'flex', gap: 14 }}>
-                  <span>{emoji(option.optionId) ?? ''}</span>
-                  <span>{label(option.optionId)}</span>
+                {/*
+                  Emoji bilerek yok: Satori'nin gömülü fontunda emoji glifi bulunmuyor ve
+                  harici emoji fontu yüklemek her kart üretiminde ağ isteği demek. Boş kare
+                  gösteren bir kart, emojisiz temiz bir karttan daha kötüdür.
+                */}
+                <div style={{ fontSize: spec.questionSize * 0.72 }}>
+                  {label(option.optionId)}
                 </div>
                 <div style={{ fontSize: spec.pctSize, fontWeight: 800, lineHeight: 1 }}>
                   {`%${option.pct.toFixed(1)}`}
