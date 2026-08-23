@@ -43,6 +43,8 @@
 - [x] Deployment planı (`docs/22-deployment.md`)
 - [x] CI artık gerçek Postgres servisiyle koşuyor
 - [x] Şehir seçimi arayüzü (kapsam boşluğuydu: çerez okunuyor ama hiçbir yerde yazılmıyordu)
+- [x] Türkiye tercih haritası: 81 il SVG, doğrulanmış diverging ölçek, il paneli, tablo karşılığı
+- [x] Açık/premium palet (açık varsayılan + ayrı seçilmiş koyu tema)
 - [x] Yükselenler (pay değişimine göre) ve günün şampiyonu bölümleri
 
 ## 🔜 Sırada

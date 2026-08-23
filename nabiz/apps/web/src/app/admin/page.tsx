@@ -29,7 +29,7 @@ export default async function AdminDashboard() {
         </p>
         {/* Sağlıklı aralık %2–8 (docs/11). Dışına çıkarsa eşikler yanlış demektir. */}
         {metrics.totalVotes > 100 && (quarantineRate > 8 || quarantineRate < 2) && (
-          <p className="meta" style={{ color: '#f79009' }}>
+          <p className="meta" style={{ color: 'var(--down)' }}>
             ⚠ Karantina oranı sağlıklı aralığın ({'%2–8'}) dışında — anti-abuse eşiklerini gözden geçir.
           </p>
         )}
@@ -39,13 +39,13 @@ export default async function AdminDashboard() {
         <h2 className="section-title">Sorular</h2>
         <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ color: '#9aa4b2', textAlign: 'left' }}>
+            <tr style={{ color: 'var(--muted)', textAlign: 'left' }}>
               <th>Soru</th><th>Durum</th><th style={{ textAlign: 'right' }}>Oy</th><th style={{ textAlign: 'right' }}>Önde</th>
             </tr>
           </thead>
           <tbody>
             {metrics.perPoll.map((row) => (
-              <tr key={row.slug} style={{ borderTop: '1px solid #262d3a' }}>
+              <tr key={row.slug} style={{ borderTop: '1px solid var(--line)' }}>
                 <td style={{ padding: '8px 0' }}><a href={`/${row.slug}`}>{row.question}</a></td>
                 <td>{row.status}</td>
                 <td style={{ textAlign: 'right' }}>{row.votes.toLocaleString('tr-TR')}</td>

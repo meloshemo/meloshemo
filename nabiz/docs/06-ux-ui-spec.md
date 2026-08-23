@@ -3,7 +3,11 @@
 Mobile-first. Tasarım hedefi: **ilk oy ≤ 3 saniye**, sonuç ≤ 400 ms.
 
 ## 6.0 Tasarım dili
-- Koyu zemin varsayılan (`#0B0D12`) — sonuç barları ve rakamlar üstünde parlar, OLED'de pil dostu.
+- **Açık zemin varsayılan** (`#F6F7F9` üzerine beyaz kartlar). Koyu tema, sistem tercihine
+  göre aynı token'ların ayrı seçilmiş değerleriyle gelir — otomatik ters çevirme değil.
+  (İlk sürüm koyu zeminle tasarlanmıştı; açık palet daha sakin ve premium okunduğu için
+  değiştirildi. Marka kırmızısı yalnızca önde olan seçenekte, canlı noktasında ve haritanın
+  bir kutbunda görünür.)
 - Grid: 4pt. Kenar boşluğu 16px. İçerik max-width 480px (mobil), 640px (masaüstü) — geniş ekranda
   bile tek kolon; bu ürün "feed" değil, "kart".
 - Dokunma hedefi min 44×44px. Ana oy kartları ekran yüksekliğinin %30'u.

@@ -54,8 +54,8 @@ export function CityPicker({ onDone }: { onDone: (cityId: number | null) => void
         autoComplete="off"
         disabled={saving}
         style={{
-          width: '100%', minHeight: 44, marginTop: 6, background: '#1e2430', color: '#fff',
-          border: '1px solid #262d3a', borderRadius: 12, padding: '0 12px', fontSize: 16,
+          width: '100%', minHeight: 44, marginTop: 6, background: 'var(--card-2)', color: 'var(--ink)',
+          border: '1px solid var(--line)', borderRadius: 12, padding: '0 12px', fontSize: 16,
         }}
       />
 

@@ -46,8 +46,8 @@ export default async function NewPollPage({
   const { hata, konu } = await searchParams;
 
   const input = {
-    width: '100%', minHeight: 44, marginTop: 6, marginBottom: 12, background: '#1e2430',
-    color: '#fff', border: '1px solid #262d3a', borderRadius: 12, padding: '0 12px',
+    width: '100%', minHeight: 44, marginTop: 6, marginBottom: 12, background: 'var(--card-2)',
+    color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 12, padding: '0 12px',
   } as const;
 
   return (
