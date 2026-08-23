@@ -18,7 +18,11 @@ Türkiye geneli ve şehir kırılımı.
 npm install
 npm run dev          # DATABASE_URL yoksa bellek içi depo + seed veriyle açılır
 npm test             # 52 birim testi
-npm run test:e2e     # üretim derlemesini başlatıp 20 uçtan uca kontrol
+npm run test:e2e     # üretim derlemesini başlatıp 21 uçtan uca kontrol
+                     # DATABASE_URL verilirse gerçek Postgres'e karşı koşar
+
+# Postgres ile
+npm run db:migrate && npm run seed
 ```
 
 Ortam değişkenleri için `.env.example`, bilinçli sapmalar için
@@ -28,7 +32,8 @@ Ortam değişkenleri için `.env.example`, bilinçli sapmalar için
 Oy verme (idempotent, hız limitli, şüpheli oy karantinalı) · anlık sonuç + şehir kırılımı ·
 SEO'lu soru sayfaları + schema.org · şehir ve kategori sayfaları · eşik kurallı sitemap ·
 dinamik paylaşım kartları (WhatsApp / Story / X) · admin paneli + editoryal kontrol listesi ·
-metodoloji sayfası · Postgres deposu ve gece yeniden sayım işi.
+metodoloji sayfası · Postgres deposu, migration'lar, seed ve gece yeniden sayım işi ·
+gizlilik/KVKK/kullanım koşulları taslakları · k6 yük testi senaryosu.
 
 ### Henüz olmayanlar
 Canlı SSE akışı · turnuva/Sezon mekaniği · hesap ve rozetler · sponsorluk altyapısı.

@@ -20,6 +20,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: 'hourly', priority: 1 },
     { url: `${base}/nasil-sayiyoruz`, changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${base}/gizlilik`, changeFrequency: 'yearly', priority: 0.1 },
+    { url: `${base}/kvkk`, changeFrequency: 'yearly', priority: 0.1 },
+    { url: `${base}/kullanim-kosullari`, changeFrequency: 'yearly', priority: 0.1 },
     ...polls.map((poll) => ({
       url: `${base}/${poll.slug}`,
       changeFrequency: 'hourly' as const,

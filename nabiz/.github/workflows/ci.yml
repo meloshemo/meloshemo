@@ -11,6 +11,24 @@ jobs:
     defaults:
       run:
         working-directory: nabiz
+
+    # Uçtan uca testler gerçek Postgres'e karşı koşar. Bellek içi depoyla koşmak,
+    # üretimde kullanılan tek kod yolunu test etmemek demektir — bu proje o hatayı
+    # bir kez yaptı ve boş agregasyon hatası ancak gerçek veritabanında ortaya çıktı.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: nabiz
+          POSTGRES_PASSWORD: nabiz
+          POSTGRES_DB: nabiz
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://nabiz:nabiz@127.0.0.1:5432/nabiz
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,9 +38,21 @@ jobs:
           cache-dependency-path: nabiz/package-lock.json
 
       - run: npm ci
-      - name: Testler
+
+      - name: Birim testleri
         run: npx vitest run
+
+      - name: Migration'lar
+        run: npm run db:migrate
+
+      - name: Başlangıç verisi
+        run: npm run seed
+
       - name: Derleme (tip kontrolü dahil)
         run: npx next build apps/web
-      - name: Uçtan uca oy akışı
+
+      - name: Uçtan uca (gerçek Postgres)
         run: npm run test:e2e
+
+      - name: Gece yeniden sayım işi çalışıyor mu
+        run: npm run recount

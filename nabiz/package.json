@@ -15,7 +15,10 @@
     "typecheck": "tsc -b --pretty false",
     "lint": "next lint --dir apps/web/src",
     "test:e2e": "node scripts/e2e.mjs",
-    "recount": "npx tsx infra/jobs/recount.ts"
+    "recount": "npx tsx infra/jobs/recount.ts",
+    "seed": "npx tsx infra/jobs/seed.ts",
+    "db:generate": "npm run generate --workspace @nabiz/db",
+    "db:migrate": "cd packages/db && npx drizzle-kit migrate"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

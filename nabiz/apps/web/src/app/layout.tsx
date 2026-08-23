@@ -22,7 +22,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr">
       <body>
-        <div className="shell">{children}</div>
+        <div className="shell">
+          {children}
+          <footer className="disclaimer">
+            <a href="/nasil-sayiyoruz">Nasıl sayıyoruz</a> ·{' '}
+            <a href="/gizlilik">Gizlilik</a> ·{' '}
+            <a href="/kvkk">KVKK</a> ·{' '}
+            <a href="/kullanim-kosullari">Kullanım koşulları</a>
+          </footer>
+        </div>
       </body>
     </html>
   );

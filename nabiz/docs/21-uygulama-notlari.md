@@ -34,6 +34,23 @@ tabanlı SSE yayını, `docs/07`'deki mimaride tanımlı ama MVP kapsamı dış�
 kendi oyundan sonra gördüğü anlık sonuç, ürünün vaadini zaten karşılıyor. Eşzamanlı canlı
 akış, trafik gerçekten paralelleşince değerli olur.
 
+## 6. Yük testi bulgusu: ölçüm ortamı sonucu belirledi
+Tek makinede (4 çekirdek, istemci + Next + Postgres aynı CPU) 150 istek/sn altında p95
+1143 ms görünüyordu. Uç noktalar tek tek ölçüldüğünde gerçek maliyet **p50 14 ms,
+p95 38 ms** çıktı: yüksek gecikme sunucudan değil, test istemcisinin kendisinden
+geliyordu. Gerçek kapasite ölçümü ayrı makineden k6 ile yapılmalı.
+
+Bu ölçüm sırasında iki gerçek iyileştirme yapıldı ve kaldı:
+- Soru/kategori için 30 sn'lik süreç içi önbellek (oy başına 3 sorgu daha az)
+- Hız sayaçları tek çağrıda, iki paralel **indeksli** sorgu olarak
+  (`session_hash OR ip_hash` yazımı EXPLAIN'de tam tarama yapıyordu; `votes(session_hash,
+  created_at)` indeksi eklendi)
+
+## 7. Yasal metinler taslak
+`/gizlilik`, `/kvkk`, `/kullanim-kosullari` sayfaları mühendislik tarafından, ürünün gerçek
+veri davranışına bakılarak yazıldı ve sayfada **taslak uyarısı** taşıyor. Uyarı ancak
+avukat kontrolünden sonra kaldırılmalı (`docs/18`).
+
 ## Ortam değişkenleri
 | Değişken | Zorunlu | Ne işe yarar |
 |---|---|---|
@@ -43,3 +60,4 @@ akış, trafik gerçekten paralelleşince değerli olur.
 | `ADMIN_TOKEN` | hayır | Tanımlıysa admin paneli açılır (≥24 karakter) |
 | `NEXT_PUBLIC_SITE_URL` | önerilir | Canonical URL ve paylaşım kartları |
 | `ALLOW_MEMORY_STORE` | hayır | Yalnızca test; üretimde asla |
+| `DATABASE_POOL_MAX` | hayır | Bağlantı havuzu (serverless 5, sunucu 10–20; varsayılan 10) |

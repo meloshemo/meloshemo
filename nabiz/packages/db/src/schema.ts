@@ -110,6 +110,9 @@ export const votes = pgTable('votes', {
   sessionUq: unique('votes_poll_session_uq').on(t.pollId, t.sessionHash),
   pollTimeIdx: index('votes_poll_created_idx').on(t.pollId, t.createdAt),
   ipIdx: index('votes_ip_created_idx').on(t.ipHash, t.createdAt),
+  // Hız kontrolü oturum bazında da sorgulanır. Bu indeks olmadan sorgu tam tarama yapar;
+  // milyonlarca satırda oy yolunu tıkayan tek şey bu olurdu.
+  sessionTimeIdx: index('votes_session_created_idx').on(t.sessionHash, t.createdAt),
 }));
 
 /** Okuma yolu. cityId = 0 → Türkiye geneli. */

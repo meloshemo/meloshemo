@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Poll } from '@nabiz/core';
 import { CATEGORIES, SEED_POLLS } from '@nabiz/db';
 import { computeResults, leaderOf, slugify } from '@nabiz/core';
-import type { AdminMetrics, CreatePollInput, Repository, RecordVoteInput } from './repository';
+import type { AdminMetrics, CreatePollInput, Repository, RecordVoteInput, VelocitySignals } from './repository';
 
 /**
  * Bellek içi depo — geliştirme ve test içindir.
@@ -98,14 +98,27 @@ export class MemoryStore implements Repository {
     this.aggregates.set(key, (this.aggregates.get(key) ?? 0) + 1);
   }
 
-  async countRecentVotesBySession(sessionHash: string, sinceMs: number): Promise<number> {
-    const cutoff = Date.now() - sinceMs;
-    return this.votes.filter((v) => v.sessionHash === sessionHash && v.at.getTime() >= cutoff).length;
-  }
+  async countVelocity(sessionHash: string, ipHash: string): Promise<VelocitySignals> {
+    const minuteAgo = Date.now() - 60_000;
+    const hourAgo = Date.now() - 3_600_000;
+    let sessionMinute = 0;
+    let ipMinute = 0;
+    let ipHour = 0;
 
-  async countRecentVotesByIp(ipHash: string, sinceMs: number): Promise<number> {
-    const cutoff = Date.now() - sinceMs;
-    return this.votes.filter((v) => v.ipHash === ipHash && v.at.getTime() >= cutoff).length;
+    for (const vote of this.votes) {
+      const at = vote.at.getTime();
+      if (vote.sessionHash === sessionHash && at >= minuteAgo) sessionMinute += 1;
+      if (vote.ipHash === ipHash) {
+        if (at >= minuteAgo) ipMinute += 1;
+        if (at >= hourAgo) ipHour += 1;
+      }
+    }
+
+    return {
+      sessionVotesLastMinute: sessionMinute,
+      ipVotesLastMinute: ipMinute,
+      ipVotesLastHour: ipHour,
+    };
   }
 
   async createPoll(input: CreatePollInput): Promise<Poll> {

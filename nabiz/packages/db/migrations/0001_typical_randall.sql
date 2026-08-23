@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "votes_session_created_idx" ON "votes" USING btree ("session_hash","created_at");

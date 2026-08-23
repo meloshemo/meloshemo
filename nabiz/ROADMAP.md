@@ -36,12 +36,19 @@
 - [x] **H4** Postgres deposu · gece yeniden sayım işi · küme anormalliği tespiti
 - [x] **H4** 52 birim testi + 20 uçtan uca kontrol + CI iş akışı
 
+- [x] Migration dosyaları + gerçek Postgres üzerinde doğrulama (21/21 uçtan uca)
+- [x] Seed işi (81 il, kategoriler, açılış soruları) — idempotent
+- [x] Yasal metin taslakları: gizlilik, KVKK aydınlatma, kullanım koşulları
+- [x] Yük testi altyapısı (k6 senaryosu + bağımlılıksız yerel koşucu) ve ilk profilleme
+- [x] Deployment planı (`docs/22-deployment.md`)
+- [x] CI artık gerçek Postgres servisiyle koşuyor
+
 ## 🔜 Sırada
-- [ ] Migration dosyaları (`drizzle-kit generate`) ve gerçek Postgres üzerinde doğrulama
-- [ ] Canlı SSE akışı (Durable Object)
+- [ ] Canlı SSE akışı (Durable Object) — trafik paralelleşince
 - [ ] Sezon / turnuva mekaniği — **MVP retention verisi gelmeden başlanmaz**
-- [ ] Yasal metinler (KVKK aydınlatma, gizlilik, kullanım koşulları) — hukuk kontrolüyle
-- [ ] k6 yük testi (hedef 500 oy/sn) ve prod deploy
+- [ ] Yasal metinlerin avukat kontrolü ve taslak uyarısının kaldırılması
+- [ ] k6 ile ayrı makineden gerçek kapasite ölçümü (hedef: 500 oy/sn'de p95 < 300 ms)
+- [ ] Prod deploy (`docs/22` kontrol listesi)
 - [ ] **Day 30** kapı metrikleri değerlendirmesi (bkz. `docs/14-launch.md`)
 
 **Sezon/turnuva Ay 2'de** — MVP retention verisi gelmeden yapılmaz.

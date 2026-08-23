@@ -13,9 +13,6 @@ export type VoteOutcome =
   | { kind: 'invalid_option' }
   | { kind: 'not_found' };
 
-const MINUTE = 60_000;
-const HOUR = 60 * MINUTE;
-
 /**
  * Oy kaydetme akışının tamamı. Bilerek HTTP'den bağımsız tutulmuştur:
  * route yalnızca istek/yanıt çevirisi yapar, karar burada verilir ve burada test edilir.
@@ -47,11 +44,7 @@ export async function castVote(
     return { kind: 'already_voted', results: await buildResults(repo, attempt, existing.optionId) };
   }
 
-  const signals = {
-    sessionVotesLastMinute: await repo.countRecentVotesBySession(sessionHash, MINUTE),
-    ipVotesLastMinute: await repo.countRecentVotesByIp(ipHash, MINUTE),
-    ipVotesLastHour: await repo.countRecentVotesByIp(ipHash, HOUR),
-  };
+  const signals = await repo.countVelocity(sessionHash, ipHash);
 
   if (isHardRateLimited(signals)) {
     await repo.logAbuseEvent('hard_rate_limit', { pollId: attempt.pollId, ...signals });

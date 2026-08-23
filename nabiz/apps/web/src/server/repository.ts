@@ -30,8 +30,11 @@ export interface Repository {
    */
   recordVote(input: RecordVoteInput): Promise<boolean>;
 
-  countRecentVotesBySession(sessionHash: string, sinceMs: number): Promise<number>;
-  countRecentVotesByIp(ipHash: string, sinceMs: number): Promise<number>;
+  /**
+   * Hız sinyalleri tek çağrıda alınır: oy yolunda üç ayrı sayım sorgusu, yük testinde
+   * gecikmenin en büyük kalemiydi.
+   */
+  countVelocity(sessionHash: string, ipHash: string): Promise<VelocitySignals>;
 
   createPoll(input: CreatePollInput): Promise<Poll>;
   /** Yalnızca editoryal kontrol listesi işaretlenmiş taslaklar yayınlanabilir. */
@@ -74,4 +77,10 @@ export interface AdminMetrics {
   shares: number;
   /** Soru bazlı döküm — admin panelinde sıkıcı soruları ayıklamak için. */
   perPoll: Array<{ slug: string; question: string; votes: number; leaderPct: number; status: string }>;
+}
+
+export interface VelocitySignals {
+  sessionVotesLastMinute: number;
+  ipVotesLastMinute: number;
+  ipVotesLastHour: number;
 }

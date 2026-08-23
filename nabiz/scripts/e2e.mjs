@@ -40,7 +40,9 @@ async function main() {
       SESSION_SECRET: 'e2e-oturum-anahtari-en-az-32-karakter-uzunlukta',
       VOTE_HASH_SALT: 'e2e-tuzu',
       ADMIN_TOKEN,
-      ALLOW_MEMORY_STORE: '1', // testler gerçek veritabanı olmadan üretim derlemesini çalıştırır
+      // DATABASE_URL verilmişse gerçek Postgres'e karşı koşar (asıl üretim yolu);
+      // verilmemişse bellek içi depoya açıkça izin verilir.
+      ...(process.env.DATABASE_URL ? {} : { ALLOW_MEMORY_STORE: '1' }),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
     // Kendi süreç grubunda başlat: npx bir sarmalayıcıdır, onu öldürmek altındaki Next
@@ -87,18 +89,26 @@ async function main() {
       return { status: response.status, body: await response.json() };
     };
 
+    // Kalıcı bir veritabanına karşı koşarken önceki oylar durur; bu yüzden mutlak sayı
+    // değil FARK ölçülür. "toplam === 1" beklentisi yalnızca boş bir depoda doğrudur.
+    const baseline = (await (await fetch(`${BASE}/api/v1/polls/${pollId}/results`)).json()).total;
+
     const first = await vote(optionA, { session: 's1' });
-    check('yeni oturum oy verebiliyor', first.status === 200 && first.body.results.total === 1);
+    check('yeni oturum oy verebiliyor',
+      first.status === 200 && first.body.results.total === baseline + 1,
+      `${baseline} → ${first.body.results?.total}`);
     check('kullanıcının kendi oyu işaretleniyor', first.body.results.yourOptionId === optionA);
 
     const second = await vote(optionB, { session: 's1' });
-    check('aynı oturum ikinci kez oy veremiyor', second.status === 409 && second.body.results.total === 1);
+    check('aynı oturum ikinci kez oy veremiyor',
+      second.status === 409 && second.body.results.total === baseline + 1);
     check('mükerrer denemede de sonuç gösteriliyor', Boolean(second.body.results));
 
     const token = randomUUID();
     await vote(optionB, { session: 's2', token });
     const replay = await vote(optionB, { session: 's2', token });
     check('aynı token tekrarında ikinci oy yazılmıyor', replay.status === 409);
+    check('idempotent tekrar sayımı artırmıyor', replay.body.results.total === baseline + 2);
 
     const before = (await (await fetch(`${BASE}/api/v1/polls/${pollId}/results`)).json()).total;
     await vote(optionA, { session: 'bot', decisionMs: 15, interaction: false, ua: '' });
@@ -137,6 +147,11 @@ async function main() {
 
     const categoryPage = await (await fetch(`${BASE}/kategori/tatli`)).text();
     check('kategori sayfası açılıyor', categoryPage.includes('Tatlı'));
+  } catch (error) {
+    // Sunucu logları olmadan uzaktaki bir hatayı teşhis etmek imkânsız.
+    console.error('\n--- sunucu logları (son 3000 karakter) ---');
+    console.error(logs.join('').slice(-3000));
+    throw error;
   } finally {
     // SIGKILL: Next sunucusu SIGTERM'de her zaman kapanmıyor ve açık borular süreci ayakta
     // tutuyor — CI'da bu, tüm kontroller geçse bile takılan bir iş demektir.
