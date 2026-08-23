@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: 'hourly', priority: 1 },
+    { url: `${base}/harita`, changeFrequency: 'hourly', priority: 0.9 },
     { url: `${base}/nasil-sayiyoruz`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${base}/gizlilik`, changeFrequency: 'yearly', priority: 0.1 },
     { url: `${base}/kvkk`, changeFrequency: 'yearly', priority: 0.1 },

@@ -189,6 +189,18 @@ async function main() {
       cronAuthed.status === 200 || cronAuthed.status === 503,
       `HTTP ${cronAuthed.status}`);
 
+    const mapPage = await (await fetch(`${BASE}/harita`)).text();
+    check('harita sayfası açılıyor', mapPage.includes('Türkiye ne seçiyor?'));
+    check('harita 81 ili çiziyor',
+      (mapPage.match(/class="province/g) || []).length === 81,
+      `${(mapPage.match(/class="province/g) || []).length} il`);
+    check('haritanın tablo karşılığı var', mapPage.includes('Haritayı tablo olarak gör'));
+
+    // Adresle istenen soru sessizce başkasına düşerse kullanıcı yanlış haritaya bakar.
+    const mapForPoll = await (await fetch(`${BASE}/harita?soru=lahmacun-vs-doner`)).text();
+    check('harita adresteki soruyu açıyor',
+      mapForPoll.includes('Lahmacun') && mapForPoll.includes('Döner'));
+
     const cityPage = await (await fetch(`${BASE}/sehir/izmir`)).text();
     check('şehir sayfası açılıyor', cityPage.includes('ne diyor?'));
 

@@ -7,8 +7,8 @@ import {
 } from '@nabiz/core';
 import { schema } from '@nabiz/db';
 import type {
-  AdminMetrics, ChampionEntry, CreatePollInput, RecordVoteInput, Repository,
-  TrendingEntry, VelocitySignals,
+  AdminMetrics, ChampionEntry, CityBreakdownRow, CreatePollInput, RecordVoteInput,
+  Repository, TrendingEntry, VelocitySignals,
 } from './repository';
 
 const { polls, options, votes, voteAggregates, voteTimeseries, abuseEvents, shares, categories } = schema;
@@ -241,6 +241,19 @@ export class PostgresStore implements Repository {
       ipVotesLastMinute: Number(ipRows[0]?.lastMinute ?? 0),
       ipVotesLastHour: Number(ipRows[0]?.lastHour ?? 0),
     };
+  }
+
+  async getCityBreakdown(pollId: string): Promise<CityBreakdownRow[]> {
+    const rows = await this.db
+      .select({
+        cityId: voteAggregates.cityId,
+        optionId: voteAggregates.optionId,
+        count: voteAggregates.voteCount,
+      })
+      .from(voteAggregates)
+      .where(and(eq(voteAggregates.pollId, pollId), sql`${voteAggregates.cityId} > 0`));
+
+    return rows.map((r) => ({ cityId: r.cityId, optionId: r.optionId, count: Number(r.count) }));
   }
 
   async getTrending(limit: number): Promise<TrendingEntry[]> {

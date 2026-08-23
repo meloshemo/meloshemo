@@ -35,6 +35,10 @@ export default async function HomePage() {
 
       <PollDeck polls={polls} cityId={cityId} />
 
+      <p className="meta">
+        🗺️ <a href="/harita">Türkiye tercih haritası</a> — hangi şehir neyi seçiyor?
+      </p>
+
       {cityId !== null && (
         <p className="meta">
           📍 Şehrin: <a href={`/sehir/${CITIES.find((c) => c.id === cityId)?.slug}`}>

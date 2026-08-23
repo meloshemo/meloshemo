@@ -3,8 +3,8 @@ import type { Poll } from '@nabiz/core';
 import { CATEGORIES, SEED_POLLS } from '@nabiz/db';
 import { computeResults, computeTrend, leaderOf, pulseSeries, slugify, type BucketCounts } from '@nabiz/core';
 import type {
-  AdminMetrics, ChampionEntry, CreatePollInput, Repository, RecordVoteInput,
-  TrendingEntry, VelocitySignals,
+  AdminMetrics, ChampionEntry, CityBreakdownRow, CreatePollInput, Repository,
+  RecordVoteInput, TrendingEntry, VelocitySignals,
 } from './repository';
 
 /**
@@ -122,6 +122,18 @@ export class MemoryStore implements Repository {
       ipVotesLastMinute: ipMinute,
       ipVotesLastHour: ipHour,
     };
+  }
+
+  async getCityBreakdown(pollId: string): Promise<CityBreakdownRow[]> {
+    const rows: CityBreakdownRow[] = [];
+    for (const [key, count] of this.aggregates) {
+      const [poll, city, option] = key.split('|');
+      if (poll !== pollId) continue;
+      const cityId = Number(city);
+      if (cityId === 0) continue; // 0 = Türkiye geneli, harita il kırılımı ister
+      rows.push({ cityId, optionId: option!, count });
+    }
+    return rows;
   }
 
   async getTrending(limit: number): Promise<TrendingEntry[]> {

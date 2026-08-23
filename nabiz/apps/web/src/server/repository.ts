@@ -36,6 +36,12 @@ export interface Repository {
    */
   countVelocity(sessionHash: string, ipHash: string): Promise<VelocitySignals>;
 
+  /**
+   * Bir sorunun TÜM şehir kırılımları — harita için tek çağrıda.
+   * 81 il için ayrı ayrı sormak 81 gidiş-dönüş demek olurdu.
+   */
+  getCityBreakdown(pollId: string): Promise<CityBreakdownRow[]>;
+
   /** Son 24 saatte payı artan seçenekler (ana sayfa "yükselenler" bölümü). */
   getTrending(limit: number): Promise<TrendingEntry[]>;
   /** Bugün en çok oy alan sorunun önde gideni. */
@@ -109,4 +115,10 @@ export interface ChampionEntry {
   emoji: string | null;
   pct: number;
   votes: number;
+}
+
+export interface CityBreakdownRow {
+  cityId: number;
+  optionId: string;
+  count: number;
 }

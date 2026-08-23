@@ -203,3 +203,79 @@ a { color: inherit; }
      akışı kaybetmemeli. */
   .deck-card, .deck-card.exit-left, .deck-card.exit-right { animation: none; }
 }
+
+/* ─── Harita ────────────────────────────────────────────────── */
+.wide { max-width: 960px; margin: 0 auto; }
+
+.map-wrap {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 16px 14px;
+  margin: 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tr-map { width: 100%; height: auto; display: block; }
+
+/* Sınır çizgisi her ilde vardır; dolgu yalnızca eşiği geçen ilde.
+   Boş bir il "veri yok" der, gri bir il "sonuç bu" derdi. */
+.tr-map .province path.no-data { fill: var(--ink-3); }
+
+.tr-map .province path {
+  stroke: var(--line);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+  transition: filter 120ms ease;
+}
+.tr-map .province:hover path { filter: brightness(1.12); stroke: var(--paper); stroke-width: 1.2; }
+.tr-map .province:focus-visible { outline: none; }
+.tr-map .province:focus-visible path { stroke: var(--paper); stroke-width: 2; }
+.tr-map .province.selected path { stroke: var(--paper); stroke-width: 1.8; }
+
+.legend { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+.legend-end { flex-shrink: 0; }
+.legend-scale { display: flex; flex: 1; height: 8px; border-radius: 99px; overflow: hidden; }
+.legend-scale i { flex: 1; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.chip {
+  display: inline-flex; padding: 7px 12px; border-radius: 99px;
+  border: 1px solid var(--line); background: var(--ink-2);
+  font-size: 13px; text-decoration: none; color: var(--muted);
+}
+.chip:hover { border-color: var(--muted); color: var(--paper); }
+.chip.on { background: var(--paper); border-color: var(--paper); color: var(--ink); font-weight: 600; }
+
+.split { display: grid; gap: 14px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .split { grid-template-columns: 1fr 1fr; } }
+
+.panel {
+  background: var(--ink-2); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px;
+}
+.panel-q { font-size: 15px; margin: 0 0 8px; }
+.panel-lead { font-size: 15px; margin: 0 0 4px; }
+.panel-lead b { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.panel-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 0; }
+.panel-row b { font-size: 20px; font-weight: 700; }
+.panel-row b.lead { color: var(--red); }
+.insight {
+  font-size: 13px; margin: 10px 0 0; padding: 10px 12px;
+  background: var(--ink-3); border-radius: 10px; line-height: 1.5;
+}
+
+.rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rank li { display: flex; align-items: baseline; gap: 10px; font-size: 14px; }
+.rank-no { width: 18px; color: var(--muted); font-size: 12px; }
+.rank-val { margin-left: auto; color: var(--muted); font-size: 12px; }
+
+.table-view { margin: 18px 0; font-size: 13px; }
+.table-view summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
+.table-scroll { overflow-x: auto; }
+.table-view table { width: 100%; border-collapse: collapse; }
+.table-view caption { text-align: left; color: var(--muted); padding-bottom: 8px; }
+.table-view th, .table-view td { text-align: right; padding: 6px 10px; border-top: 1px solid var(--line); }
+.table-view th[scope="row"], .table-view thead th:first-child { text-align: left; font-weight: 500; }

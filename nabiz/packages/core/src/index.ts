@@ -7,3 +7,4 @@ export * from './editorial';
 export * from './seo';
 export * from './anomaly';
 export * from './trending';
+export * from './map-scale';
