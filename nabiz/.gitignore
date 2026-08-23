@@ -1,5 +1,6 @@
 node_modules/
 .next/
+next-env.d.ts
 dist/
 .env
 .env.*
@@ -8,3 +9,4 @@ dist/
 *.log
 .vercel/
 coverage/
+*.tsbuildinfo
