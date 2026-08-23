@@ -1,15 +1,28 @@
 import type { Repository } from './repository';
 import { MemoryStore } from './memory-store';
+import { PostgresStore } from './postgres-store';
 
 let cached: Repository | null = null;
 
 /**
- * Aktif depo. DATABASE_URL yoksa bellek içi depoya düşer, böylece proje hiçbir altyapı
- * kurulumu olmadan çalışır. Postgres uygulaması (PostgresStore) aynı arayüzü karşılayacak
- * şekilde eklenecektir — çağıran kod değişmez.
+ * Aktif depo. DATABASE_URL varsa Postgres, yoksa (yalnızca geliştirmede) bellek içi depo.
+ * Çağıran kod hangisi olduğunu bilmez.
  */
 export function getRepository(): Repository {
-  if (!cached) cached = new MemoryStore();
+  if (cached) return cached;
+
+  const url = process.env['DATABASE_URL'];
+  if (url) {
+    cached = new PostgresStore(url);
+  } else {
+    // Üretimde bellek içi depo veri kaybı demektir; sessizce bu duruma düşmek yasak.
+    // Tek istisna, açıkça istenmesi (uçtan uca testlerin üretim derlemesini çalıştırması):
+    // varsayılan kapalıdır, yani kazara üretime böyle çıkılamaz.
+    if (process.env.NODE_ENV === 'production' && process.env['ALLOW_MEMORY_STORE'] !== '1') {
+      throw new Error('DATABASE_URL üretimde zorunludur');
+    }
+    cached = new MemoryStore();
+  }
   return cached;
 }
 

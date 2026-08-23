@@ -1,18 +1,26 @@
 {
   "name": "nabiz",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
-  "engines": { "node": ">=20" },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "npm run dev --workspace @nabiz/web",
     "build": "npm run build --workspace @nabiz/web",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty false",
-    "lint": "next lint --dir apps/web/src"
+    "lint": "next lint --dir apps/web/src",
+    "test:e2e": "node scripts/e2e.mjs",
+    "recount": "npx tsx infra/jobs/recount.ts"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
     "vitest": "^2.1.4",
-    "@types/node": "^22.9.0"
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2"
   }
 }

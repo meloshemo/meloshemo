@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { Poll } from '@nabiz/core';
 import { CATEGORIES, SEED_POLLS } from '@nabiz/db';
-import type { Repository, RecordVoteInput } from './repository';
+import { computeResults, leaderOf, slugify } from '@nabiz/core';
+import type { AdminMetrics, CreatePollInput, Repository, RecordVoteInput } from './repository';
 
 /**
  * Bellek içi depo — geliştirme ve test içindir.
@@ -17,6 +18,8 @@ export class MemoryStore implements Repository {
   private readonly votes: StoredVote[] = [];
   /** `${pollId}|${cityId}|${optionId}` → sayım */
   private readonly aggregates = new Map<string, number>();
+  private readonly editorialOk = new Map<string, boolean>();
+  private shareCount = 0;
 
   constructor() {
     for (const seed of SEED_POLLS) {
@@ -41,6 +44,14 @@ export class MemoryStore implements Repository {
 
   async listLivePolls(limit: number): Promise<Poll[]> {
     return this.polls.filter((p) => p.status === 'live').slice(0, limit);
+  }
+
+  async listPollsByCategory(categorySlug: string): Promise<Poll[]> {
+    return this.polls.filter((p) => p.categorySlug === categorySlug && p.status === 'live');
+  }
+
+  async listPublishedPolls(): Promise<Poll[]> {
+    return this.polls.filter((p) => p.status === 'live' || p.status === 'closed' || p.status === 'archived');
   }
 
   async getPollBySlug(slug: string): Promise<Poll | null> {
@@ -97,6 +108,58 @@ export class MemoryStore implements Repository {
     return this.votes.filter((v) => v.ipHash === ipHash && v.at.getTime() >= cutoff).length;
   }
 
+  async createPoll(input: CreatePollInput): Promise<Poll> {
+    const poll: Poll = {
+      id: randomUUID(),
+      slug: input.slug || slugify(input.question),
+      question: input.question,
+      categorySlug: input.categorySlug,
+      status: 'draft',
+      sponsorName: null,
+      endsAt: null,
+      options: input.options.map((o) => ({
+        id: randomUUID(), label: o.label, emoji: o.emoji, entitySlug: null,
+      })),
+    };
+    this.editorialOk.set(poll.id, input.editorialOk);
+    this.polls.push(poll);
+    return poll;
+  }
+
+  async publishPoll(pollId: string): Promise<'published' | 'not_found' | 'editorial_blocked'> {
+    const poll = this.polls.find((p) => p.id === pollId);
+    if (!poll) return 'not_found';
+    // Sunucu tarafı kapı: kontrol listesi işaretlenmemişse yayın mümkün değil (docs/10).
+    if (!this.editorialOk.get(poll.id)) return 'editorial_blocked';
+    poll.status = 'live';
+    return 'published';
+  }
+
+  async getAdminMetrics(): Promise<AdminMetrics> {
+    const counted = this.votes.filter((v) => v.counted).length;
+    const perPoll = await Promise.all(this.polls.map(async (poll) => {
+      const results = computeResults(await this.getAggregates(poll.id, 0));
+      return {
+        slug: poll.slug,
+        question: poll.question,
+        votes: results.reduce((sum, r) => sum + r.count, 0),
+        leaderPct: leaderOf(results)?.pct ?? 0,
+        status: poll.status,
+      };
+    }));
+
+    return {
+      totalVotes: this.votes.length,
+      countedVotes: counted,
+      quarantinedVotes: this.votes.length - counted,
+      livePolls: this.polls.filter((p) => p.status === 'live').length,
+      draftPolls: this.polls.filter((p) => p.status === 'draft').length,
+      shares: this.shareCount,
+      perPoll: perPoll.sort((a, b) => b.votes - a.votes),
+    };
+  }
+
   async logAbuseEvent(): Promise<void> { /* geliştirme ortamında yok sayılır */ }
-  async recordShare(): Promise<void> { /* geliştirme ortamında yok sayılır */ }
+
+  async recordShare(): Promise<void> { this.shareCount += 1; }
 }

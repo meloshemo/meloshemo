@@ -19,7 +19,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     title: poll.question,
     description: `${labels} — Türkiye şu anda hangisini seçiyor? Canlı sonuçlar ve şehir kırılımı.`,
     alternates: { canonical: `/${poll.slug}` },
-    openGraph: { title: poll.question, description: labels, url: `/${poll.slug}` },
+    openGraph: {
+      title: poll.question,
+      description: labels,
+      url: `/${poll.slug}`,
+      images: [{ url: `/og/${poll.slug}?variant=x`, width: 1200, height: 675 }],
+    },
+    twitter: { card: 'summary_large_image', images: [`/og/${poll.slug}?variant=x`] },
   };
 }
 
@@ -43,6 +49,13 @@ export default async function PollPage({ params }: Params) {
         <a className="wordmark" href="/">NAB<span>I</span>Z</a>
         <div className="live"><span className="dot" aria-hidden="true" /> CANLI</div>
       </header>
+
+      {/* Schema.org: sonuç bir soru-cevap olarak işaretlenir; arama sonucunda zengin gösterim sağlar. */}
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildQuestionJsonLd(poll, national, total)) }}
+      />
 
       <PollCard poll={poll} cityId={cityId} />
 
@@ -72,4 +85,27 @@ export default async function PollPage({ params }: Params) {
       </p>
     </main>
   );
+}
+
+/** Sonuçları Schema.org QAPage biçiminde işaretler. */
+function buildQuestionJsonLd(
+  poll: { question: string; slug: string; options: Array<{ id: string; label: string }> },
+  results: Array<{ optionId: string; count: number; pct: number }>,
+  total: number,
+) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'QAPage',
+    mainEntity: {
+      '@type': 'Question',
+      name: poll.question,
+      answerCount: results.length,
+      upvoteCount: total,
+      suggestedAnswer: results.map((option) => ({
+        '@type': 'Answer',
+        text: `${poll.options.find((o) => o.id === option.optionId)?.label}: %${option.pct.toFixed(1)}`,
+        upvoteCount: option.count,
+      })),
+    },
+  };
 }

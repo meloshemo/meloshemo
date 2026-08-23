@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@nabiz/core', '@nabiz/db'],
+  transpilePackages: ['@nabiz/core', '@nabiz/db', '@nabiz/share'],
   poweredByHeader: false,
   async headers() {
     return [

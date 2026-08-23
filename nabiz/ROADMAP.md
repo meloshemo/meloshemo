@@ -26,16 +26,23 @@
 | — İlk 100 soru | `docs/19-ilk-100-soru.md` |
 | — Pitch Deck | `docs/20-pitch-deck.md` |
 
-## 🔜 Uygulama (MVP — 4 hafta)
-- [ ] **H1** Monorepo iskeleti · Drizzle şema + migration · seed (81 il, kategoriler, 40 soru)
-- [ ] **H1** Oy yolu: Worker + Durable Object + idempotency + hız limiti
-- [ ] **H2** Web: ana akış, oy kartı, sonuç animasyonu, şehir kırılımı
-- [ ] **H2** OG paylaşım kartı üretimi (3 format)
-- [ ] **H3** SEO sayfaları (soru/şehir/kategori) + sitemap + eşik kuralı + schema.org
-- [ ] **H3** Admin panel: soru CRUD, editoryal kontrol listesi, metrikler
-- [ ] **H4** Anti-abuse v1 + gece temizlik işi + şeffaflık sayfası
-- [ ] **H4** Testler (unit + e2e + k6 yük), CI, prod deploy, yasal metinler
-- [ ] **Day 30** Kapı metrikleri değerlendirmesi (bkz. `docs/14-launch.md`)
+## ✅ Uygulama (MVP)
+- [x] **H1** Monorepo · alan mantığı (`packages/core`) · Drizzle şema · 81 il + açılış soruları seed
+- [x] **H1** Oy yolu: idempotency, hız limiti, güven puanlaması, karantina
+- [x] **H2** Web: ana akış, oy kartı, sonuç geçişi, şehir kırılımı
+- [x] **H2** OG paylaşım kartı üretimi (WhatsApp / Story / X)
+- [x] **H3** SEO: soru/şehir/kategori sayfaları, sitemap eşik kuralı, robots, schema.org
+- [x] **H3** Admin panel: soru oluşturma, editoryal kontrol listesi (sunucu tarafında zorunlu), metrikler
+- [x] **H4** Postgres deposu · gece yeniden sayım işi · küme anormalliği tespiti
+- [x] **H4** 52 birim testi + 20 uçtan uca kontrol + CI iş akışı
+
+## 🔜 Sırada
+- [ ] Migration dosyaları (`drizzle-kit generate`) ve gerçek Postgres üzerinde doğrulama
+- [ ] Canlı SSE akışı (Durable Object)
+- [ ] Sezon / turnuva mekaniği — **MVP retention verisi gelmeden başlanmaz**
+- [ ] Yasal metinler (KVKK aydınlatma, gizlilik, kullanım koşulları) — hukuk kontrolüyle
+- [ ] k6 yük testi (hedef 500 oy/sn) ve prod deploy
+- [ ] **Day 30** kapı metrikleri değerlendirmesi (bkz. `docs/14-launch.md`)
 
 **Sezon/turnuva Ay 2'de** — MVP retention verisi gelmeden yapılmaz.
 

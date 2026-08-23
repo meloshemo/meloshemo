@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Poll, PollResults } from '@nabiz/core';
+import { buildShareText } from '@nabiz/share';
 
 interface Props {
   poll: Poll;
@@ -151,11 +152,17 @@ function Results({ poll, results }: { poll: Poll; results: PollResults }) {
 
 function ShareButton({ poll, results }: { poll: Poll; results: PollResults }) {
   const share = async () => {
-    const line = results.options
-      .map((o) => `${poll.options.find((p) => p.id === o.optionId)?.label}: %${o.pct.toFixed(1)}`)
-      .join('\n');
-    const text = `${poll.question}\n\n${line}\n\nTürkiye seçti. Sen seç.`;
     const url = `${window.location.origin}/${poll.slug}`;
+    const text = buildShareText({
+      question: poll.question,
+      options: results.options.map((o) => ({
+        label: poll.options.find((p) => p.id === o.optionId)?.label ?? '',
+        pct: o.pct,
+      })),
+      yourLabel: poll.options.find((p) => p.id === results.yourOptionId)?.label ?? null,
+      total: results.total,
+      url,
+    });
 
     // Safari/Chrome mobilde native paylaşım sayfası; masaüstünde panoya kopyalama.
     const canNativeShare = typeof navigator.share === 'function';

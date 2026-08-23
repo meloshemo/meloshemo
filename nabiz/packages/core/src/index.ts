@@ -4,3 +4,5 @@ export * from './hash';
 export * from './abuse';
 export * from './slug';
 export * from './editorial';
+export * from './seo';
+export * from './anomaly';

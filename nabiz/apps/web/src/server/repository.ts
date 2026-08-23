@@ -9,6 +9,9 @@ import type { Poll } from '@nabiz/core';
  */
 export interface Repository {
   listLivePolls(limit: number): Promise<Poll[]>;
+  listPollsByCategory(categorySlug: string): Promise<Poll[]>;
+  /** Sitemap ve arşiv için — taslak sorular dahil edilmez. */
+  listPublishedPolls(): Promise<Poll[]>;
   getPollBySlug(slug: string): Promise<Poll | null>;
   getPollById(id: string): Promise<Poll | null>;
 
@@ -30,6 +33,11 @@ export interface Repository {
   countRecentVotesBySession(sessionHash: string, sinceMs: number): Promise<number>;
   countRecentVotesByIp(ipHash: string, sinceMs: number): Promise<number>;
 
+  createPoll(input: CreatePollInput): Promise<Poll>;
+  /** Yalnızca editoryal kontrol listesi işaretlenmiş taslaklar yayınlanabilir. */
+  publishPoll(pollId: string): Promise<'published' | 'not_found' | 'editorial_blocked'>;
+  getAdminMetrics(): Promise<AdminMetrics>;
+
   logAbuseEvent(kind: string, detail: Record<string, unknown>): Promise<void>;
   recordShare(pollId: string, channel: string): Promise<void>;
 }
@@ -47,4 +55,23 @@ export interface RecordVoteInput {
   counted: boolean;
   uaClass: string | null;
   at: Date;
+}
+
+export interface CreatePollInput {
+  slug: string;
+  question: string;
+  categorySlug: string;
+  options: Array<{ label: string; emoji: string }>;
+  editorialOk: boolean;
+}
+
+export interface AdminMetrics {
+  totalVotes: number;
+  countedVotes: number;
+  quarantinedVotes: number;
+  livePolls: number;
+  draftPolls: number;
+  shares: number;
+  /** Soru bazlı döküm — admin panelinde sıkıcı soruları ayıklamak için. */
+  perPoll: Array<{ slug: string; question: string; votes: number; leaderPct: number; status: string }>;
 }
