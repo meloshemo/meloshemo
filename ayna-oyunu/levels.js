@@ -6,6 +6,7 @@
 //   > < ^ v  lazer kaynağı ve yönü
 //   T  hedef
 //   / \  sabit ayna (oyuncu değiştiremez)
+//   X  prizma (ışını düz + iki dik yöne böler)
 const LEVELS = [
   {
     name: "İlk Yansıma",
@@ -72,6 +73,41 @@ const LEVELS = [
       ".####.",
       ".#..#.",
       ".#T.#.",
+      "......",
+    ],
+  },
+  {
+    name: "Prizma",
+    hint: "Prizma (◇) ışını üç yöne birden dağıtır.",
+    mirrors: 3,
+    grid: [
+      ">....",
+      ".....",
+      "..X..",
+      "T...T",
+    ],
+  },
+  {
+    name: "Dağılan Işık",
+    hint: "Önce prizmaya ulaş, sonra kolları hedeflere yönlendir.",
+    mirrors: 4,
+    grid: [
+      "v....",
+      "...#.",
+      ".X..T",
+      "..#..",
+      "T....",
+    ],
+  },
+  {
+    name: "Son Perde",
+    hint: "Üç hedefin üçü de aynı anda vurulmalı.",
+    mirrors: 5,
+    grid: [
+      ">.....",
+      "..X..T",
+      ".#....",
+      "T....T",
       "......",
     ],
   },

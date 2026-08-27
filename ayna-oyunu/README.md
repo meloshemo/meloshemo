@@ -7,8 +7,10 @@ açman yeterli.
 ## Nasıl oynanır
 
 - Boş bir kareye tıkla: ayna `/` olur, tekrar tıkla `\` olur, bir daha tıkla kalkar.
-- Her bölümde sınırlı sayıda ayna hakkın var (sağ altta `Ayna: x/y`).
+- Her bölümde sınırlı sayıda ayna hakkın var (`Ayna: x/y`).
+- Prizma (◇) üzerine düşen ışını düz devam eden ve iki dik koldan oluşan üç ışına böler.
 - Tüm hedefler vurulduğunda bölüm tamamlanır; ilerleme `localStorage` içinde saklanır.
+- Alttaki numaralardan istediğin bölüme atlayabilirsin; çözülenler yeşil görünür.
 - Kısayollar: `←` / `→` bölüm değiştirir, `R` tahtayı sıfırlar.
 
 ## Dosyalar
@@ -34,6 +36,7 @@ açman yeterli.
 | `>` `<` `^` `v` | lazer kaynağı ve yönü |
 | `T` | hedef |
 | `/` `\` | sabit ayna |
+| `X` | prizma (ışını üçe böler) |
 
 Sonra çözülebilirliği doğrula:
 

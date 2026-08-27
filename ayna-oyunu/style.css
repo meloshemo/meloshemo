@@ -93,3 +93,29 @@ canvas {
   color: var(--muted);
   font-size: 0.82rem;
 }
+
+.levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.levels button {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.levels button:hover { border-color: var(--accent); color: var(--accent); }
+.levels button.solved { color: var(--ok); border-color: var(--ok); }
+.levels button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0d1117;
+  font-weight: 700;
+}

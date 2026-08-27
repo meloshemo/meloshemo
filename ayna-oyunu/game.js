@@ -12,6 +12,7 @@
     next: document.getElementById("next"),
     reset: document.getElementById("reset"),
     hint: document.getElementById("hint"),
+    levelPicker: document.getElementById("levelPicker"),
   };
 
   const STORAGE_KEY = "ayna-oyunu:ilerleme";
@@ -39,6 +40,31 @@
     } catch (err) {
       /* depolama kapalıysa sessizce geç */
     }
+  }
+
+  function buildLevelPicker() {
+    els.levelPicker.textContent = "";
+    LEVELS.forEach((level, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = String(i + 1);
+      btn.title = level.name;
+      btn.addEventListener("click", () => loadLevel(i));
+      els.levelPicker.appendChild(btn);
+    });
+  }
+
+  function refreshLevelPicker() {
+    [...els.levelPicker.children].forEach((btn, i) => {
+      btn.classList.toggle("active", i === levelIndex);
+      btn.classList.toggle("solved", solvedLevels.has(i));
+    });
+  }
+
+  // Kaydedilmiş ilerlemeden sonra ilk çözülmemiş bölümle başla.
+  function firstUnsolved() {
+    for (let i = 0; i < LEVELS.length; i++) if (!solvedLevels.has(i)) return i;
+    return 0;
   }
 
   function loadLevel(index) {
@@ -83,6 +109,7 @@
           ? "Ayna hakkın bitti. Bir aynayı kaldırıp yeniden dene."
           : "Bir kareye tıklayarak ayna yerleştir.";
     }
+    refreshLevelPicker();
     draw();
   }
 
@@ -224,6 +251,20 @@
       return;
     }
 
+    if (cell.type === "splitter") {
+      const r = CELL * 0.28;
+      ctx.strokeStyle = "#f0c674";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx + r, cy);
+      ctx.lineTo(cx, cy + r);
+      ctx.lineTo(cx - r, cy);
+      ctx.closePath();
+      ctx.stroke();
+      return;
+    }
+
     if (cell.type === "target") {
       const hit = result.hits.has(`${x},${y}`);
       ctx.strokeStyle = hit ? "#3fb950" : "#8b949e";
@@ -255,5 +296,6 @@
     }
   }
 
-  loadLevel(0);
+  buildLevelPicker();
+  loadLevel(firstUnsolved());
 })();
