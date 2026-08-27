@@ -1,0 +1,833 @@
+<title>Aynalı Optik Masası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --ink: #0b1020;
+  --panel: #121a2e;
+  --panel-2: #0f1728;
+  --line: #22304d;
+  --text: #e8edf7;
+  --muted: #8fa0bf;
+  --laser: #ff3d7f;
+  --mirror: #63d7f0;
+  --prism: #f2b544;
+  --hit: #7ce38b;
+  --step: clamp(14px, 2.2vw, 22px);
+}
+
+/* Optik masası tek bir görsel dünyaya bağlı: karanlık tezgah, her rengi
+   açıkça boyanmış. Bu yüzden tema anahtarı yok. */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #17224100 0%, #0b1020 70%),
+    repeating-linear-gradient(90deg, #ffffff06 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 44px),
+    var(--ink);
+  color: var(--text);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  width: min(720px, 100%);
+  padding: var(--step) 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--step);
+}
+
+header { display: flex; flex-direction: column; gap: 6px; }
+
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--laser);
+}
+
+h1 {
+  font-family: Syne, "IBM Plex Sans", sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.9rem, 6vw, 2.7rem);
+  line-height: 1;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.lede { margin: 0; color: var(--muted); max-width: 58ch; }
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.level-info { text-align: center; line-height: 1.25; }
+.level-info span { display: block; }
+#levelName { font-family: Syne, sans-serif; font-weight: 600; }
+.muted {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+}
+
+.btn {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 9px 15px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn:hover:not(:disabled) { border-color: var(--mirror); color: var(--mirror); }
+.btn:focus-visible { outline: 2px solid var(--mirror); outline-offset: 2px; }
+.btn:disabled { opacity: 0.35; cursor: default; }
+
+.stage {
+  position: relative;
+  padding: 12px;
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+canvas { width: 100%; height: auto; display: block; touch-action: manipulation; }
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  text-align: center;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+}
+.status.win { color: var(--hit); }
+
+.counter {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.counter strong { color: var(--mirror); }
+.counter strong.full { color: var(--laser); }
+
+.hint {
+  margin: 0;
+  padding: 11px 14px;
+  background: var(--panel);
+  border-left: 2px solid var(--prism);
+  color: var(--muted);
+}
+
+.levels { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.levels button {
+  width: 38px;
+  height: 38px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.levels button:hover { border-color: var(--mirror); color: var(--mirror); }
+.levels button.solved { color: var(--hit); border-color: #2e5b45; }
+.levels button.active {
+  background: var(--mirror);
+  border-color: var(--mirror);
+  color: var(--ink);
+  font-weight: 600;
+}
+.levels button:focus-visible { outline: 2px solid var(--mirror); outline-offset: 2px; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.78rem;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.legend b { color: var(--text); font-weight: 500; }
+.legend .k { color: var(--mirror); }
+</style>
+<main class="app">
+  <header>
+    <p class="eyebrow">Lazer · Ayna · Prizma</p>
+    <h1>Aynalı Optik Masası</h1>
+    <p class="lede">Tezgaha aynaları yerleştir, lazeri her hedefe ulaştır. Her bölümün ayna hakkı, o bölümün en kısa çözümü kadardır — fazlası yok.</p>
+  </header>
+
+  <section class="bar">
+    <button id="prev" class="btn" type="button">‹ Önceki</button>
+    <div class="level-info">
+      <span id="levelName">—</span>
+      <span id="levelCount" class="muted"></span>
+    </div>
+    <button id="next" class="btn" type="button">Sonraki ›</button>
+  </section>
+
+  <div class="stage"><canvas id="board" width="600" height="500" aria-label="Oyun tahtası"></canvas></div>
+
+  <p id="status" class="status">Bir kareye tıklayarak ayna yerleştir.</p>
+
+  <section class="bar">
+    <span class="counter">AYNA <strong id="mirrorCount">0/0</strong></span>
+    <span style="display:flex;gap:8px">
+      <button id="reset" class="btn" type="button">Sıfırla</button>
+      <button id="hint" class="btn" type="button">İpucu</button>
+      <button id="solve" class="btn" type="button">Çöz</button>
+    </span>
+  </section>
+
+  <p id="hintText" class="hint" hidden></p>
+
+  <nav id="levelPicker" class="levels" aria-label="Bölüm seçimi"></nav>
+
+  <footer class="legend">
+    <span><b>Tıkla</b> ayna koy → döndür → kaldır</span>
+    <span><b>◇</b> prizma ışını üçe böler</span>
+    <span><b>◎</b> hedef</span>
+    <span><b>▨</b> duvar</span>
+    <span><span class="k">← →</span> bölüm · <span class="k">R</span> sıfırla</span>
+  </footer>
+</main>
+<script>
+// Ayna Oyunu - ışın motoru (tarayıcı ve Node için ortak)
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.Engine = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const DIRS = {
+    right: { dx: 1, dy: 0 },
+    left: { dx: -1, dy: 0 },
+    up: { dx: 0, dy: -1 },
+    down: { dx: 0, dy: 1 },
+  };
+  const SOURCE_CHARS = { ">": "right", "<": "left", "^": "up", v: "down" };
+
+  // Aynadan yansıma: "/" ve "\" için yön dönüşümü
+  const REFLECT = {
+    "/": { right: "up", left: "down", up: "right", down: "left" },
+    "\\": { right: "down", left: "up", up: "left", down: "right" },
+  };
+
+  function parseLevel(level) {
+    const grid = level.grid;
+    const height = grid.length;
+    const width = grid[0].length;
+    const cells = [];
+    const sources = [];
+    const targets = [];
+    for (let y = 0; y < height; y++) {
+      if (grid[y].length !== width) {
+        throw new Error(`"${level.name}" bölümünde ${y}. satırın uzunluğu farklı`);
+      }
+      const row = [];
+      for (let x = 0; x < width; x++) {
+        const ch = grid[y][x];
+        let cell;
+        if (ch === "#") cell = { type: "wall" };
+        else if (ch === "X") cell = { type: "splitter" };
+        else if (ch === "T") cell = { type: "target" };
+        else if (ch === "/" || ch === "\\") cell = { type: "mirror", mirror: ch, fixed: true };
+        else if (SOURCE_CHARS[ch]) cell = { type: "source", dir: SOURCE_CHARS[ch] };
+        else if (ch === ".") cell = { type: "empty", placeable: true };
+        else if (ch === ",") cell = { type: "empty", placeable: false };
+        else throw new Error(`Bilinmeyen karakter: "${ch}"`);
+        if (cell.type === "source") sources.push({ x, y, dir: cell.dir });
+        if (cell.type === "target") targets.push({ x, y });
+        row.push(cell);
+      }
+      cells.push(row);
+    }
+    if (!sources.length) throw new Error(`"${level.name}" bölümünde lazer kaynağı yok`);
+    if (!targets.length) throw new Error(`"${level.name}" bölümünde hedef yok`);
+    return { width, height, cells, sources, targets, mirrors: level.mirrors, name: level.name, hint: level.hint };
+  }
+
+  const PERPENDICULAR = {
+    right: ["up", "down"],
+    left: ["up", "down"],
+    up: ["left", "right"],
+    down: ["left", "right"],
+  };
+
+  // board: parseLevel çıktısı, placed: "x,y" -> "/" | "\\"
+  // Dönen değer: ışın parçaları, vurulan hedefler.
+  // Prizma ışını böldüğü için ışınlar bir kuyrukta işlenir; her (kare, yön)
+  // durumu bir kez ele alınır, böylece hem döngüler hem de tekrar eden
+  // parçalar engellenir.
+  function trace(board, placed) {
+    const segments = [];
+    const hits = new Set();
+    const seen = new Set();
+    const queue = board.sources.map((s) => ({ x: s.x, y: s.y, dir: s.dir }));
+
+    while (queue.length) {
+      const beam = queue.shift();
+      const key = `${beam.x},${beam.y},${beam.dir}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const d = DIRS[beam.dir];
+      const nx = beam.x + d.dx;
+      const ny = beam.y + d.dy;
+      if (nx < 0 || ny < 0 || nx >= board.width || ny >= board.height) {
+        segments.push({ x1: beam.x, y1: beam.y, x2: nx, y2: ny, outside: true });
+        continue;
+      }
+      const cell = board.cells[ny][nx];
+      if (cell.type === "wall") {
+        segments.push({ x1: beam.x, y1: beam.y, x2: nx, y2: ny, blocked: true });
+        continue;
+      }
+      segments.push({ x1: beam.x, y1: beam.y, x2: nx, y2: ny });
+
+      if (cell.type === "target") {
+        hits.add(`${nx},${ny}`);
+        continue;
+      }
+      if (cell.type === "source") continue;
+
+      if (cell.type === "splitter") {
+        for (const dir of [beam.dir, ...PERPENDICULAR[beam.dir]]) {
+          queue.push({ x: nx, y: ny, dir });
+        }
+        continue;
+      }
+
+      const mirror = cell.type === "mirror" ? cell.mirror : placed[`${nx},${ny}`];
+      queue.push({ x: nx, y: ny, dir: mirror ? REFLECT[mirror][beam.dir] : beam.dir });
+    }
+
+    const solved = board.targets.every((t) => hits.has(`${t.x},${t.y}`));
+    return { segments, hits, solved };
+  }
+
+  function placeableCells(board) {
+    const list = [];
+    for (let y = 0; y < board.height; y++) {
+      for (let x = 0; x < board.width; x++) {
+        if (board.cells[y][x].type === "empty" && board.cells[y][x].placeable) list.push({ x, y });
+      }
+    }
+    return list;
+  }
+
+  return { DIRS, REFLECT, parseLevel, trace, placeableCells };
+});
+
+</script>
+<script>
+// Ayna Oyunu - bölüm tanımları
+// Karakterler:
+//   .  boş kare (ayna konabilir)
+//   ,  boş kare (ayna konamaz)
+//   #  duvar
+//   > < ^ v  lazer kaynağı ve yönü
+//   T  hedef
+//   / \  sabit ayna (oyuncu değiştiremez)
+//   X  prizma (ışını düz + iki dik yöne böler)
+const LEVELS = [
+  {
+    name: "İlk Yansıma",
+    hint: "Işını hedefe çevirmek için bir ayna yerleştir.",
+    mirrors: 1,
+    grid: [
+      ">...,",
+      ",,,.,",
+      ",,,.,",
+      ",,,T,",
+    ],
+  },
+  {
+    name: "Köşeyi Dön",
+    hint: "İki ayna ile ışını köşeden dolaştır.",
+    mirrors: 2,
+    grid: [
+      ">....",
+      ",,,,.",
+      "T....",
+      ",,,,,",
+    ],
+  },
+  {
+    name: "Duvarın Ardı",
+    hint: "Duvarlar ışını durdurur, etrafından dolaş.",
+    mirrors: 2,
+    grid: [
+      ">..#.",
+      "...#.",
+      "..##.",
+      "....T",
+    ],
+  },
+  {
+    name: "Çift Hedef",
+    hint: "İki kaynak, iki hedef. Her ışını ayrı ayrı düşün.",
+    mirrors: 4,
+    grid: [
+      ">...v",
+      ".....",
+      "..#.#",
+      "T...T",
+    ],
+  },
+  {
+    name: "Labirent",
+    hint: "Sabit aynaları hesaba kat.",
+    mirrors: 2,
+    grid: [
+      ">...#.",
+      ".#....",
+      "....#.",
+      ".#...T",
+      "......",
+    ],
+  },
+  {
+    name: "Uzun Yol",
+    hint: "Işını odanın çevresinde dolaştır.",
+    mirrors: 2,
+    grid: [
+      "v.....",
+      ".####.",
+      ".#..#.",
+      ".#T.#.",
+      "......",
+    ],
+  },
+  {
+    name: "Prizma",
+    hint: "Prizma (◇) ışını üç yöne birden dağıtır.",
+    mirrors: 3,
+    grid: [
+      ">....",
+      ".....",
+      "..X..",
+      "T...T",
+    ],
+  },
+  {
+    name: "Dağılan Işık",
+    hint: "Önce prizmaya ulaş, sonra kolları hedeflere yönlendir.",
+    mirrors: 2,
+    grid: [
+      "v....",
+      "...#.",
+      ".X..T",
+      "..#..",
+      "T....",
+    ],
+  },
+  {
+    name: "Son Perde",
+    hint: "Üç hedefin üçü de aynı anda vurulmalı.",
+    mirrors: 3,
+    grid: [
+      ">.....",
+      "..X..T",
+      ".#....",
+      "T....T",
+      "......",
+    ],
+  },
+];
+
+if (typeof module === "object" && module.exports) module.exports = LEVELS;
+
+</script>
+<script>
+// Ayna Oyunu - çözücü (tarayıcı ve Node için ortak)
+// Yerleştirilebilir karelerin alt kümelerini artan derinlikte tarar, böylece
+// bulunan ilk çözüm aynı zamanda en az aynayı kullanan çözümdür.
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./engine.js"));
+  else root.Solver = factory(root.Engine);
+})(typeof self !== "undefined" ? self : this, function (Engine) {
+  function solveWithDepth(board, cells, depth) {
+    const placed = {};
+    let found = null;
+    function rec(index, left) {
+      if (found) return;
+      if (Object.keys(placed).length === depth) {
+        if (Engine.trace(board, placed).solved) found = { ...placed };
+        return;
+      }
+      // Kalan kare sayısı yetmiyorsa dallanmayı bırak.
+      if (cells.length - index < left) return;
+      for (let i = index; i < cells.length; i++) {
+        const key = `${cells[i].x},${cells[i].y}`;
+        for (const m of ["/", "\\"]) {
+          placed[key] = m;
+          rec(i + 1, left - 1);
+          delete placed[key];
+          if (found) return;
+        }
+      }
+    }
+    rec(0, depth);
+    return found;
+  }
+
+  // En az aynayı kullanan çözümü döndürür; limit içinde çözüm yoksa null.
+  function solve(board, limit) {
+    const max = limit === undefined ? board.mirrors : limit;
+    const cells = Engine.placeableCells(board);
+    for (let depth = 0; depth <= max; depth++) {
+      const found = solveWithDepth(board, cells, depth);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  return { solve };
+});
+
+</script>
+<script>
+// Ayna Oyunu - arayüz ve çizim
+(function () {
+  const canvas = document.getElementById("board");
+  const ctx = canvas.getContext("2d");
+  const els = {
+    levelName: document.getElementById("levelName"),
+    levelCount: document.getElementById("levelCount"),
+    status: document.getElementById("status"),
+    mirrorCount: document.getElementById("mirrorCount"),
+    hintText: document.getElementById("hintText"),
+    prev: document.getElementById("prev"),
+    next: document.getElementById("next"),
+    reset: document.getElementById("reset"),
+    hint: document.getElementById("hint"),
+    solve: document.getElementById("solve"),
+    levelPicker: document.getElementById("levelPicker"),
+  };
+
+  const STORAGE_KEY = "ayna-oyunu:ilerleme";
+  const CELL = 84;
+  const PAD = 16;
+
+  let levelIndex = 0;
+  let board = null;
+  let placed = {};
+  let result = null;
+  let solvedLevels = loadProgress();
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return new Set(raw ? JSON.parse(raw) : []);
+    } catch (err) {
+      return new Set();
+    }
+  }
+
+  function saveProgress() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...solvedLevels]));
+    } catch (err) {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }
+
+  function buildLevelPicker() {
+    els.levelPicker.textContent = "";
+    LEVELS.forEach((level, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = String(i + 1);
+      btn.title = level.name;
+      btn.addEventListener("click", () => loadLevel(i));
+      els.levelPicker.appendChild(btn);
+    });
+  }
+
+  function refreshLevelPicker() {
+    [...els.levelPicker.children].forEach((btn, i) => {
+      btn.classList.toggle("active", i === levelIndex);
+      btn.classList.toggle("solved", solvedLevels.has(i));
+    });
+  }
+
+  // Kaydedilmiş ilerlemeden sonra ilk çözülmemiş bölümle başla.
+  function firstUnsolved() {
+    for (let i = 0; i < LEVELS.length; i++) if (!solvedLevels.has(i)) return i;
+    return 0;
+  }
+
+  function loadLevel(index) {
+    levelIndex = Math.max(0, Math.min(LEVELS.length - 1, index));
+    board = Engine.parseLevel(LEVELS[levelIndex]);
+    placed = {};
+    canvas.width = board.width * CELL + PAD * 2;
+    canvas.height = board.height * CELL + PAD * 2;
+    els.hintText.hidden = true;
+    update();
+  }
+
+  function usedMirrors() {
+    return Object.keys(placed).length;
+  }
+
+  function update(options = {}) {
+    result = Engine.trace(board, placed);
+    els.levelName.textContent = `${levelIndex + 1}. ${board.name}`;
+    els.levelCount.textContent = `${LEVELS.length} bölümden ${solvedLevels.size} tanesi çözüldü`;
+    els.mirrorCount.textContent = `${usedMirrors()}/${board.mirrors}`;
+    els.mirrorCount.classList.toggle("full", usedMirrors() >= board.mirrors);
+    els.hintText.textContent = board.hint;
+    els.prev.disabled = levelIndex === 0;
+    els.next.disabled = levelIndex === LEVELS.length - 1;
+
+    if (result.solved) {
+      if (!options.auto && !solvedLevels.has(levelIndex)) {
+        solvedLevels.add(levelIndex);
+        saveProgress();
+        els.levelCount.textContent = `${LEVELS.length} bölümden ${solvedLevels.size} tanesi çözüldü`;
+      }
+      const last = levelIndex === LEVELS.length - 1;
+      els.status.textContent = last
+        ? "🎉 Tebrikler, tüm bölümleri bitirdin!"
+        : "✅ Hedef vuruldu! Sonraki bölüme geçebilirsin.";
+      els.status.classList.add("win");
+    } else {
+      els.status.classList.remove("win");
+      els.status.textContent =
+        usedMirrors() >= board.mirrors
+          ? "Ayna hakkın bitti. Bir aynayı kaldırıp yeniden dene."
+          : "Bir kareye tıklayarak ayna yerleştir.";
+    }
+    refreshLevelPicker();
+    draw();
+  }
+
+  function cellAt(evt) {
+    const rect = canvas.getBoundingClientRect();
+    const scale = canvas.width / rect.width;
+    const x = Math.floor(((evt.clientX - rect.left) * scale - PAD) / CELL);
+    const y = Math.floor(((evt.clientY - rect.top) * scale - PAD) / CELL);
+    if (x < 0 || y < 0 || x >= board.width || y >= board.height) return null;
+    return { x, y };
+  }
+
+  canvas.addEventListener("click", (evt) => {
+    const pos = cellAt(evt);
+    if (!pos) return;
+    const cell = board.cells[pos.y][pos.x];
+    if (cell.type !== "empty" || !cell.placeable) return;
+    const key = `${pos.x},${pos.y}`;
+    const current = placed[key];
+    if (!current) {
+      if (usedMirrors() >= board.mirrors) {
+        els.status.textContent = "Ayna hakkın bitti. Bir aynayı kaldırıp yeniden dene.";
+        return;
+      }
+      placed[key] = "/";
+    } else if (current === "/") {
+      placed[key] = "\\";
+    } else {
+      delete placed[key];
+    }
+    update();
+  });
+
+  els.prev.addEventListener("click", () => loadLevel(levelIndex - 1));
+  els.next.addEventListener("click", () => loadLevel(levelIndex + 1));
+  els.reset.addEventListener("click", () => {
+    placed = {};
+    update();
+  });
+  els.solve.addEventListener("click", () => {
+    els.solve.disabled = true;
+    els.status.textContent = "Çözüm aranıyor…";
+    // Arama senkron olduğu için önce durum yazısının çizilmesini bekle.
+    setTimeout(() => {
+      const solution = Solver.solve(board);
+      els.solve.disabled = false;
+      if (!solution) {
+        els.status.textContent = "Bu bölüm için çözüm bulunamadı.";
+        return;
+      }
+      placed = solution;
+      update({ auto: true });
+      els.status.textContent = `💡 Çözüm gösterildi (${Object.keys(solution).length} ayna).`;
+    }, 30);
+  });
+
+  els.hint.addEventListener("click", () => {
+    els.hintText.hidden = !els.hintText.hidden;
+  });
+  document.addEventListener("keydown", (evt) => {
+    if (evt.key === "ArrowLeft") loadLevel(levelIndex - 1);
+    if (evt.key === "ArrowRight") loadLevel(levelIndex + 1);
+    if (evt.key.toLowerCase() === "r") {
+      placed = {};
+      update();
+    }
+  });
+
+  // --- çizim ---
+  const center = (v) => PAD + v * CELL + CELL / 2;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let y = 0; y < board.height; y++) {
+      for (let x = 0; x < board.width; x++) drawCell(x, y);
+    }
+    drawBeam();
+    for (let y = 0; y < board.height; y++) {
+      for (let x = 0; x < board.width; x++) drawContents(x, y);
+    }
+  }
+
+  function drawCell(x, y) {
+    const cell = board.cells[y][x];
+    const px = PAD + x * CELL;
+    const py = PAD + y * CELL;
+    ctx.fillStyle = cell.type === "wall" ? "#1b2744" : (x + y) % 2 ? "#101a30" : "#13203a";
+    ctx.fillRect(px, py, CELL, CELL);
+    ctx.strokeStyle = "#22304d";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(px + 0.5, py + 0.5, CELL - 1, CELL - 1);
+    if (cell.type === "empty" && cell.placeable) {
+      ctx.fillStyle = "#25355a";
+      ctx.beginPath();
+      ctx.arc(center(x), center(y), 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawBeam() {
+    ctx.strokeStyle = result.solved ? "#7ce38b" : "#ff3d7f";
+    ctx.shadowColor = ctx.strokeStyle;
+    ctx.shadowBlur = 12;
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    for (const s of result.segments) {
+      const x2 = s.outside ? clampToEdge(s.x2, board.width) : s.x2;
+      const y2 = s.outside ? clampToEdge(s.y2, board.height) : s.y2;
+      ctx.beginPath();
+      ctx.moveTo(center(s.x1), center(s.y1));
+      ctx.lineTo(center(x2), center(y2));
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  // Tahtanın dışına çıkan ışını kenarda kes.
+  function clampToEdge(v, size) {
+    if (v < 0) return -0.35;
+    if (v >= size) return size - 1 + 0.35;
+    return v;
+  }
+
+  function drawContents(x, y) {
+    const cell = board.cells[y][x];
+    const cx = center(x);
+    const cy = center(y);
+    const mirror = cell.type === "mirror" ? cell.mirror : placed[`${x},${y}`];
+
+    if (mirror) {
+      const r = CELL * 0.3;
+      ctx.strokeStyle = cell.type === "mirror" ? "#8fa0bf" : "#63d7f0";
+      ctx.lineWidth = 6;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      if (mirror === "/") {
+        ctx.moveTo(cx - r, cy + r);
+        ctx.lineTo(cx + r, cy - r);
+      } else {
+        ctx.moveTo(cx - r, cy - r);
+        ctx.lineTo(cx + r, cy + r);
+      }
+      ctx.stroke();
+      return;
+    }
+
+    if (cell.type === "wall") {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(cx - CELL / 2, cy - CELL / 2, CELL, CELL);
+      ctx.clip();
+      ctx.strokeStyle = "#33456e";
+      ctx.lineWidth = 2;
+      for (let i = -CELL; i < CELL; i += 12) {
+        ctx.beginPath();
+        ctx.moveTo(cx - CELL / 2 + i, cy + CELL / 2);
+        ctx.lineTo(cx - CELL / 2 + i + CELL, cy - CELL / 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+      return;
+    }
+
+    if (cell.type === "splitter") {
+      const r = CELL * 0.28;
+      ctx.strokeStyle = "#f2b544";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx + r, cy);
+      ctx.lineTo(cx, cy + r);
+      ctx.lineTo(cx - r, cy);
+      ctx.closePath();
+      ctx.stroke();
+      return;
+    }
+
+    if (cell.type === "target") {
+      const hit = result.hits.has(`${x},${y}`);
+      ctx.strokeStyle = hit ? "#7ce38b" : "#8fa0bf";
+      ctx.fillStyle = hit ? "#7ce38b" : "transparent";
+      ctx.lineWidth = 3;
+      for (const r of [CELL * 0.3, CELL * 0.18]) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, CELL * 0.08, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
+    if (cell.type === "source") {
+      ctx.fillStyle = "#ff3d7f";
+      ctx.beginPath();
+      ctx.arc(cx, cy, CELL * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      const d = Engine.DIRS[cell.dir];
+      ctx.strokeStyle = "#ffd9e6";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + d.dx * CELL * 0.36, cy + d.dy * CELL * 0.36);
+      ctx.stroke();
+    }
+  }
+
+  buildLevelPicker();
+  loadLevel(firstUnsolved());
+})();
+
+</script>

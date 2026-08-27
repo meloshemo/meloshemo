@@ -26,6 +26,7 @@ açman yeterli.
 | `solver.js` | En az aynalı çözümü arayan çözücü (tarayıcı ve Node ortak) |
 | `solve.js` | Tüm bölümleri çözüp özet basan betik |
 | `test.js` | Motor ve çözücü regresyon testleri |
+| `ayna-oyunu-tek-dosya.html` | Tüm oyunun tek dosyaya paketlenmiş, paylaşılabilir sürümü |
 
 ## Bölüm eklemek
 
