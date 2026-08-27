@@ -470,10 +470,10 @@ kbd {
     <script>
 // Dev Aynası - prosedürel ses (telifsiz, dosyasız: her şey Web Audio ile üretilir)
 //
-// Üç katman:
-//   1) Salonun uğultusu - alçak, sürekli drone
-//   2) Kalp atışı - dev aynaya yaklaştıkça hızlanır ve yükselir (ipucu görevi görür)
-//   3) Olaylar - dev aynayı bulma çınlaması, sahte aynada cam çatlaması, aynadan geçiş
+// Sadece iki katman kaldı:
+//   1) Salonun uğultusu - alçak, sabit, ipucu vermez
+//   2) Olaylar - aynadan geçiş ve oyun sonu
+// Yaklaştıkça yükselen kalp atışı kaldırıldı: oyuncuya ipucu veriyordu.
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.Sound = factory();
@@ -483,10 +483,6 @@ kbd {
   let master = null;
   let drone = null;
   let enabled = true;
-  let proximity = 0;      // 0 uzak, 1 dev aynanın dibinde
-  let nextBeat = 0;
-  let beatTimer = null;
-  let lastCrack = 0;
 
   try {
     enabled = localStorage.getItem(KEY) !== "kapali";
@@ -517,7 +513,7 @@ kbd {
     filter.type = "lowpass";
     filter.frequency.value = 320;
     const g = ctx.createGain();
-    g.gain.value = 0.05;
+    g.gain.value = 0.035;
     filter.connect(g).connect(master);
     for (const [freq, detune] of [[55, -6], [82.5, 8], [110, 3]]) {
       const osc = ctx.createOscillator();
@@ -538,38 +534,11 @@ kbd {
     hf.frequency.value = 1800;
     hf.Q.value = 0.7;
     const hg = ctx.createGain();
-    hg.gain.value = 0.012;
+    hg.gain.value = 0.008;
     hiss.connect(hf).connect(hg).connect(master);
     hiss.start();
     drone = { g, hg };
 
-    beatTimer = setInterval(tickBeat, 40);
-  }
-
-  // Kalp atışı: yakınlık arttıkça hem hızlanır hem yükselir.
-  function tickBeat() {
-    if (!ctx || proximity <= 0.02) return;
-    const now = ctx.currentTime;
-    if (now < nextBeat) return;
-    const bpm = 58 + proximity * 78;              // 58 -> 136 vuruş/dk
-    const aralik = 60 / bpm;
-    nextBeat = now + aralik;
-    thump(now, 0.055 + proximity * 0.16);
-    thump(now + aralik * 0.32, 0.03 + proximity * 0.1);
-  }
-
-  function thump(at, level) {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(78, at);
-    osc.frequency.exponentialRampToValueAtTime(38, at + 0.14);
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(level, at + 0.015);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.26);
-    osc.connect(g).connect(master);
-    osc.start(at);
-    osc.stop(at + 0.3);
   }
 
   // Dev aynayı bulma: uzun, altın bir çınlama
@@ -589,25 +558,6 @@ kbd {
       osc.start(at);
       osc.stop(at + 2.8);
     });
-  }
-
-  // Sahte dev aynaya bakınca: kısa cam çatlaması
-  function crack() {
-    if (!ctx) return;
-    const t = ctx.currentTime;
-    if (t - lastCrack < 0.7) return;
-    lastCrack = t;
-    const src = ctx.createBufferSource();
-    src.buffer = noiseBuffer(0.25);
-    const f = ctx.createBiquadFilter();
-    f.type = "highpass";
-    f.frequency.value = 2600;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.09, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-    src.connect(f).connect(g).connect(master);
-    src.start(t);
-    src.stop(t + 0.25);
   }
 
   // Aynadan geçiş: aşağı doğru süzülen bir uğultu
@@ -648,12 +598,7 @@ kbd {
 
   return {
     start,
-    // 0 (uzak) ile 1 (dev aynanın dibinde) arasında
-    setProximity(v) {
-      proximity = Math.max(0, Math.min(1, v));
-      if (drone) drone.hg.gain.value = 0.012 + proximity * 0.03;
-    },
-    discovery, crack, through, resolve,
+    discovery, through, resolve,
     toggle() {
       enabled = !enabled;
       if (master) master.gain.value = enabled ? 0.9 : 0;
@@ -843,6 +788,8 @@ kbd {
   const LOOK = 132;
   const SEEN_RANGE = 118;
   const GIANT_SCALE = 3.6;
+  const GIANT_REVEAL = 58;   // dev yansıma ancak bu kadar yakında belirir (~0,8 kare)
+  const ENTER_REACH = RADIUS + 12;  // aynaya değip içine girme mesafesi
   const WARM_CELLS = 5;      // dev aynasının çevresindeki "sıcak" camlar
   const BEST_KEY = "dev-aynasi:en-iyi";
 
@@ -852,13 +799,13 @@ kbd {
   const CHAPTERS = [
     {
       name: "I · Aynalı Salon", size: 40, light: 235, hints: 3, decoys: 0, returnTrip: false,
-      objective: "Seni devasa gösteren tek aynayı bul",
+      objective: "Dev aynayı bul ve içine yürü",
       card: "Binlerce cam, hepsi birbirinin aynı.",
       palette: { ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916", glass: "168, 203, 216", lamp: "255, 231, 194" },
     },
     {
       name: "II · Aynanın İçinde", size: 46, light: 200, hints: 2, decoys: 14, returnTrip: false,
-      objective: "Çarpık aynalar arasından gerçek dev aynayı ayır",
+      objective: "Çarpık aynalar arasından gerçeğini bul ve içine yürü",
       card: "Camlar soğuk, ışık cılız. Bazıları seni çarpıtıyor.",
       palette: { ground: "#05090f", floorA: "#0b141d", floorB: "#081018", glass: "150, 214, 232", lamp: "196, 232, 255" },
     },
@@ -1249,14 +1196,11 @@ kbd {
     forEachNearSegment(p, LOOK, (horizontal, x, y, d) => {
       const id = idOf(horizontal, x, y);
       const seg = { horizontal, x, y };
-      const isGiant = id === giant.id && phase === "arayis";
-      const carpik = decoys.get(id);
-      drawReflection(p, seg, isGiant ? "giant" : "normal", carpik);
-      if (d < SEEN_RANGE) {
-        p.seen.add(id);
-        if (carpik) Sound.crack();
-      }
-      if (isGiant && d < LOOK * 0.8) giantVisible = true;
+      // Dev ayna yalnızca dibinden geçerken parlar; uzaktan ışığı görünmez.
+      const isGiant = id === giant.id && phase === "arayis" && d < GIANT_REVEAL;
+      drawReflection(p, seg, isGiant ? "giant" : "normal", decoys.get(id));
+      if (d < SEEN_RANGE) p.seen.add(id);
+      if (isGiant) giantVisible = true;
     });
 
     ctx.lineCap = "round";
@@ -1396,6 +1340,21 @@ kbd {
     updateHud();
   }
 
+  // Oyuncu dev aynaya değip üstüne yürüyor mu? Geçiş bununla olur.
+  function pushingIntoGiant(p) {
+    const g = segGeometry(giant);
+    if (giant.horizontal) {
+      if (p.x < g.ax - 6 || p.x > g.bx + 6) return false;
+      const mesafe = Math.abs(p.y - g.ay);
+      const yon = g.ay - p.y;                  // aynaya doğru olan yön
+      return mesafe <= ENTER_REACH && p.vy * yon > 15;
+    }
+    if (p.y < g.ay - 6 || p.y > g.by + 6) return false;
+    const mesafe = Math.abs(p.x - g.ax);
+    const yon = g.ax - p.x;
+    return mesafe <= ENTER_REACH && p.vx * yon > 15;
+  }
+
   // Dev aynayı bulan oyuncu aynanın içinden geçer: bir sonraki bölüm,
   // kendi ışığı ve rengiyle açılır. Süre kaldığı yerden devam eder.
   function enterMirror(now) {
@@ -1419,14 +1378,6 @@ kbd {
       els.chapterCard.hidden = true;
     }
     if (running && !finished && !carding) moveAll(dt);
-    // Kalp atışı: dev aynaya yaklaştıkça hızlanır (yalnızca son birkaç karede duyulur)
-    if (running && !finished && phase === "arayis") {
-      const hedef = players[0];
-      const d = Math.hypot(hedef.x - giantSeg.x, hedef.y - giantSeg.y);
-      Sound.setProximity(Math.max(0, 1 - d / (CELL * 6)));
-    } else {
-      Sound.setProximity(0);
-    }
     const visible = finished ? [] : draw(now);
 
     if (running && !finished) {
@@ -1445,15 +1396,14 @@ kbd {
             p.foundAt = now;
             Sound.discovery();
           }
-          p.bloom = Math.min(1, (now - p.foundAt) / 1400);
-          if (now - p.foundAt > 1600) {
-            if (holdAtMirror) {
-              // yalnızca ekran görüntüsü için: sahne dev aynada bekletilir
-            } else if (chapter.returnTrip) {
-              // Son bölümde ayna bulunur, sonra kapıya dönülür.
+          // Işık, aynaya yaklaştıkça güçlenir; asıl geçiş içine yürüyünce olur.
+          p.bloom = Math.min(1, p.bloom + dt * 2.2);
+          if (!holdAtMirror && pushingIntoGiant(p)) {
+            if (chapter.returnTrip) {
               phase = "donus";
               els.objective.textContent = "Pirinç kapıya dön";
               p.foundAt = 0;
+              Sound.through();
             } else if (duel) {
               p.done = elapsedNow();
               finish(p, now);
@@ -1463,7 +1413,7 @@ kbd {
           }
         } else {
           p.foundAt = 0;
-          p.bloom = Math.max(0, p.bloom - dt * 2);
+          p.bloom = Math.max(0, p.bloom - dt * 2.4);
         }
       });
       updateHud();
@@ -1593,6 +1543,24 @@ kbd {
       p.vx = 0;
       p.vy = 0;
     },
+    // Oyuncuyu dev aynanın önüne koyar ve aynaya doğru yürümek için
+    // basılması gereken tuşu söyler (testler klavyeyi gerçekten kullanır).
+    faceGiant(index = 0) {
+      const g = segGeometry(giant);
+      const p = players[index];
+      p.vx = 0;
+      p.vy = 0;
+      if (giant.horizontal) {
+        p.x = g.ax + CELL / 2;
+        const disarida = giant.y >= size;
+        p.y = g.ay + (disarida ? -CELL * 0.45 : CELL * 0.45);
+        return disarida ? "s" : "w";
+      }
+      p.y = g.ay + CELL / 2;
+      const disarida = giant.x >= size;
+      p.x = g.ax + (disarida ? -CELL * 0.45 : CELL * 0.45);
+      return disarida ? "d" : "a";
+    },
     teleportToDecoy(index = 0) {
       const id = [...decoys.keys()][0];
       if (!id) return false;
@@ -1610,6 +1578,8 @@ kbd {
       players[index].y = CELL * 0.5;
     },
     pos: (i = 0) => ({ x: players[i].x, y: players[i].y }),
+    nudge(dx, dy, i = 0) { players[i].x += dx; players[i].y += dy; },
+    bloom: (i = 0) => players[i].bloom,
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
     state: () => ({
       chapter: chapter.name, seed, duel, phase, mirrors: mirrorCount,

@@ -24,12 +24,18 @@ her odanın ışığı ve rengi farklıdır. Süre kaldığı yerden işler.
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur.
 
+**Dev ayna ancak dibinden geçerken parlar** (0,8 kare). Uzaktan ışığı görünmez,
+yani yanından geçmen gerekir. Parlamayı görünce **aynanın üstüne yürürsün**;
+içine girince bir sonraki oda açılır. Önünde beklemek bir şey yapmaz.
+
 ## Ses
 
 Müzik dosyası yok: tüm ses tarayıcıda üretilir (`audio.js`, Web Audio).
-Salonun uğultusu, dev aynaya yaklaştıkça hızlanan kalp atışı (58 → 136 vuruş/dk,
-altı kare mesafeden itibaren), buluş çınlaması, sahte aynada cam çatlaması ve
-aynadan geçiş sesi. `M` ile açılıp kapanır, tercih tarayıcıda saklanır.
+Salonun sabit uğultusu, dev aynayı görünce çınlama, aynadan geçiş ve oyun sonu.
+`M` ile açılıp kapanır, tercih tarayıcıda saklanır.
+
+Yaklaştıkça hızlanan kalp atışı ve sahte aynadaki cam çatlaması **kaldırıldı**:
+ikisi de oyuncuya ipucu veriyordu, oysa sıcak iz zaten bir ipucu.
 
 ## Kontroller (bilgisayar)
 

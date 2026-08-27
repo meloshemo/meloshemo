@@ -1,9 +1,9 @@
 // Dev Aynası - prosedürel ses (telifsiz, dosyasız: her şey Web Audio ile üretilir)
 //
-// Üç katman:
-//   1) Salonun uğultusu - alçak, sürekli drone
-//   2) Kalp atışı - dev aynaya yaklaştıkça hızlanır ve yükselir (ipucu görevi görür)
-//   3) Olaylar - dev aynayı bulma çınlaması, sahte aynada cam çatlaması, aynadan geçiş
+// Sadece iki katman kaldı:
+//   1) Salonun uğultusu - alçak, sabit, ipucu vermez
+//   2) Olaylar - aynadan geçiş ve oyun sonu
+// Yaklaştıkça yükselen kalp atışı kaldırıldı: oyuncuya ipucu veriyordu.
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.Sound = factory();
@@ -13,10 +13,6 @@
   let master = null;
   let drone = null;
   let enabled = true;
-  let proximity = 0;      // 0 uzak, 1 dev aynanın dibinde
-  let nextBeat = 0;
-  let beatTimer = null;
-  let lastCrack = 0;
 
   try {
     enabled = localStorage.getItem(KEY) !== "kapali";
@@ -47,7 +43,7 @@
     filter.type = "lowpass";
     filter.frequency.value = 320;
     const g = ctx.createGain();
-    g.gain.value = 0.05;
+    g.gain.value = 0.035;
     filter.connect(g).connect(master);
     for (const [freq, detune] of [[55, -6], [82.5, 8], [110, 3]]) {
       const osc = ctx.createOscillator();
@@ -68,38 +64,11 @@
     hf.frequency.value = 1800;
     hf.Q.value = 0.7;
     const hg = ctx.createGain();
-    hg.gain.value = 0.012;
+    hg.gain.value = 0.008;
     hiss.connect(hf).connect(hg).connect(master);
     hiss.start();
     drone = { g, hg };
 
-    beatTimer = setInterval(tickBeat, 40);
-  }
-
-  // Kalp atışı: yakınlık arttıkça hem hızlanır hem yükselir.
-  function tickBeat() {
-    if (!ctx || proximity <= 0.02) return;
-    const now = ctx.currentTime;
-    if (now < nextBeat) return;
-    const bpm = 58 + proximity * 78;              // 58 -> 136 vuruş/dk
-    const aralik = 60 / bpm;
-    nextBeat = now + aralik;
-    thump(now, 0.055 + proximity * 0.16);
-    thump(now + aralik * 0.32, 0.03 + proximity * 0.1);
-  }
-
-  function thump(at, level) {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(78, at);
-    osc.frequency.exponentialRampToValueAtTime(38, at + 0.14);
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(level, at + 0.015);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.26);
-    osc.connect(g).connect(master);
-    osc.start(at);
-    osc.stop(at + 0.3);
   }
 
   // Dev aynayı bulma: uzun, altın bir çınlama
@@ -119,25 +88,6 @@
       osc.start(at);
       osc.stop(at + 2.8);
     });
-  }
-
-  // Sahte dev aynaya bakınca: kısa cam çatlaması
-  function crack() {
-    if (!ctx) return;
-    const t = ctx.currentTime;
-    if (t - lastCrack < 0.7) return;
-    lastCrack = t;
-    const src = ctx.createBufferSource();
-    src.buffer = noiseBuffer(0.25);
-    const f = ctx.createBiquadFilter();
-    f.type = "highpass";
-    f.frequency.value = 2600;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.09, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-    src.connect(f).connect(g).connect(master);
-    src.start(t);
-    src.stop(t + 0.25);
   }
 
   // Aynadan geçiş: aşağı doğru süzülen bir uğultu
@@ -178,12 +128,7 @@
 
   return {
     start,
-    // 0 (uzak) ile 1 (dev aynanın dibinde) arasında
-    setProximity(v) {
-      proximity = Math.max(0, Math.min(1, v));
-      if (drone) drone.hg.gain.value = 0.012 + proximity * 0.03;
-    },
-    discovery, crack, through, resolve,
+    discovery, through, resolve,
     toggle() {
       enabled = !enabled;
       if (master) master.gain.value = enabled ? 0.9 : 0;

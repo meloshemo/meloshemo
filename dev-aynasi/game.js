@@ -26,6 +26,8 @@
   const LOOK = 132;
   const SEEN_RANGE = 118;
   const GIANT_SCALE = 3.6;
+  const GIANT_REVEAL = 58;   // dev yansıma ancak bu kadar yakında belirir (~0,8 kare)
+  const ENTER_REACH = RADIUS + 12;  // aynaya değip içine girme mesafesi
   const WARM_CELLS = 5;      // dev aynasının çevresindeki "sıcak" camlar
   const BEST_KEY = "dev-aynasi:en-iyi";
 
@@ -35,13 +37,13 @@
   const CHAPTERS = [
     {
       name: "I · Aynalı Salon", size: 40, light: 235, hints: 3, decoys: 0, returnTrip: false,
-      objective: "Seni devasa gösteren tek aynayı bul",
+      objective: "Dev aynayı bul ve içine yürü",
       card: "Binlerce cam, hepsi birbirinin aynı.",
       palette: { ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916", glass: "168, 203, 216", lamp: "255, 231, 194" },
     },
     {
       name: "II · Aynanın İçinde", size: 46, light: 200, hints: 2, decoys: 14, returnTrip: false,
-      objective: "Çarpık aynalar arasından gerçek dev aynayı ayır",
+      objective: "Çarpık aynalar arasından gerçeğini bul ve içine yürü",
       card: "Camlar soğuk, ışık cılız. Bazıları seni çarpıtıyor.",
       palette: { ground: "#05090f", floorA: "#0b141d", floorB: "#081018", glass: "150, 214, 232", lamp: "196, 232, 255" },
     },
@@ -432,14 +434,11 @@
     forEachNearSegment(p, LOOK, (horizontal, x, y, d) => {
       const id = idOf(horizontal, x, y);
       const seg = { horizontal, x, y };
-      const isGiant = id === giant.id && phase === "arayis";
-      const carpik = decoys.get(id);
-      drawReflection(p, seg, isGiant ? "giant" : "normal", carpik);
-      if (d < SEEN_RANGE) {
-        p.seen.add(id);
-        if (carpik) Sound.crack();
-      }
-      if (isGiant && d < LOOK * 0.8) giantVisible = true;
+      // Dev ayna yalnızca dibinden geçerken parlar; uzaktan ışığı görünmez.
+      const isGiant = id === giant.id && phase === "arayis" && d < GIANT_REVEAL;
+      drawReflection(p, seg, isGiant ? "giant" : "normal", decoys.get(id));
+      if (d < SEEN_RANGE) p.seen.add(id);
+      if (isGiant) giantVisible = true;
     });
 
     ctx.lineCap = "round";
@@ -579,6 +578,21 @@
     updateHud();
   }
 
+  // Oyuncu dev aynaya değip üstüne yürüyor mu? Geçiş bununla olur.
+  function pushingIntoGiant(p) {
+    const g = segGeometry(giant);
+    if (giant.horizontal) {
+      if (p.x < g.ax - 6 || p.x > g.bx + 6) return false;
+      const mesafe = Math.abs(p.y - g.ay);
+      const yon = g.ay - p.y;                  // aynaya doğru olan yön
+      return mesafe <= ENTER_REACH && p.vy * yon > 15;
+    }
+    if (p.y < g.ay - 6 || p.y > g.by + 6) return false;
+    const mesafe = Math.abs(p.x - g.ax);
+    const yon = g.ax - p.x;
+    return mesafe <= ENTER_REACH && p.vx * yon > 15;
+  }
+
   // Dev aynayı bulan oyuncu aynanın içinden geçer: bir sonraki bölüm,
   // kendi ışığı ve rengiyle açılır. Süre kaldığı yerden devam eder.
   function enterMirror(now) {
@@ -602,14 +616,6 @@
       els.chapterCard.hidden = true;
     }
     if (running && !finished && !carding) moveAll(dt);
-    // Kalp atışı: dev aynaya yaklaştıkça hızlanır (yalnızca son birkaç karede duyulur)
-    if (running && !finished && phase === "arayis") {
-      const hedef = players[0];
-      const d = Math.hypot(hedef.x - giantSeg.x, hedef.y - giantSeg.y);
-      Sound.setProximity(Math.max(0, 1 - d / (CELL * 6)));
-    } else {
-      Sound.setProximity(0);
-    }
     const visible = finished ? [] : draw(now);
 
     if (running && !finished) {
@@ -628,15 +634,14 @@
             p.foundAt = now;
             Sound.discovery();
           }
-          p.bloom = Math.min(1, (now - p.foundAt) / 1400);
-          if (now - p.foundAt > 1600) {
-            if (holdAtMirror) {
-              // yalnızca ekran görüntüsü için: sahne dev aynada bekletilir
-            } else if (chapter.returnTrip) {
-              // Son bölümde ayna bulunur, sonra kapıya dönülür.
+          // Işık, aynaya yaklaştıkça güçlenir; asıl geçiş içine yürüyünce olur.
+          p.bloom = Math.min(1, p.bloom + dt * 2.2);
+          if (!holdAtMirror && pushingIntoGiant(p)) {
+            if (chapter.returnTrip) {
               phase = "donus";
               els.objective.textContent = "Pirinç kapıya dön";
               p.foundAt = 0;
+              Sound.through();
             } else if (duel) {
               p.done = elapsedNow();
               finish(p, now);
@@ -646,7 +651,7 @@
           }
         } else {
           p.foundAt = 0;
-          p.bloom = Math.max(0, p.bloom - dt * 2);
+          p.bloom = Math.max(0, p.bloom - dt * 2.4);
         }
       });
       updateHud();
@@ -776,6 +781,24 @@
       p.vx = 0;
       p.vy = 0;
     },
+    // Oyuncuyu dev aynanın önüne koyar ve aynaya doğru yürümek için
+    // basılması gereken tuşu söyler (testler klavyeyi gerçekten kullanır).
+    faceGiant(index = 0) {
+      const g = segGeometry(giant);
+      const p = players[index];
+      p.vx = 0;
+      p.vy = 0;
+      if (giant.horizontal) {
+        p.x = g.ax + CELL / 2;
+        const disarida = giant.y >= size;
+        p.y = g.ay + (disarida ? -CELL * 0.45 : CELL * 0.45);
+        return disarida ? "s" : "w";
+      }
+      p.y = g.ay + CELL / 2;
+      const disarida = giant.x >= size;
+      p.x = g.ax + (disarida ? -CELL * 0.45 : CELL * 0.45);
+      return disarida ? "d" : "a";
+    },
     teleportToDecoy(index = 0) {
       const id = [...decoys.keys()][0];
       if (!id) return false;
@@ -793,6 +816,8 @@
       players[index].y = CELL * 0.5;
     },
     pos: (i = 0) => ({ x: players[i].x, y: players[i].y }),
+    nudge(dx, dy, i = 0) { players[i].x += dx; players[i].y += dy; },
+    bloom: (i = 0) => players[i].bloom,
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
     state: () => ({
       chapter: chapter.name, seed, duel, phase, mirrors: mirrorCount,
