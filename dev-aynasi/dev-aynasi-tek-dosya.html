@@ -130,6 +130,8 @@ h1 {
   color: var(--ivory);
 }
 .stat .value small { font-size: 0.85rem; color: var(--muted); }
+.stat .value.small { font-size: 1rem; letter-spacing: 0.01em; }
+.duel-badge .value b { color: var(--brass); font-weight: 500; }
 .hud .spacer { flex: 1; }
 
 .btn {
@@ -279,6 +281,63 @@ kbd {
   text-align: center;
 }
 
+.objective {
+  margin: -6px 0 0;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.objective span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brass-dim);
+}
+.objective b { color: var(--ivory); font-weight: 400; }
+
+.modes { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+.code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--hair-soft);
+  width: 100%;
+}
+.code-row label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brass-dim);
+}
+.code-row input {
+  width: 92px;
+  padding: 8px 10px;
+  background: rgba(10, 7, 16, 0.6);
+  border: 1px solid var(--hair);
+  border-radius: 2px;
+  color: var(--ivory);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-align: center;
+}
+.code-row input:focus-visible { outline: 1px solid var(--brass); outline-offset: 2px; }
+
+.fine {
+  margin: 0;
+  color: var(--brass-dim);
+  font-size: 0.78rem;
+}
+.fine b { color: var(--brass); font-family: "IBM Plex Mono", monospace; letter-spacing: 0.14em; }
+
 </style>
   </head>
   <body>
@@ -293,16 +352,23 @@ kbd {
       </header>
 
       <div class="hud">
+        <div class="stat"><span class="label">Bölüm</span><span class="value small" id="chapter">I · Dev Aynası</span></div>
         <div class="stat"><span class="label">Süre</span><span class="value" id="time">00:00</span></div>
         <div class="stat">
           <span class="label">Bakılan ayna</span>
           <span class="value"><span id="seen">0</span> <small>/ <span id="total">0</span></small></span>
         </div>
         <div class="stat"><span class="label">Sezgi</span><span class="value" id="hints">3</span></div>
+        <div class="stat duel-badge" id="duelBadge" hidden>
+          <span class="label">Düello</span>
+          <span class="value small">1 <b id="p1Time">—</b> · 2 <b id="p2Time">—</b></span>
+        </div>
         <span class="spacer"></span>
         <button id="hintBtn" class="btn" type="button">Sezgi · H</button>
         <button id="restart" class="btn" type="button">Yeni salon · R</button>
       </div>
+
+      <p class="objective"><span>Hedef</span> <b id="objective">Seni devasa gösteren tek aynayı bul</b></p>
 
       <div class="stage">
         <canvas id="scene" aria-label="Aynalı salon"></canvas>
@@ -314,27 +380,41 @@ kbd {
               Işık yalnızca elindeki fenerin ulaştığı yere kadar. Bir aynaya yaklaştığında
               yansıman camın arkasında belirir. Aradığın, seni olduğundan büyük gösteren tek ayna.
             </p>
+            <div class="modes">
+              <button id="enterSolo" class="btn solid" type="button">Tek başına gir</button>
+              <button id="enterDuel" class="btn" type="button">Düello · iki kişi</button>
+            </div>
             <p class="keys">
-              <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ile yürü · <kbd>H</kbd> sezgi ·
-              dokunmatikte parmağını sürükle
+              Tek kişi: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> · <kbd>H</kbd> sezgi ·
+              dokunmatikte parmağını sürükle<br />
+              Düello: 1. oyuncu <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>Q</kbd> ·
+              2. oyuncu <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> + <kbd>M</kbd>
             </p>
-            <button id="enter" class="btn solid" type="button">Salona gir</button>
+            <div class="code-row">
+              <label for="codeInput">Salon kodu</label>
+              <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" />
+              <button id="codeApply" class="btn" type="button">Bu salonu aç</button>
+            </div>
+            <p class="fine">
+              Aynı kodu giren herkes birebir aynı salonu oynar — süreni arkadaşınla karşılaştırabilirsin.
+            </p>
           </div>
         </div>
 
         <div class="veil" id="overlay" hidden>
           <div class="frame">
-            <h2>Kendini dev aynasında gördün</h2>
-            <p>
-              Binlerce ayna arasından seni olduğundan büyük gösteren tek aynayı buldun. Deyimin
-              anlattığı da tam olarak bu: insanın kendini gerçekte olduğundan büyük görmesi.
-            </p>
-            <dl class="ledger">
+            <h2 id="overlayTitle">Kendini dev aynasında gördün</h2>
+            <p id="overlayText">—</p>
+            <dl class="ledger" id="ledger">
               <div><dt>Süre</dt><dd id="overlayTime">—</dd></div>
               <div><dt>Baktığın ayna</dt><dd id="overlaySeen">—</dd></div>
               <div><dt>En iyi süren</dt><dd id="best">—</dd></div>
             </dl>
-            <button id="again" class="btn solid" type="button">Yeni salon</button>
+            <div class="modes">
+              <button id="next" class="btn solid" type="button" hidden>Sonraki bölüm</button>
+              <button id="againBtn" class="btn" type="button">Yeni salon</button>
+            </div>
+            <p class="fine">Salon kodu: <b id="codeLabel">—</b></p>
           </div>
         </div>
       </div>
@@ -343,7 +423,8 @@ kbd {
 
       <footer class="help">
         <span><b>Yürü</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> veya yön tuşları · dokunmatikte parmağını sürükle</span>
-        <span><b>Sezgi</b> <kbd>H</kbd> dev aynasının yönünü bir an gösterir (3 hak)</span>
+        <span><b>Sezgi</b> <kbd>H</kbd> dev aynasının yönünü bir an gösterir</span>
+        <span><b>Sıcak iz</b> dev aynanın çevresindeki camların çerçevesi altın vurur</span>
         <span><b>Yeni salon</b> <kbd>R</kbd></span>
       </footer>
     </main>
@@ -494,124 +575,183 @@ kbd {
 
 </script>
     <script>
-// Dev Aynası - oyun döngüsü, sahne çizimi ve girdi
+// Dev Aynası - bölümler, düello, sahne çizimi ve girdi
 (function () {
   const canvas = document.getElementById("scene");
   const ctx = canvas.getContext("2d");
+  const $ = (id) => document.getElementById(id);
   const els = {
-    time: document.getElementById("time"),
-    seen: document.getElementById("seen"),
-    total: document.getElementById("total"),
-    hints: document.getElementById("hints"),
-    hintBtn: document.getElementById("hintBtn"),
-    restart: document.getElementById("restart"),
-    intro: document.getElementById("intro"),
-    enter: document.getElementById("enter"),
-    overlay: document.getElementById("overlay"),
-    overlayTime: document.getElementById("overlayTime"),
-    overlaySeen: document.getElementById("overlaySeen"),
-    again: document.getElementById("again"),
-    best: document.getElementById("best"),
+    time: $("time"), seen: $("seen"), total: $("total"), hints: $("hints"),
+    chapter: $("chapter"), objective: $("objective"),
+    hintBtn: $("hintBtn"), restart: $("restart"),
+    intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"),
+    codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
+    overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
+    ledger: $("ledger"), overlayTime: $("overlayTime"), overlaySeen: $("overlaySeen"),
+    best: $("best"), next: $("next"), againBtn: $("againBtn"),
+    duelBadge: $("duelBadge"), p1Time: $("p1Time"), p2Time: $("p2Time"),
   };
 
-  const CELL = 72;         // bir karenin dünya birimi
-  const SIZE = 48;         // oda 48x48 kare
-  const RADIUS = 11;       // oyuncu yarıçapı
-  const SPEED = 205;       // birim/saniye
-  const LIGHT = 235;       // fenerin görüş yarıçapı
-  const LOOK = 132;        // aynada yansımanın belirdiği mesafe
-  const SEEN_RANGE = 118;  // "bakıldı" sayılan mesafe
+  const CELL = 72;
+  const RADIUS = 11;
+  const SPEED = 205;
+  const LOOK = 132;
+  const SEEN_RANGE = 118;
   const GIANT_SCALE = 3.6;
+  const WARM_CELLS = 5;      // dev aynasının çevresindeki "sıcak" camlar
   const BEST_KEY = "dev-aynasi:en-iyi";
 
+  // Her bölüm salonu biraz daha zorlaştırır: ışık daralır, sahte devler artar.
+  const CHAPTERS = [
+    {
+      name: "I · Dev Aynası", size: 40, light: 235, hints: 3, decoys: 0, returnTrip: false,
+      objective: "Seni devasa gösteren tek aynayı bul",
+      brief: "Işık yalnızca fenerinin ulaştığı yere kadar. Bir aynaya yaklaştığında yansıman camın arkasında belirir.",
+    },
+    {
+      name: "II · Sahte Devler", size: 44, light: 205, hints: 2, decoys: 12, returnTrip: false,
+      objective: "Çarpık aynalar arasından gerçek dev aynayı ayır",
+      brief: "Salona çarpık aynalar karıştı: kimi seni bir tık büyütüyor, kimi yayıyor, kimi küçültüyor. Gerçek dev ayna altın gibi parlar — gerisi seni oyalar.",
+    },
+    {
+      name: "III · Kendine Gel", size: 48, light: 180, hints: 2, decoys: 18, returnTrip: true,
+      objective: "Dev aynayı bul, sonra kapıya dön",
+      brief: "Kendini dev aynasında görmek kolay; asıl iş oradan kendine dönmek. Aynayı bulduğunda ışık zayıflar ve pirinç kapıyı bulman gerekir.",
+    },
+  ];
+
   const C = {
-    ground: "#0a0710",
-    floorA: "#120c1a",
-    floorB: "#0e0916",
-    glass: "168, 203, 216",
-    brass: "216, 178, 106",
-    ivory: "#f2eae0",
+    ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916",
+    glass: "168, 203, 216", brass: "216, 178, 106", ivory: "#f2eae0",
   };
+  const DISTORTIONS = [
+    { sx: 1.45, sy: 1.45 },   // biraz büyük
+    { sx: 1.9, sy: 0.85 },    // yayvan
+    { sx: 0.72, sy: 1.5 },    // uzun ve ince
+    { sx: 0.6, sy: 0.6 },     // küçük
+    { sx: 2.2, sy: 1.1 },     // geniş
+  ];
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  // Retina ekranlarda tam piksel oranında çizmek dolgu maliyetini dörde
-  // katlıyor; 1.5 kat keskinlik gözle aynı, kare hızı rahat.
   const scale = () => Math.min(window.devicePixelRatio || 1, 1.5);
 
-  let maze, mirrorList, giant, giantSeg;
-  let player, keys, seen, hintsLeft, hintUntil, startedAt, finishedAt, foundAt;
-  let dust = [];
+  let chapterIndex = 0;
+  let chapter, size, maze, mirrorCount, giant, giantSeg, decoys, warm;
+  let players = [];
+  let duel = false;
+  let seed = 0;
   let running = false;
-  let bloom = 0;
+  let finished = null;      // { winner, elapsed }
+  let phase = "arayis";     // arayis | donus
+  let startedAt = 0;
   let lastFrame = 0;
   let joystick = null;
-  let grain = null;
+
+  const keys = new Set();
+  const idOf = (horizontal, x, y) => `${horizontal ? "h" : "v"}${x},${y}`;
 
   function segGeometry(seg) {
-    if (seg.horizontal) {
-      return { ax: seg.x * CELL, ay: seg.y * CELL, bx: (seg.x + 1) * CELL, by: seg.y * CELL };
-    }
+    if (seg.horizontal) return { ax: seg.x * CELL, ay: seg.y * CELL, bx: (seg.x + 1) * CELL, by: seg.y * CELL };
     return { ax: seg.x * CELL, ay: seg.y * CELL, bx: seg.x * CELL, by: (seg.y + 1) * CELL };
   }
-
   function segCenter(seg) {
     const g = segGeometry(seg);
     return { x: (g.ax + g.bx) / 2, y: (g.ay + g.by) / 2 };
   }
 
-  function newRoom(seed) {
-    maze = Maze.generate(SIZE, SIZE, seed);
-    mirrorList = Maze.mirrors(maze);
+  function makePlayer(label, keymap, tint) {
+    return {
+      label, keymap, tint,
+      x: CELL * 0.5, y: CELL * 0.5,
+      hints: chapter.hints, hintUntil: 0,
+      seen: new Set(), foundAt: 0, bloom: 0, done: 0, reachedDoor: false,
+    };
+  }
+
+  function newRoom(nextSeed) {
+    chapter = CHAPTERS[chapterIndex];
+    size = chapter.size;
+    seed = nextSeed;
+    maze = Maze.generate(size, size, seed);
+    mirrorCount = Maze.mirrors(maze).length;
     giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed);
     giantSeg = segCenter(giant);
-    player = { x: CELL * 0.5, y: CELL * 0.5, dx: 0, dy: 1 };
-    keys = new Set();
-    seen = new Set();
-    hintsLeft = 3;
-    hintUntil = 0;
-    foundAt = 0;
-    finishedAt = 0;
-    bloom = 0;
+
+    // Sahte devler: gerçek dev aynadan uzakta, çarpık yansıma gösteren camlar.
+    decoys = new Map();
+    if (chapter.decoys) {
+      const all = Maze.mirrors(maze);
+      let s = (seed * 2654435761) >>> 0;
+      const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+      let guard = 0;
+      while (decoys.size < chapter.decoys && guard++ < 4000) {
+        const seg = all[Math.floor(rand() * all.length)];
+        if (seg.id === giant.id) continue;
+        const c = segCenter(seg);
+        if (Math.hypot(c.x - giantSeg.x, c.y - giantSeg.y) < CELL * 4) continue;
+        decoys.set(seg.id, DISTORTIONS[Math.floor(rand() * DISTORTIONS.length)]);
+      }
+    }
+
+    // Sıcak iz: dev aynanın çevresindeki camların çerçevesi hafif altın vurur.
+    warm = new Set();
+    const gx = giant.x;
+    const gy = giant.y;
+    for (let y = gy - WARM_CELLS; y <= gy + WARM_CELLS; y++) {
+      for (let x = gx - WARM_CELLS; x <= gx + WARM_CELLS; x++) {
+        if (x < 0 || y < 0 || x > size || y > size) continue;
+        if (Math.hypot(x - gx, y - gy) > WARM_CELLS) continue;
+        if (x < size && maze.hWalls[y][x]) warm.add(idOf(true, x, y));
+        if (y < size && maze.vWalls[y][x]) warm.add(idOf(false, x, y));
+      }
+    }
+
+    players = duel
+      ? [
+          makePlayer("1", { up: "w", down: "s", left: "a", right: "d", hint: "q" }, "#f2eae0"),
+          makePlayer("2", { up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight", hint: "m" }, "#a8cbd8"),
+        ]
+      : [makePlayer("1", { up: "w", down: "s", left: "a", right: "d", hint: "h" }, "#f2eae0")];
+    players[0].y = duel ? CELL * 0.34 : CELL * 0.5;
+    if (duel) players[1].y = CELL * 0.68;
+
+    phase = "arayis";
+    finished = null;
     startedAt = performance.now();
-    dust = Array.from({ length: 70 }, () => ({
-      x: Math.random() * CELL * 8 - CELL * 4,
-      y: Math.random() * CELL * 8 - CELL * 4,
-      r: 0.6 + Math.random() * 1.4,
-      a: 0.05 + Math.random() * 0.16,
-      vx: (Math.random() - 0.5) * 7,
-      vy: (Math.random() - 0.5) * 7,
-    }));
-    els.total.textContent = mirrorList.length.toLocaleString("tr-TR");
+    keys.clear();
+    els.total.textContent = mirrorCount.toLocaleString("tr-TR");
+    els.chapter.textContent = chapter.name;
+    els.objective.textContent = chapter.objective;
+    els.codeLabel.textContent = String(seed).padStart(5, "0");
+    els.duelBadge.hidden = !duel;
     els.overlay.hidden = true;
     updateHud();
   }
 
   // --- hareket ---
-  function move(dt) {
-    let vx = 0;
-    let vy = 0;
-    if (keys.has("ArrowLeft") || keys.has("a")) vx -= 1;
-    if (keys.has("ArrowRight") || keys.has("d")) vx += 1;
-    if (keys.has("ArrowUp") || keys.has("w")) vy -= 1;
-    if (keys.has("ArrowDown") || keys.has("s")) vy += 1;
-    if (joystick) {
-      vx += joystick.x;
-      vy += joystick.y;
+  function moveAll(dt) {
+    for (const p of players) {
+      if (p.done) continue;
+      const k = p.keymap;
+      let vx = 0;
+      let vy = 0;
+      if (keys.has(k.left) || (!duel && keys.has("ArrowLeft"))) vx -= 1;
+      if (keys.has(k.right) || (!duel && keys.has("ArrowRight"))) vx += 1;
+      if (keys.has(k.up) || (!duel && keys.has("ArrowUp"))) vy -= 1;
+      if (keys.has(k.down) || (!duel && keys.has("ArrowDown"))) vy += 1;
+      if (!duel && joystick) { vx += joystick.x; vy += joystick.y; }
+      const len = Math.hypot(vx, vy);
+      if (!len) continue;
+      vx /= len;
+      vy /= len;
+      p.x = slide(p, p.x + vx * SPEED * dt, p.y, "x");
+      p.y = slide(p, p.x, p.y + vy * SPEED * dt, "y");
     }
-    const len = Math.hypot(vx, vy);
-    if (!len) return;
-    vx /= len;
-    vy /= len;
-    player.dx = vx;
-    player.dy = vy;
-    player.x = slide(player.x + vx * SPEED * dt, player.y, "x");
-    player.y = slide(player.x, player.y + vy * SPEED * dt, "y");
   }
 
-  // Duvarlara çarpınca eksen bazında geri it.
-  function slide(nx, ny, axis) {
-    const cx = Math.max(0, Math.min(SIZE - 1, Math.floor(nx / CELL)));
-    const cy = Math.max(0, Math.min(SIZE - 1, Math.floor(ny / CELL)));
+  function slide(p, nx, ny, axis) {
+    const cx = Math.max(0, Math.min(size - 1, Math.floor(nx / CELL)));
+    const cy = Math.max(0, Math.min(size - 1, Math.floor(ny / CELL)));
     let x = nx;
     let y = ny;
     if (Maze.hasWall(maze, cx, cy, "W") && x - RADIUS < cx * CELL) x = cx * CELL + RADIUS;
@@ -629,139 +769,101 @@ kbd {
     canvas.height = Math.round(rect.height * ratio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
-
   function viewSize() {
     const ratio = scale();
     return { w: canvas.width / ratio, h: canvas.height / ratio };
   }
 
-  // İnce film greni: bir kez üretilip her karede kaydırılarak kullanılır.
-  function grainTile() {
-    if (grain) return grain;
-    const size = 256;
-    const tile = document.createElement("canvas");
-    tile.width = size;
-    tile.height = size;
-    const tctx = tile.getContext("2d");
-    const img = tctx.createImageData(size, size);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = 150 + Math.random() * 105;
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-      img.data[i + 3] = 46;
-    }
-    tctx.putImageData(img, 0, 0);
-    grain = tile;
-    return tile;
-  }
-
-  // Oyuncunun çevresindeki pencerede kalan ayna parçalarını, ara nesne
-  // üretmeden gezer. Salonda binlerce ayna var; her karede hepsini taramak
-  // kare hızını düşürüyordu.
-  function forEachNearSegment(range, cb) {
-    const pcx = Math.floor(player.x / CELL);
-    const pcy = Math.floor(player.y / CELL);
+  // Oyuncunun çevresindeki aynaları ara nesne üretmeden gezer.
+  function forEachNearSegment(p, range, cb) {
     const span = Math.ceil(range / CELL) + 1;
-    const x0 = Math.max(0, pcx - span);
-    const y0 = Math.max(0, pcy - span);
-    const x1 = Math.min(SIZE, pcx + span);
-    const y1 = Math.min(SIZE, pcy + span);
-    for (let y = y0; y <= y1; y++) {
-      for (let x = x0; x <= x1; x++) {
-        if (x < SIZE && maze.hWalls[y][x]) {
-          const cxw = x * CELL + CELL / 2;
-          const cyw = y * CELL;
-          const d = Math.hypot(cxw - player.x, cyw - player.y);
+    const pcx = Math.floor(p.x / CELL);
+    const pcy = Math.floor(p.y / CELL);
+    for (let y = Math.max(0, pcy - span); y <= Math.min(size, pcy + span); y++) {
+      for (let x = Math.max(0, pcx - span); x <= Math.min(size, pcx + span); x++) {
+        if (x < size && maze.hWalls[y][x]) {
+          const d = Math.hypot(x * CELL + CELL / 2 - p.x, y * CELL - p.y);
           if (d <= range) cb(true, x, y, d);
         }
-        if (y < SIZE && maze.vWalls[y][x]) {
-          const cxw = x * CELL;
-          const cyw = y * CELL + CELL / 2;
-          const d = Math.hypot(cxw - player.x, cyw - player.y);
+        if (y < size && maze.vWalls[y][x]) {
+          const d = Math.hypot(x * CELL - p.x, y * CELL + CELL / 2 - p.y);
           if (d <= range) cb(false, x, y, d);
         }
       }
     }
   }
 
-  function drawFigure(x, y, scale, alpha, color, glow) {
+  function drawFigure(x, y, sx, sy, alpha, color, glow) {
     ctx.save();
     ctx.globalAlpha = alpha;
     if (glow) {
       ctx.shadowColor = glow;
-      ctx.shadowBlur = 26 * scale;
+      ctx.shadowBlur = 22 * Math.max(sx, sy);
     }
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.ellipse(x, y + RADIUS * scale * 0.4, RADIUS * scale * 0.66, RADIUS * scale * 1.06, 0, 0, Math.PI * 2);
+    ctx.ellipse(x, y + RADIUS * sy * 0.4, RADIUS * sx * 0.66, RADIUS * sy * 1.06, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(x, y - RADIUS * scale * 0.95, RADIUS * scale * 0.58, 0, Math.PI * 2);
+    ctx.ellipse(x, y - RADIUS * sy * 0.95, RADIUS * sx * 0.58, RADIUS * sy * 0.58, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 
   // Aynadaki görüntü: oyuncunun ayna düzlemine göre simetriği, panelin
-  // arkasındaki dar banda kırpılarak çizilir. Cam, üstüne bir tül gibi
-  // koyu bir degrade bırakır; dev yansıma bu banda sığmaz, taşar.
-  function drawReflection(seg, isGiant) {
+  // arkasındaki dar banda kırpılarak çizilir.
+  function drawReflection(p, seg, kind, distortion) {
     const g = segGeometry(seg);
-    const depth = CELL * (isGiant ? 1.7 : 0.94);
+    const isGiant = kind === "giant";
+    const depth = CELL * (isGiant ? 1.7 : 1.0);
     let rx;
     let ry;
     let band;
     if (seg.horizontal) {
-      const side = player.y < g.ay ? 1 : -1;
-      rx = player.x;
-      ry = 2 * g.ay - player.y;
-      band = { x: g.ax, y: side > 0 ? g.ay : g.ay - depth, w: CELL, h: depth, vertical: true, side };
+      const side = p.y < g.ay ? 1 : -1;
+      rx = p.x;
+      ry = 2 * g.ay - p.y;
+      band = { x: g.ax, y: side > 0 ? g.ay : g.ay - depth, w: CELL, h: depth };
     } else {
-      const side = player.x < g.ax ? 1 : -1;
-      rx = 2 * g.ax - player.x;
-      ry = player.y;
-      band = { x: side > 0 ? g.ax : g.ax - depth, y: g.ay, w: depth, h: CELL, vertical: false, side };
+      const side = p.x < g.ax ? 1 : -1;
+      rx = 2 * g.ax - p.x;
+      ry = p.y;
+      band = { x: side > 0 ? g.ax : g.ax - depth, y: g.ay, w: depth, h: CELL };
     }
 
     ctx.save();
     ctx.beginPath();
     ctx.rect(band.x, band.y, band.w, band.h);
     ctx.clip();
-
-    // cam derinliği: aynanın içi dışarıdan daha karanlıktır
-    const back = ctx.createLinearGradient(
-      band.vertical ? band.x : band.side > 0 ? band.x : band.x + band.w,
-      band.vertical ? (band.side > 0 ? band.y : band.y + band.h) : band.y,
-      band.vertical ? band.x : band.side > 0 ? band.x + band.w : band.x,
-      band.vertical ? (band.side > 0 ? band.y + band.h : band.y) : band.y
-    );
-    back.addColorStop(0, "rgba(20, 26, 34, 0.55)");
-    back.addColorStop(1, "rgba(6, 8, 12, 0.95)");
-    ctx.fillStyle = back;
+    ctx.fillStyle = "rgba(9, 12, 18, 0.82)";
     ctx.fillRect(band.x, band.y, band.w, band.h);
 
-    const dist = Math.hypot(rx - player.x, ry - player.y) / 2;
-    const alpha = Math.max(0, 0.8 - (dist / LOOK) * 0.45);
+    const dist = Math.hypot(rx - p.x, ry - p.y) / 2;
+    const alpha = Math.max(0, 0.85 - (dist / LOOK) * 0.4);
     if (isGiant) {
-      drawFigure(rx, ry, GIANT_SCALE, Math.min(1, alpha + 0.25), "#ffd98a", "rgba(216, 178, 106, 0.9)");
+      drawFigure(rx, ry, GIANT_SCALE, GIANT_SCALE, 1, "#ffd98a", "rgba(216, 178, 106, 0.9)");
+    } else if (distortion) {
+      drawFigure(rx, ry, distortion.sx, distortion.sy, alpha, `rgba(${C.glass}, 0.92)`, null);
     } else {
-      drawFigure(rx, ry, 1, alpha, `rgba(${C.glass}, 0.9)`, null);
+      drawFigure(rx, ry, 1, 1, alpha, `rgba(${C.glass}, 0.92)`, null);
     }
     ctx.restore();
   }
 
-  function drawPanel(seg, dist) {
+  function drawPanel(seg, dist, light, isWarm) {
     const g = segGeometry(seg);
-    const glow = Math.max(0, 1 - dist / (LIGHT * 1.15));
+    const glow = Math.max(0, 1 - dist / (light * 1.15));
     ctx.strokeStyle = `rgba(${C.glass}, ${(0.1 + glow * 0.6).toFixed(3)})`;
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(g.ax, g.ay);
     ctx.lineTo(g.bx, g.by);
     ctx.stroke();
-
     if (glow > 0.2) {
-      // camın parlaması ve pirinç çerçeve uçları
-      ctx.strokeStyle = `rgba(255, 255, 255, ${(glow - 0.2) * 0.55})`;
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = isWarm
+        ? `rgba(${C.brass}, ${(glow - 0.2) * 0.85})`
+        : `rgba(255, 255, 255, ${(glow - 0.2) * 0.55})`;
+      ctx.lineWidth = 1.3;
       ctx.beginPath();
       ctx.moveTo(g.ax, g.ay);
       ctx.lineTo(g.bx, g.by);
@@ -769,34 +871,54 @@ kbd {
       ctx.fillStyle = `rgba(${C.brass}, ${(glow - 0.2) * 0.8})`;
       for (const [px, py] of [[g.ax, g.ay], [g.bx, g.by]]) {
         ctx.beginPath();
-        ctx.arc(px, py, 2.6, 0, Math.PI * 2);
+        ctx.arc(px, py, 2.4, 0, Math.PI * 2);
         ctx.fill();
       }
     }
   }
 
-  function draw(now, dt) {
-    const ratio = scale();
-    const view = viewSize();
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.fillStyle = C.ground;
-    ctx.fillRect(0, 0, view.w, view.h);
-
-    const zoom = 1 + bloom * 0.14;
+  function drawDoor() {
+    const cx = CELL * 0.5;
+    const cy = CELL * 0.5;
     ctx.save();
-    ctx.translate(view.w / 2, view.h / 2);
+    ctx.strokeStyle = `rgba(${C.brass}, 0.9)`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, CELL * 0.3, Math.PI, 0);
+    ctx.lineTo(cx + CELL * 0.3, cy + CELL * 0.3);
+    ctx.lineTo(cx - CELL * 0.3, cy + CELL * 0.3);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle = `rgba(${C.brass}, 0.14)`;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Tek bir oyuncunun bakış açısını verilen dikdörtgene çizer.
+  function drawView(p, rect, now) {
+    const light = chapter.light * (phase === "donus" ? 0.78 : 1);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rect.x, rect.y, rect.w, rect.h);
+    ctx.clip();
+    ctx.fillStyle = C.ground;
+    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+
+    const zoom = 1 + p.bloom * 0.14;
+    ctx.save();
+    ctx.translate(rect.x + rect.w / 2, rect.y + rect.h / 2);
     ctx.scale(zoom, zoom);
-    ctx.translate(-player.x, -player.y);
+    ctx.translate(-p.x, -p.y);
 
-    const half = { w: view.w / (2 * zoom), h: view.h / (2 * zoom) };
-    const camX = player.x - half.w;
-    const camY = player.y - half.h;
+    const halfW = rect.w / (2 * zoom);
+    const halfH = rect.h / (2 * zoom);
+    const camX = p.x - halfW;
+    const camY = p.y - halfH;
 
-    // zemin
     const x0 = Math.max(0, Math.floor(camX / CELL));
     const y0 = Math.max(0, Math.floor(camY / CELL));
-    const x1 = Math.min(SIZE - 1, Math.ceil((camX + half.w * 2) / CELL));
-    const y1 = Math.min(SIZE - 1, Math.ceil((camY + half.h * 2) / CELL));
+    const x1 = Math.min(size - 1, Math.ceil((camX + halfW * 2) / CELL));
+    const y1 = Math.min(size - 1, Math.ceil((camY + halfH * 2) / CELL));
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
         ctx.fillStyle = (x + y) % 2 ? C.floorA : C.floorB;
@@ -804,60 +926,44 @@ kbd {
       }
     }
 
-    // fenerin zeminde bıraktığı sıcak halka
-    const lamp = ctx.createRadialGradient(player.x, player.y, 6, player.x, player.y, LIGHT * 0.9);
-    lamp.addColorStop(0, "rgba(255, 231, 194, 0.16)");
+    const lamp = ctx.createRadialGradient(p.x, p.y, 6, p.x, p.y, light * 0.9);
+    lamp.addColorStop(0, "rgba(255, 231, 194, 0.15)");
     lamp.addColorStop(0.55, "rgba(216, 178, 106, 0.05)");
     lamp.addColorStop(1, "rgba(0, 0, 0, 0)");
     ctx.fillStyle = lamp;
-    ctx.fillRect(camX, camY, half.w * 2, half.h * 2);
+    ctx.fillRect(camX, camY, halfW * 2, halfH * 2);
 
-    // yansımalar aynaların arkasında yaşar, panellerden önce çizilir
+    if (chapter.returnTrip) drawDoor();
+
     let giantVisible = false;
-    forEachNearSegment(LOOK, (horizontal, x, y, d) => {
-      const seg = { horizontal, x, y, id: `${horizontal ? "h" : "v"}${x},${y}` };
-      const isGiant = seg.id === giant.id;
-      drawReflection(seg, isGiant);
-      if (d < SEEN_RANGE) seen.add(seg.id);
+    forEachNearSegment(p, LOOK, (horizontal, x, y, d) => {
+      const id = idOf(horizontal, x, y);
+      const seg = { horizontal, x, y };
+      const isGiant = id === giant.id && phase === "arayis";
+      drawReflection(p, seg, isGiant ? "giant" : "normal", decoys.get(id));
+      if (d < SEEN_RANGE) p.seen.add(id);
       if (isGiant && d < LOOK * 0.8) giantVisible = true;
     });
 
-    // ayna panelleri
     ctx.lineCap = "round";
-    forEachNearSegment(LIGHT * 1.25, (horizontal, x, y, d) => {
-      drawPanel({ horizontal, x, y }, d);
+    forEachNearSegment(p, light * 1.25, (horizontal, x, y, d) => {
+      drawPanel({ horizontal, x, y }, d, light, warm.has(idOf(horizontal, x, y)));
     });
 
-    // toz zerreleri
-    if (!reducedMotion) {
-      for (const p of dust) {
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        const dx = p.x - (player.x - camX);
-        const dy = p.y - (player.y - camY);
-        if (Math.abs(dx) > half.w || Math.abs(dy) > half.h) {
-          p.x = player.x - camX + (Math.random() - 0.5) * half.w * 1.6;
-          p.y = player.y - camY + (Math.random() - 0.5) * half.h * 1.6;
-        }
-        ctx.fillStyle = `rgba(255, 240, 214, ${p.a})`;
-        ctx.beginPath();
-        ctx.arc(camX + p.x, camY + p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    for (const other of players) {
+      if (other === p) continue;
+      const d = Math.hypot(other.x - p.x, other.y - p.y);
+      if (d < light) drawFigure(other.x, other.y, 1, 1, 0.75, other.tint, null);
     }
+    drawFigure(p.x, p.y, 1, 1, 1, p.tint, "rgba(255, 236, 205, 0.5)");
 
-    drawFigure(player.x, player.y, 1, 1, C.ivory, "rgba(255, 236, 205, 0.55)");
-
-    // sezgi oku
-    if (now < hintUntil) {
-      const ang = Math.atan2(giantSeg.y - player.y, giantSeg.x - player.x);
-      const pulse = 0.55 + 0.45 * Math.sin(now / 120);
+    if (now < p.hintUntil) {
+      const target = phase === "donus" ? { x: CELL * 0.5, y: CELL * 0.5 } : giantSeg;
+      const ang = Math.atan2(target.y - p.y, target.x - p.x);
       ctx.save();
-      ctx.translate(player.x, player.y);
+      ctx.translate(p.x, p.y);
       ctx.rotate(ang);
-      ctx.fillStyle = `rgba(${C.brass}, ${pulse})`;
-      ctx.shadowColor = `rgba(${C.brass}, 0.8)`;
-      ctx.shadowBlur = 14;
+      ctx.fillStyle = `rgba(${C.brass}, 0.9)`;
       ctx.beginPath();
       ctx.moveTo(50, 0);
       ctx.lineTo(32, -9);
@@ -869,50 +975,67 @@ kbd {
 
     ctx.restore();
 
-    // karanlık salon: yalnızca fenerin ulaştığı yeri görürsün
-    const dark = ctx.createRadialGradient(
-      view.w / 2, view.h / 2, LIGHT * 0.24 * zoom,
-      view.w / 2, view.h / 2, LIGHT * zoom
-    );
+    const cx = rect.x + rect.w / 2;
+    const cy = rect.y + rect.h / 2;
+    const dark = ctx.createRadialGradient(cx, cy, light * 0.24 * zoom, cx, cy, light * zoom);
     dark.addColorStop(0, "rgba(10, 7, 16, 0)");
     dark.addColorStop(0.7, "rgba(10, 7, 16, 0.6)");
     dark.addColorStop(1, "rgba(10, 7, 16, 1)");
     ctx.fillStyle = dark;
-    ctx.fillRect(0, 0, view.w, view.h);
+    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
 
-    // dev aynasını görünce altın ışık salonu doldurur
-    if (bloom > 0) {
-      const gold = ctx.createRadialGradient(
-        view.w / 2, view.h / 2, 0,
-        view.w / 2, view.h / 2, Math.max(view.w, view.h) * 0.75
-      );
-      gold.addColorStop(0, `rgba(255, 222, 160, ${0.42 * bloom})`);
-      gold.addColorStop(0.45, `rgba(216, 178, 106, ${0.22 * bloom})`);
+    if (p.bloom > 0) {
+      const gold = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rect.w, rect.h) * 0.75);
+      gold.addColorStop(0, `rgba(255, 222, 160, ${0.42 * p.bloom})`);
+      gold.addColorStop(0.45, `rgba(216, 178, 106, ${0.2 * p.bloom})`);
       gold.addColorStop(1, "rgba(216, 178, 106, 0)");
       ctx.fillStyle = gold;
-      ctx.fillRect(0, 0, view.w, view.h);
+      ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
     }
 
-    // gren (iki karede bir; gözle fark edilmez, dolgu maliyetini yarılar)
-    ctx.save();
-    ctx.globalAlpha = 0.045;
-    const tile = grainTile();
-    const ox = -Math.floor(Math.random() * 128);
-    const oy = -Math.floor(Math.random() * 128);
-    for (let gy = oy; gy < view.h; gy += 256) {
-      for (let gx = ox; gx < view.w; gx += 256) ctx.drawImage(tile, gx, gy);
+    if (duel) {
+      ctx.fillStyle = `rgba(${C.brass}, 0.75)`;
+      ctx.font = "500 13px 'IBM Plex Mono', monospace";
+      ctx.fillText(`OYUNCU ${p.label}`, rect.x + 14, rect.y + 24);
     }
     ctx.restore();
-
     return giantVisible;
   }
 
+  function draw(now) {
+    const ratio = scale();
+    const view = viewSize();
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.fillStyle = C.ground;
+    ctx.fillRect(0, 0, view.w, view.h);
+
+    const visible = [];
+    if (duel) {
+      const halfW = (view.w - 2) / 2;
+      visible.push(drawView(players[0], { x: 0, y: 0, w: halfW, h: view.h }, now));
+      visible.push(drawView(players[1], { x: halfW + 2, y: 0, w: halfW, h: view.h }, now));
+      ctx.fillStyle = `rgba(${C.brass}, 0.35)`;
+      ctx.fillRect(halfW, 0, 2, view.h);
+    } else {
+      visible.push(drawView(players[0], { x: 0, y: 0, w: view.w, h: view.h }, now));
+    }
+    return visible;
+  }
+
+  // --- durum ---
+  function elapsedNow() {
+    return ((finished ? finished.at : performance.now()) - startedAt) / 1000;
+  }
+
   function updateHud() {
-    const elapsed = ((finishedAt || (running ? performance.now() : startedAt)) - startedAt) / 1000;
-    els.time.textContent = formatTime(elapsed);
-    els.seen.textContent = seen.size.toLocaleString("tr-TR");
-    els.hints.textContent = hintsLeft;
-    els.hintBtn.disabled = hintsLeft === 0 || !!finishedAt || !running;
+    els.time.textContent = formatTime(running || finished ? elapsedNow() : 0);
+    els.seen.textContent = players.reduce((n, p) => n + p.seen.size, 0).toLocaleString("tr-TR");
+    els.hints.textContent = players.map((p) => p.hints).join(" · ");
+    els.hintBtn.disabled = !running || !!finished || players[0].hints === 0;
+    if (duel) {
+      els.p1Time.textContent = players[0].done ? formatTime(players[0].done) : "—";
+      els.p2Time.textContent = players[1].done ? formatTime(players[1].done) : "—";
+    }
   }
 
   function formatTime(sec) {
@@ -921,21 +1044,43 @@ kbd {
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
-  function win(now) {
-    finishedAt = now;
-    const elapsed = (finishedAt - startedAt) / 1000;
-    els.overlayTime.textContent = formatTime(elapsed);
-    els.overlaySeen.textContent = `${seen.size.toLocaleString("tr-TR")} / ${mirrorList.length.toLocaleString("tr-TR")}`;
-    let best = Number(localStorage.getItem(BEST_KEY) || 0);
-    if (!best || elapsed < best) {
-      best = elapsed;
-      try {
-        localStorage.setItem(BEST_KEY, String(elapsed));
-      } catch (err) {
-        /* depolama kapalıysa sessizce geç */
+  function finish(winner, now) {
+    finished = { winner, at: now };
+    const elapsed = elapsedNow();
+    const seenTotal = players.reduce((n, p) => n + p.seen.size, 0);
+
+    if (duel) {
+      els.overlayTitle.textContent = `Oyuncu ${winner.label} kazandı`;
+      els.overlayText.textContent =
+        "Aynı salonda, aynı aynalar arasında. Dev aynayı önce o buldu — kibirlenme sırası onda.";
+      els.best.parentElement.hidden = true;
+    } else {
+      const last = chapterIndex === CHAPTERS.length - 1;
+      els.overlayTitle.textContent = chapter.returnTrip
+        ? "Kendine geldin"
+        : "Kendini dev aynasında gördün";
+      els.overlayText.textContent = chapter.returnTrip
+        ? "Dev aynayı gördün ve oradan kendine döndün. Deyimin tam karşılığı: insanın kendini gerçekte olduğundan büyük görmesi — ve ondan dönebilmesi."
+        : last
+        ? "Binlerce ayna arasından seni olduğundan büyük gösteren tek aynayı buldun."
+        : "Binlerce ayna arasından seni olduğundan büyük gösteren tek aynayı buldun. Salon derinleşiyor.";
+      els.best.parentElement.hidden = false;
+      let best = Number(localStorage.getItem(`${BEST_KEY}:${chapterIndex}`) || 0);
+      if (!best || elapsed < best) {
+        best = elapsed;
+        try {
+          localStorage.setItem(`${BEST_KEY}:${chapterIndex}`, String(elapsed));
+        } catch (err) {
+          /* depolama kapalıysa sessizce geç */
+        }
       }
+      els.best.textContent = formatTime(best);
     }
-    els.best.textContent = formatTime(best);
+
+    els.overlayTime.textContent = formatTime(elapsed);
+    els.overlaySeen.textContent = `${seenTotal.toLocaleString("tr-TR")} / ${mirrorCount.toLocaleString("tr-TR")}`;
+    els.next.hidden = duel || chapterIndex >= CHAPTERS.length - 1;
+    els.next.textContent = duel ? "" : `Sonraki bölüm · ${CHAPTERS[Math.min(chapterIndex + 1, CHAPTERS.length - 1)].name}`;
     els.overlay.hidden = false;
     updateHud();
   }
@@ -943,68 +1088,109 @@ kbd {
   function loop(now) {
     const dt = Math.min(0.05, (now - lastFrame) / 1000 || 0);
     lastFrame = now;
-    if (running && !finishedAt) move(dt);
-    // Perde indikten sonra sahne donar; boşuna kare çizilmez.
-    const giantVisible = finishedAt ? false : draw(now, dt);
-    if (running && !finishedAt) {
-      if (giantVisible) {
-        if (!foundAt) foundAt = now;
-        // Buluş anı: altın ışık büyür, sahne hafifçe yaklaşır, sonra perde.
-        bloom = Math.min(1, (now - foundAt) / 1400);
-        if (now - foundAt > 1600) win(now);
-      } else {
-        foundAt = 0;
-        bloom = Math.max(0, bloom - dt * 2);
-      }
+    if (running && !finished) moveAll(dt);
+    const visible = finished ? [] : draw(now);
+
+    if (running && !finished) {
+      players.forEach((p, i) => {
+        if (p.done) return;
+        if (phase === "donus") {
+          // III. bölüm: dev aynadan sonra kapıya dönüş.
+          if (Math.hypot(p.x - CELL * 0.5, p.y - CELL * 0.5) < CELL * 0.45) {
+            p.done = elapsedNow();
+            finish(p, now);
+          }
+          return;
+        }
+        if (visible[i]) {
+          if (!p.foundAt) p.foundAt = now;
+          p.bloom = Math.min(1, (now - p.foundAt) / 1400);
+          if (now - p.foundAt > 1600) {
+            p.done = elapsedNow();
+            if (chapter.returnTrip && !duel) {
+              phase = "donus";
+              els.objective.textContent = "Pirinç kapıya dön";
+              p.foundAt = 0;
+              p.done = 0;
+            } else {
+              finish(p, now);
+            }
+          }
+        } else {
+          p.foundAt = 0;
+          p.bloom = Math.max(0, p.bloom - dt * 2);
+        }
+      });
       updateHud();
     }
     requestAnimationFrame(loop);
   }
 
   // --- girdi ---
-  const MOVE_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "w", "a", "s", "d"];
-  const track = (e, down) => {
+  const KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "w", "a", "s", "d"];
+  window.addEventListener("keydown", (e) => {
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-    if (MOVE_KEYS.includes(k)) {
+    if (KEYS.includes(k)) {
       e.preventDefault();
-      if (down) keys.add(k);
-      else keys.delete(k);
+      keys.add(k);
     }
-    if (down && k === "h") useHint();
-    if (down && k === "r") restart();
-    if (down && (k === "Enter" || k === " ") && !running) start();
-  };
-  window.addEventListener("keydown", (e) => track(e, true));
-  window.addEventListener("keyup", (e) => track(e, false));
+    if (k === "h" || k === "q") useHint(players[0]);
+    if (k === "m" && duel) useHint(players[1]);
+    if (k === "r") restart();
+    if (!running && (k === "Enter" || k === " ")) startSolo();
+  });
+  window.addEventListener("keyup", (e) => {
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    keys.delete(k);
+  });
   window.addEventListener("blur", () => keys.clear());
 
-  function start() {
+  function useHint(p) {
+    if (!p || !running || finished || p.hints === 0) return;
+    p.hints--;
+    p.hintUntil = performance.now() + 2500;
+    updateHud();
+  }
+
+  function randomSeed() {
+    return 1 + Math.floor(Math.random() * 99998);
+  }
+
+  function begin(isDuel, nextSeed) {
+    duel = isDuel;
     els.intro.hidden = true;
+    newRoom(nextSeed);
     running = true;
     startedAt = performance.now();
     updateHud();
   }
-
+  const startSolo = () => begin(false, randomSeed());
+  const startDuel = () => begin(true, randomSeed());
   function restart() {
-    newRoom(Date.now() & 0xffff);
-    running = true;
-    els.intro.hidden = true;
-    startedAt = performance.now();
-    updateHud();
+    if (!running && els.intro.hidden === false) return;
+    begin(duel, randomSeed());
   }
 
-  function useHint() {
-    if (hintsLeft === 0 || finishedAt || !running) return;
-    hintsLeft--;
-    hintUntil = performance.now() + 2500;
-    updateHud();
-  }
-  els.hintBtn.addEventListener("click", useHint);
+  els.enterSolo.addEventListener("click", startSolo);
+  els.enterDuel.addEventListener("click", startDuel);
+  els.hintBtn.addEventListener("click", () => useHint(players[0]));
   els.restart.addEventListener("click", restart);
-  els.again.addEventListener("click", restart);
-  els.enter.addEventListener("click", start);
+  els.againBtn.addEventListener("click", () => begin(duel, randomSeed()));
+  els.next.addEventListener("click", () => {
+    chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
+    begin(duel, randomSeed());
+  });
+  els.codeApply.addEventListener("click", () => {
+    const code = parseInt(els.codeInput.value.trim(), 10);
+    if (!code || code < 1 || code > 99999) {
+      els.codeInput.value = "";
+      els.codeInput.placeholder = "1–99999 arası";
+      return;
+    }
+    begin(duel, code);
+  });
 
-  // dokunmatik: parmağı sürükledikçe o yöne yürü
+  // dokunmatik (tek kişilik)
   let touchOrigin = null;
   canvas.addEventListener("touchstart", (e) => {
     touchOrigin = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -1024,7 +1210,8 @@ kbd {
 
   window.addEventListener("resize", resize);
   resize();
-  newRoom(Date.now() & 0xffff);
+  chapter = CHAPTERS[0];
+  newRoom(randomSeed());
   requestAnimationFrame((t) => {
     lastFrame = t;
     loop(t);
@@ -1032,15 +1219,24 @@ kbd {
 
   // testler için
   window.__devAynasi = {
-    start,
-    teleportToGiant() {
+    startSolo, startDuel,
+    setChapter(i) { chapterIndex = i; },
+    teleportToGiant(index = 0) {
       const g = segGeometry(giant);
-      // Aynanın oda içinde kalan tarafına yerleş.
       const inside = (v, max) => (v >= max ? -CELL * 0.4 : CELL * 0.4);
-      player.x = giant.horizontal ? g.ax + CELL / 2 : g.ax + inside(giant.x, SIZE);
-      player.y = giant.horizontal ? g.ay + inside(giant.y, SIZE) : g.ay + CELL / 2;
+      const p = players[index];
+      p.x = giant.horizontal ? g.ax + CELL / 2 : g.ax + inside(giant.x, size);
+      p.y = giant.horizontal ? g.ay + inside(giant.y, size) : g.ay + CELL / 2;
     },
-    state: () => ({ mirrors: mirrorList.length, seen: seen.size, finished: !!finishedAt, running }),
+    teleportToDoor(index = 0) {
+      players[index].x = CELL * 0.5;
+      players[index].y = CELL * 0.5;
+    },
+    state: () => ({
+      chapter: chapter.name, seed, duel, phase, mirrors: mirrorCount,
+      decoys: decoys.size, seen: players.reduce((n, p) => n + p.seen.size, 0),
+      finished: !!finished, winner: finished ? finished.winner.label : null,
+    }),
   };
 })();
 

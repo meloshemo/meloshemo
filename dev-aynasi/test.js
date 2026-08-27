@@ -66,6 +66,25 @@ test("dev aynası tek: kimliği listede bir kez geçer", () => {
   assert.strictEqual(matches.length, 1);
 });
 
+test("aynı salon kodu aynı salonu ve aynı dev aynayı verir", () => {
+  // Salon kodu paylaşımı buna dayanır: iki oyuncu aynı kodu girince
+  // birebir aynı labirenti ve aynı dev aynayı oynamalı.
+  for (const code of [4821, 1, 99999]) {
+    const a = Maze.generate(44, 44, code);
+    const b = Maze.generate(44, 44, code);
+    assert.deepStrictEqual(a.vWalls, b.vWalls);
+    assert.deepStrictEqual(
+      Maze.pickGiant(a, { x: 0, y: 0 }, code),
+      Maze.pickGiant(b, { x: 0, y: 0 }, code)
+    );
+  }
+});
+
+test("bölüm boyutları büyüdükçe ayna sayısı artar", () => {
+  const counts = [40, 44, 48].map((n) => Maze.mirrors(Maze.generate(n, n, 31)).length);
+  assert.ok(counts[0] < counts[1] && counts[1] < counts[2], counts.join(" < "));
+});
+
 let failed = 0;
 for (const [name, fn] of tests) {
   try {

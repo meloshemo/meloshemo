@@ -117,6 +117,8 @@ h1 {
   color: var(--ivory);
 }
 .stat .value small { font-size: 0.85rem; color: var(--muted); }
+.stat .value.small { font-size: 1rem; letter-spacing: 0.01em; }
+.duel-badge .value b { color: var(--brass); font-weight: 500; }
 .hud .spacer { flex: 1; }
 
 .btn {
@@ -265,3 +267,60 @@ kbd {
   font-size: 1.05rem;
   text-align: center;
 }
+
+.objective {
+  margin: -6px 0 0;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.objective span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brass-dim);
+}
+.objective b { color: var(--ivory); font-weight: 400; }
+
+.modes { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+.code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--hair-soft);
+  width: 100%;
+}
+.code-row label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brass-dim);
+}
+.code-row input {
+  width: 92px;
+  padding: 8px 10px;
+  background: rgba(10, 7, 16, 0.6);
+  border: 1px solid var(--hair);
+  border-radius: 2px;
+  color: var(--ivory);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-align: center;
+}
+.code-row input:focus-visible { outline: 1px solid var(--brass); outline-offset: 2px; }
+
+.fine {
+  margin: 0;
+  color: var(--brass-dim);
+  font-size: 0.78rem;
+}
+.fine b { color: var(--brass); font-family: "IBM Plex Mono", monospace; letter-spacing: 0.14em; }

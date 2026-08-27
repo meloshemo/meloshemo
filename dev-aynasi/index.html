@@ -24,16 +24,23 @@
       </header>
 
       <div class="hud">
+        <div class="stat"><span class="label">Bölüm</span><span class="value small" id="chapter">I · Dev Aynası</span></div>
         <div class="stat"><span class="label">Süre</span><span class="value" id="time">00:00</span></div>
         <div class="stat">
           <span class="label">Bakılan ayna</span>
           <span class="value"><span id="seen">0</span> <small>/ <span id="total">0</span></small></span>
         </div>
         <div class="stat"><span class="label">Sezgi</span><span class="value" id="hints">3</span></div>
+        <div class="stat duel-badge" id="duelBadge" hidden>
+          <span class="label">Düello</span>
+          <span class="value small">1 <b id="p1Time">—</b> · 2 <b id="p2Time">—</b></span>
+        </div>
         <span class="spacer"></span>
         <button id="hintBtn" class="btn" type="button">Sezgi · H</button>
         <button id="restart" class="btn" type="button">Yeni salon · R</button>
       </div>
+
+      <p class="objective"><span>Hedef</span> <b id="objective">Seni devasa gösteren tek aynayı bul</b></p>
 
       <div class="stage">
         <canvas id="scene" aria-label="Aynalı salon"></canvas>
@@ -45,27 +52,41 @@
               Işık yalnızca elindeki fenerin ulaştığı yere kadar. Bir aynaya yaklaştığında
               yansıman camın arkasında belirir. Aradığın, seni olduğundan büyük gösteren tek ayna.
             </p>
+            <div class="modes">
+              <button id="enterSolo" class="btn solid" type="button">Tek başına gir</button>
+              <button id="enterDuel" class="btn" type="button">Düello · iki kişi</button>
+            </div>
             <p class="keys">
-              <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ile yürü · <kbd>H</kbd> sezgi ·
-              dokunmatikte parmağını sürükle
+              Tek kişi: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> · <kbd>H</kbd> sezgi ·
+              dokunmatikte parmağını sürükle<br />
+              Düello: 1. oyuncu <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>Q</kbd> ·
+              2. oyuncu <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> + <kbd>M</kbd>
             </p>
-            <button id="enter" class="btn solid" type="button">Salona gir</button>
+            <div class="code-row">
+              <label for="codeInput">Salon kodu</label>
+              <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" />
+              <button id="codeApply" class="btn" type="button">Bu salonu aç</button>
+            </div>
+            <p class="fine">
+              Aynı kodu giren herkes birebir aynı salonu oynar — süreni arkadaşınla karşılaştırabilirsin.
+            </p>
           </div>
         </div>
 
         <div class="veil" id="overlay" hidden>
           <div class="frame">
-            <h2>Kendini dev aynasında gördün</h2>
-            <p>
-              Binlerce ayna arasından seni olduğundan büyük gösteren tek aynayı buldun. Deyimin
-              anlattığı da tam olarak bu: insanın kendini gerçekte olduğundan büyük görmesi.
-            </p>
-            <dl class="ledger">
+            <h2 id="overlayTitle">Kendini dev aynasında gördün</h2>
+            <p id="overlayText">—</p>
+            <dl class="ledger" id="ledger">
               <div><dt>Süre</dt><dd id="overlayTime">—</dd></div>
               <div><dt>Baktığın ayna</dt><dd id="overlaySeen">—</dd></div>
               <div><dt>En iyi süren</dt><dd id="best">—</dd></div>
             </dl>
-            <button id="again" class="btn solid" type="button">Yeni salon</button>
+            <div class="modes">
+              <button id="next" class="btn solid" type="button" hidden>Sonraki bölüm</button>
+              <button id="againBtn" class="btn" type="button">Yeni salon</button>
+            </div>
+            <p class="fine">Salon kodu: <b id="codeLabel">—</b></p>
           </div>
         </div>
       </div>
@@ -74,7 +95,8 @@
 
       <footer class="help">
         <span><b>Yürü</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> veya yön tuşları · dokunmatikte parmağını sürükle</span>
-        <span><b>Sezgi</b> <kbd>H</kbd> dev aynasının yönünü bir an gösterir (3 hak)</span>
+        <span><b>Sezgi</b> <kbd>H</kbd> dev aynasının yönünü bir an gösterir</span>
+        <span><b>Sıcak iz</b> dev aynanın çevresindeki camların çerçevesi altın vurur</span>
         <span><b>Yeni salon</b> <kbd>R</kbd></span>
       </footer>
     </main>

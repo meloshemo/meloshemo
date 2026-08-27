@@ -9,16 +9,29 @@ gösterir. Oyun, o tek aynayı bulmaktır.
 
 Bağımlılık yok; `index.html` dosyasını tarayıcıda aç.
 
+## Bölümler
+
+| Bölüm | Salon | Işık | Sahte dev | Hedef |
+| --- | --- | --- | --- | --- |
+| I · Dev Aynası | 40×40 | geniş | yok | Dev aynayı bul |
+| II · Sahte Devler | 44×44 | dar | 12 çarpık ayna | Gerçek dev aynayı ayırt et |
+| III · Kendine Gel | 48×48 | en dar | 18 çarpık ayna | Dev aynayı bul, sonra pirinç kapıya dön |
+
+**Çarpık aynalar** seni bir tık büyük, yayvan, uzun ya da küçük gösterir; gerçek dev
+ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
+çerçevesi altın vurur — doğru köşeye girdiğini bu ipucundan anlarsın.
+
 ## Nasıl oynanır
 
-- **Yürü:** `W A S D` veya yön tuşları. Dokunmatikte ekrana basıp parmağını sürükle.
-- Yalnızca çevreni görürsün; salonun geri kalanı karanlıktır.
-- Bir aynaya yaklaştığında yansıman panelin arkasında belirir. Yansıma
-  gerçek bir yansımadır: ayna düzlemine göre simetriğin alınarak çizilir.
-- Altın renkli, devasa yansımayı gördüğün an oyun biter.
-- **Sezgi (`H`, 3 hak):** bir anlığına dev aynasının yönünü gösterir.
-- **Yeni salon (`R`):** yeni tohumla yeni bir labirent.
-- Süren tarayıcıda saklanır; en iyi zamanını geçmeye çalış.
+- **Tek kişi:** `W A S D` veya yön tuşları, `H` sezgi. Dokunmatikte parmağını sürükle.
+- **Düello (iki kişi, tek klavye):** ekran ikiye bölünür, iki oyuncu **aynı salonda**
+  yarışır. 1. oyuncu `W A S D` + `Q` sezgi, 2. oyuncu yön tuşları + `M` sezgi.
+  Dev aynayı önce gören kazanır; birbirinizi ışığınız yettiğince görürsünüz.
+- **Salon kodu:** her salonun 5 haneli bir kodu var (bitiş ekranında yazar). Aynı kodu
+  giren herkes birebir aynı labirenti ve aynı dev aynayı oynar — süreleri
+  karşılaştırarak uzaktan da kapışabilirsiniz.
+- **Sezgi:** dev aynanın (III. bölümün dönüş ayağında kapının) yönünü bir an gösterir.
+- Süren bölüm bazında tarayıcıda saklanır.
 
 ## Dosyalar
 
@@ -27,7 +40,7 @@ Bağımlılık yok; `index.html` dosyasını tarayıcıda aç.
 | `index.html` | Sayfa iskeleti |
 | `style.css` | Tema ve yerleşim |
 | `maze.js` | Tohumlu labirent üretimi, ayna listesi, dev aynasının seçimi |
-| `game.js` | Oyun döngüsü, çarpışma, yansıma çizimi, karanlık, HUD |
+| `game.js` | Bölümler, düello, çarpışma, yansıma çizimi, karanlık, HUD |
 | `test.js` | Labirent üretimi regresyon testleri |
 | `dev-aynasi-tek-dosya.html` | Her şeyin tek dosyada toplandığı paylaşılabilir sürüm |
 
@@ -36,8 +49,8 @@ Bağımlılık yok; `index.html` dosyasını tarayıcıda aç.
 - Kadife karanlık zemin, pirinç (altın) detaylar; başlık **Cormorant Garamond**,
   gövde **Jost**, sayaçlar **IBM Plex Mono** ile dizilir.
 - Salona "Salona gir" perdesiyle girilir; süre o an başlar.
-- Sahnede fenerin sıcak halkası, cam panellerde parlama ve pirinç çerçeve uçları,
-  havada toz zerreleri ve ince film greni var.
+- Sahnede fenerin sıcak halkası, cam panellerde parlama ve pirinç çerçeve uçları var.
+  Görüntüyü bulandıran toz zerreleri ve film greni kaldırıldı; sahne artık keskin.
 - Dev aynasını gördüğün an sahne altın ışıkla dolar, kamera hafifçe yaklaşır ve
   1,6 saniye sonra perde iner.
 - Çizim ölçeği en fazla 1.5x tutulur ve yalnızca oyuncunun çevresindeki aynalar
