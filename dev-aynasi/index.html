@@ -8,49 +8,72 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Jost:wght@300;400&family=IBM+Plex+Mono:wght@400;500&display=swap"
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="app">
-      <header>
-        <p class="eyebrow">Bir deyim oyunu</p>
+      <header class="masthead">
+        <div class="rule"><span>Bir deyim oyunu</span></div>
         <h1>Dev Aynası</h1>
         <p class="lede">
-          Panayır aynalı salonundasın. Binlerce ayna, hepsi birbirinin aynı, hepsi seni olduğun gibi
-          gösteriyor. İçlerinden yalnızca <em>bir tanesi</em> seni devasa gösteriyor. Onu bul.
+          Panayırın aynalı salonundasın. Binlerce ayna, hepsi birbirinin aynı, hepsi seni olduğun
+          gibi gösteriyor. İçlerinden <em>yalnızca bir tanesi</em> seni devasa gösteriyor.
         </p>
       </header>
 
       <div class="hud">
-        <span>SÜRE <b id="time">00:00</b></span>
-        <span>BAKILAN AYNA <b id="seen">0</b> / <b id="total">0</b></span>
-        <span>SEZGİ <b id="hints">3</b></span>
+        <div class="stat"><span class="label">Süre</span><span class="value" id="time">00:00</span></div>
+        <div class="stat">
+          <span class="label">Bakılan ayna</span>
+          <span class="value"><span id="seen">0</span> <small>/ <span id="total">0</span></small></span>
+        </div>
+        <div class="stat"><span class="label">Sezgi</span><span class="value" id="hints">3</span></div>
         <span class="spacer"></span>
-        <button id="hintBtn" class="btn" type="button">Sezgi (H)</button>
-        <button id="restart" class="btn" type="button">Yeni salon (R)</button>
+        <button id="hintBtn" class="btn" type="button">Sezgi · H</button>
+        <button id="restart" class="btn" type="button">Yeni salon · R</button>
       </div>
 
       <div class="stage">
         <canvas id="scene" aria-label="Aynalı salon"></canvas>
-        <div class="overlay" id="overlay" hidden>
-          <h2>Kendini dev aynasında gördün.</h2>
-          <p>
-            Binlerce ayna arasından seni olduğundan büyük gösteren tek aynayı buldun. Deyimin
-            anlattığı da tam olarak bu: insanın kendini gerçekte olduğundan büyük görmesi.
-          </p>
-          <dl>
-            <dt>Süre</dt><dd id="overlayTime">—</dd>
-            <dt>Baktığın ayna</dt><dd id="overlaySeen">—</dd>
-            <dt>En iyi süren</dt><dd id="best">—</dd>
-          </dl>
-          <button id="again" class="btn gilt" type="button">Yeni salon</button>
+
+        <div class="veil" id="intro">
+          <div class="frame">
+            <h2>Salona giriyorsun</h2>
+            <p>
+              Işık yalnızca elindeki fenerin ulaştığı yere kadar. Bir aynaya yaklaştığında
+              yansıman camın arkasında belirir. Aradığın, seni olduğundan büyük gösteren tek ayna.
+            </p>
+            <p class="keys">
+              <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ile yürü · <kbd>H</kbd> sezgi ·
+              dokunmatikte parmağını sürükle
+            </p>
+            <button id="enter" class="btn solid" type="button">Salona gir</button>
+          </div>
+        </div>
+
+        <div class="veil" id="overlay" hidden>
+          <div class="frame">
+            <h2>Kendini dev aynasında gördün</h2>
+            <p>
+              Binlerce ayna arasından seni olduğundan büyük gösteren tek aynayı buldun. Deyimin
+              anlattığı da tam olarak bu: insanın kendini gerçekte olduğundan büyük görmesi.
+            </p>
+            <dl class="ledger">
+              <div><dt>Süre</dt><dd id="overlayTime">—</dd></div>
+              <div><dt>Baktığın ayna</dt><dd id="overlaySeen">—</dd></div>
+              <div><dt>En iyi süren</dt><dd id="best">—</dd></div>
+            </dl>
+            <button id="again" class="btn solid" type="button">Yeni salon</button>
+          </div>
         </div>
       </div>
 
+      <p class="idiom">“Kendini dev aynasında görmek” — kendini olduğundan üstün sanmak.</p>
+
       <footer class="help">
-        <span><b>Yürü</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> veya yön tuşları — dokunmatikte parmağını sürükle</span>
+        <span><b>Yürü</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> veya yön tuşları · dokunmatikte parmağını sürükle</span>
         <span><b>Sezgi</b> <kbd>H</kbd> dev aynasının yönünü bir an gösterir (3 hak)</span>
         <span><b>Yeni salon</b> <kbd>R</kbd></span>
       </footer>

@@ -31,6 +31,19 @@ Bağımlılık yok; `index.html` dosyasını tarayıcıda aç.
 | `test.js` | Labirent üretimi regresyon testleri |
 | `dev-aynasi-tek-dosya.html` | Her şeyin tek dosyada toplandığı paylaşılabilir sürüm |
 
+## Sunum
+
+- Kadife karanlık zemin, pirinç (altın) detaylar; başlık **Cormorant Garamond**,
+  gövde **Jost**, sayaçlar **IBM Plex Mono** ile dizilir.
+- Salona "Salona gir" perdesiyle girilir; süre o an başlar.
+- Sahnede fenerin sıcak halkası, cam panellerde parlama ve pirinç çerçeve uçları,
+  havada toz zerreleri ve ince film greni var.
+- Dev aynasını gördüğün an sahne altın ışıkla dolar, kamera hafifçe yaklaşır ve
+  1,6 saniye sonra perde iner.
+- Çizim ölçeği en fazla 1.5x tutulur ve yalnızca oyuncunun çevresindeki aynalar
+  taranır; bu iki karar kare hızını retina ekranlarda da rahat tutar.
+- `prefers-reduced-motion` açık olanlarda toz ve perde animasyonu kapanır.
+
 ## Tasarım notları
 
 - Labirent, **recursive backtracker** ile üretilir; sonra karelerin %6'sı kadar
