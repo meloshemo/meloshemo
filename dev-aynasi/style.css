@@ -12,6 +12,8 @@
 }
 
 * { box-sizing: border-box; }
+/* display:flex taşıyan öğeler hidden ile gizlenebilsin */
+[hidden] { display: none !important; }
 
 /* Salon tek bir görsel dünyaya bağlı: kadife karanlık, pirinç detay.
    Bu yüzden tema anahtarı yok, her renk açıkça boyanıyor. */
@@ -148,6 +150,7 @@ h1 {
 /* --- sahne --- */
 .stage {
   position: relative;
+  overflow: hidden;
   padding: 10px;
   background:
     linear-gradient(180deg, rgba(216, 178, 106, 0.16), rgba(216, 178, 106, 0.03) 40%, rgba(216, 178, 106, 0.12));
@@ -157,6 +160,7 @@ canvas {
   display: block;
   width: 100%;
   aspect-ratio: 16 / 10;
+  min-height: 300px;
   background: var(--ground);
   border-radius: 1px;
   touch-action: none;
@@ -177,9 +181,13 @@ canvas {
     radial-gradient(120% 90% at 50% 40%, rgba(30, 20, 42, 0.86), rgba(6, 4, 10, 0.96));
   backdrop-filter: blur(3px);
   animation: rise 0.6s ease both;
+  /* İçerik sahneden uzunsa perde kendi içinde kayar; sayfadaki yazıların
+     üstüne taşmaz. */
+  overflow-y: auto;
 }
 .veil[hidden] { display: none; }
 .veil .frame {
+  max-height: 100%;
   padding: 26px 30px;
   border: 1px solid var(--hair);
   border-radius: 2px;
@@ -324,3 +332,19 @@ kbd {
   font-size: 0.78rem;
 }
 .fine b { color: var(--brass); font-family: "IBM Plex Mono", monospace; letter-spacing: 0.14em; }
+
+/* Dar ekranlarda sahne uzar, perde sıkışır: giriş metni artık alttaki
+   yazıların üstüne binmiyor. */
+@media (max-width: 640px) {
+  .app { padding: 20px 12px 32px; gap: 14px; }
+  canvas { aspect-ratio: 3 / 4; }
+  .hud { gap: 8px 16px; padding: 10px 12px; }
+  .stat .value { font-size: 1.2rem; }
+  .veil { inset: 6px; padding: 10px; }
+  .veil .frame { padding: 16px 14px; gap: 10px; border: none; box-shadow: none; }
+  .veil h2 { font-size: 1.35rem; }
+  .veil p { font-size: 0.86rem; line-height: 1.45; }
+  .veil .keys { font-size: 0.76rem; }
+  .code-row { gap: 6px; }
+  .help { font-size: 0.8rem; gap: 8px 18px; }
+}
