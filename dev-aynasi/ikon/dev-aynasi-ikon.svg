@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>Dev Aynası</title>
+  <defs>
+    <radialGradient id="zemin" cx="50%" cy="34%" r="78%">
+      <stop offset="0%" stop-color="#2a1838"/>
+      <stop offset="58%" stop-color="#140c1e"/>
+      <stop offset="100%" stop-color="#08050d"/>
+    </radialGradient>
+    <linearGradient id="altin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff0c9"/>
+      <stop offset="42%" stop-color="#f0c579"/>
+      <stop offset="100%" stop-color="#b8863c"/>
+    </linearGradient>
+    <linearGradient id="pirinc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8a6a35" stop-opacity="0.15"/>
+      <stop offset="50%" stop-color="#e8c887" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#8a6a35" stop-opacity="0.15"/>
+    </linearGradient>
+    <radialGradient id="hale" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd98a" stop-opacity="0.5"/>
+      <stop offset="60%" stop-color="#d8b26a" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#d8b26a" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="ustBolme">
+      <rect x="0" y="0" width="1024" height="596"/>
+    </clipPath>
+    <clipPath id="kutu">
+      <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#kutu)">
+    <rect width="1024" height="1024" fill="url(#zemin)"/>
+
+    <!-- salonun uzaktaki cam sıraları -->
+    <g stroke="#a8cbd8" stroke-linecap="round" opacity="0.16">
+      <path d="M104 250 H300" stroke-width="9"/>
+      <path d="M724 250 H920" stroke-width="9"/>
+      <path d="M150 806 H336" stroke-width="9"/>
+      <path d="M688 806 H874" stroke-width="9"/>
+      <path d="M104 250 V372" stroke-width="9"/>
+      <path d="M920 250 V372" stroke-width="9"/>
+    </g>
+
+    <!-- dev yansımanın halesi -->
+    <ellipse cx="512" cy="380" rx="420" ry="360" fill="url(#hale)"/>
+
+    <!-- aynanın içindeki devasa görüntü: panele sığmaz, taşar -->
+    <g clip-path="url(#ustBolme)" fill="url(#altin)">
+      <circle cx="512" cy="286" r="150"/>
+      <ellipse cx="512" cy="620" rx="196" ry="264"/>
+    </g>
+
+    <!-- aynanın pirinç kenarı -->
+    <rect x="176" y="588" width="672" height="12" rx="6" fill="url(#pirinc)"/>
+    <circle cx="176" cy="594" r="13" fill="#e8c887"/>
+    <circle cx="848" cy="594" r="13" fill="#e8c887"/>
+
+    <!-- aynanın önündeki gerçek oyuncu: küçücük ama küçük boyutta da seçilir -->
+    <g fill="#f8f4ea">
+      <circle cx="512" cy="712" r="50"/>
+      <ellipse cx="512" cy="828" rx="64" ry="86"/>
+    </g>
+
+    <!-- çerçeve -->
+    <rect x="26" y="26" width="972" height="972" rx="204" ry="204"
+          fill="none" stroke="#d8b26a" stroke-opacity="0.42" stroke-width="10"/>
+  </g>
+</svg>

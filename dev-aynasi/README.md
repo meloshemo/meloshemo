@@ -24,9 +24,29 @@ her odanın ışığı ve rengi farklıdır. Süre kaldığı yerden işler.
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur.
 
+## Ses
+
+Müzik dosyası yok: tüm ses tarayıcıda üretilir (`audio.js`, Web Audio).
+Salonun uğultusu, dev aynaya yaklaştıkça hızlanan kalp atışı (58 → 136 vuruş/dk,
+altı kare mesafeden itibaren), buluş çınlaması, sahte aynada cam çatlaması ve
+aynadan geçiş sesi. `M` ile açılıp kapanır, tercih tarayıcıda saklanır.
+
+## Kontroller (bilgisayar)
+
+| | Değer |
+| --- | --- |
+| Yürüme | 230 birim/sn (3,2 kare/sn) |
+| Koşu (`Shift`) | 330 birim/sn (4,6 kare/sn) |
+| Tam hıza çıkış | ~95 ms |
+| Duruş | ~70 ms (sürtünme 3200) |
+| Köşe yardımı | 16 piksel — kapı ağzında takılmayı önler |
+
+Çapraz hareket normalize edilir (çapraz gitmek hızlı değildir), duvara sürtününce
+o eksendeki hız sıfırlanır.
+
 ## Nasıl oynanır
 
-- **Tek kişi:** `W A S D` veya yön tuşları, `H` sezgi. Dokunmatikte parmağını sürükle.
+- **Tek kişi:** `W A S D` veya yön tuşları, `Shift` koş, `H` sezgi. Dokunmatikte parmağını sürükle.
 - **Düello (iki kişi, tek klavye):** ekran ikiye bölünür, iki oyuncu **aynı salonda**
   yarışır. 1. oyuncu `W A S D` + `Q` sezgi, 2. oyuncu yön tuşları + `M` sezgi.
   Dev aynayı önce gören kazanır; birbirinizi ışığınız yettiğince görürsünüz.
@@ -44,6 +64,8 @@ ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki
 | `style.css` | Tema ve yerleşim |
 | `maze.js` | Tohumlu labirent üretimi, ayna listesi, dev aynasının seçimi |
 | `game.js` | Bölümler, düello, çarpışma, yansıma çizimi, karanlık, HUD |
+| `audio.js` | Prosedürel ses: uğultu, kalp atışı, çınlama, cam çatlaması |
+| `ikon/` | Uygulama ikonu (SVG + 64/128/256/512/1024 PNG) |
 | `test.js` | Labirent üretimi regresyon testleri |
 | `dev-aynasi-tek-dosya.html` | Her şeyin tek dosyada toplandığı paylaşılabilir sürüm |
 

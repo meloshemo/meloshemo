@@ -9,9 +9,10 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [x] **Oyuncu renkleri**: 1. oyuncu beyaz, sonra kırmızı, mavi, yeşil, mor,
       turuncu, turkuaz, pembe — renk sunucudan gelir, herkes diğerini kendi
       renginde görür
-- [x] **Kalabalık salonu büyütür**: 1 kişi 40×40 (~1.600 ayna) → 8 kişi 138×138
-      (**~18.800 ayna**); her bölümde oda %15 daha büyür, sahte dev ayna sayısı
-      da oyuncu başına artar
+- [x] **Kalabalık salonu büyütür**: her yeni oyuncu +3.400 ayna.
+      1 kişi ~1.700 · 2 kişi ~5.300 · 3 kişi ~8.900 · 4 kişi ~12.400 ·
+      6 kişi ~19.600 · 8 kişi ~26.400. Bölüm ilerledikçe oda ayrıca %15 büyür
+      (6 kişilik III. bölüm ~33.000 ayna)
 - [x] **Bulan ilerler, diğerleri arar**: dev aynayı bulan aynadan geçip bir
       sonraki bölüme girer; geride kalanlar kendi salonlarında aramaya devam
       eder, herkes yalnızca kendi bölümündeki oyuncuları görür
@@ -25,8 +26,9 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
       ile tek linkle davet
 
 ## 2. Oyun mekaniği
-- [ ] Ses: dev aynaya yaklaştıkça yükselen uğultu / kalp atışı
-- [ ] Yankı: sahte dev aynaya baktığında cam çatlama sesi ve kısa süre cezası
+- [x] Ses: uğultu, yaklaştıkça hızlanan kalp atışı, buluş çınlaması
+- [x] Sahte dev aynaya bakınca cam çatlama sesi
+- [ ] Sahte aynada kısa süre cezası (ses var, ceza yok)
 - [ ] Günlük salon: herkesin aynı salonu oynadığı günlük kod ve sıralama
 - [ ] Bölüm IV fikri: aynaların yer değiştirdiği "dönen salon"
 

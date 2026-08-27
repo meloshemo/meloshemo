@@ -18,9 +18,7 @@
         <div class="rule"><span>Bir deyim oyunu</span></div>
         <h1>Dev Aynası</h1>
         <p class="lede">
-          Panayırın aynalı salonundasın. Binlerce ayna, hepsi birbirinin aynı, hepsi seni olduğun
-          gibi gösteriyor. İçlerinden <em>yalnızca bir tanesi</em> seni devasa gösteriyor —
-          ve onu bulduğunda içinden geçip bir sonraki odaya girersin.
+          Binlerce ayna, hepsi aynı. <em>Yalnızca biri</em> seni devasa gösteriyor.
         </p>
       </header>
 
@@ -37,6 +35,7 @@
           <span class="value small">1 <b id="p1Time">—</b> · 2 <b id="p2Time">—</b></span>
         </div>
         <span class="spacer"></span>
+        <button id="soundBtn" class="btn" type="button" aria-pressed="true">Ses açık</button>
         <button id="hintBtn" class="btn" type="button">Sezgi · H</button>
         <button id="restart" class="btn" type="button">Yeni salon · R</button>
       </div>
@@ -49,28 +48,21 @@
         <div class="veil" id="intro">
           <div class="frame">
             <h2>Salona giriyorsun</h2>
-            <p>
-              Işık yalnızca elindeki fenerin ulaştığı yere kadar. Bir aynaya yaklaştığında
-              yansıman camın arkasında belirir. Aradığın, seni olduğundan büyük gösteren tek ayna.
-            </p>
+            <p>Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.</p>
             <div class="modes">
               <button id="enterSolo" class="btn solid" type="button">Tek başına gir</button>
               <button id="enterDuel" class="btn" type="button">Düello · iki kişi</button>
             </div>
             <p class="keys">
-              Tek kişi: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> · <kbd>H</kbd> sezgi ·
-              dokunmatikte parmağını sürükle<br />
-              Düello: 1. oyuncu <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>Q</kbd> ·
-              2. oyuncu <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> + <kbd>M</kbd>
+              <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · <kbd>Shift</kbd> koş ·
+              <kbd>H</kbd> sezgi<br />
+              Düello: 2. oyuncu yön tuşları + <kbd>M</kbd>
             </p>
             <div class="code-row">
               <label for="codeInput">Salon kodu</label>
               <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" />
-              <button id="codeApply" class="btn" type="button">Bu salonu aç</button>
+              <button id="codeApply" class="btn" type="button">Aç</button>
             </div>
-            <p class="fine">
-              Aynı kodu giren herkes birebir aynı salonu oynar — süreni arkadaşınla karşılaştırabilirsin.
-            </p>
           </div>
         </div>
 
@@ -100,16 +92,16 @@
         </div>
       </div>
 
-      <p class="idiom">“Kendini dev aynasında görmek” — kendini olduğundan üstün sanmak.</p>
-
       <footer class="help">
-        <span><b>Yürü</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> veya yön tuşları · dokunmatikte parmağını sürükle</span>
-        <span><b>Sezgi</b> <kbd>H</kbd> dev aynasının yönünü bir an gösterir</span>
-        <span><b>Sıcak iz</b> dev aynanın çevresindeki camların çerçevesi altın vurur</span>
-        <span><b>Yeni salon</b> <kbd>R</kbd></span>
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü</span>
+        <span><kbd>Shift</kbd> koş</span>
+        <span><kbd>H</kbd> sezgi</span>
+        <span><kbd>R</kbd> yeni salon</span>
+        <span><kbd>M</kbd> ses</span>
       </footer>
     </main>
 
+    <script src="audio.js"></script>
     <script src="maze.js"></script>
     <script src="game.js"></script>
   </body>

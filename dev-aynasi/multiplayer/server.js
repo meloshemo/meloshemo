@@ -42,9 +42,16 @@ const CHAPTERS = [
   { ad: "III · Kibir Odası", decoyPay: 22 },
 ];
 
+// Hedeflenen ayna sayısı: tek kişi ~1.600; her yeni oyuncu +3.400 ayna.
+// Ayna sayısı ≈ 0.94 × kare sayısı olduğundan boyut buradan geri hesaplanır.
+//   1 kişi  40×40   ~1.600      5 kişi 122×122 ~14.000
+//   2 kişi  73×73   ~5.000      6 kişi 138×138 ~18.000
+//   3 kişi  92×92   ~8.000      7 kişi 153×153 ~22.000
+//   4 kişi 108×108 ~11.000      8 kişi 166×166 ~26.000
 function roomSize(playerCount, chapter = 0) {
-  const taban = Math.min(140, 40 + (playerCount - 1) * 14);
-  return Math.min(150, Math.round(taban * (1 + chapter * 0.15)));
+  const hedefAyna = 1600 + (playerCount - 1) * 3400;
+  const taban = Math.round(Math.sqrt(hedefAyna / 0.94));
+  return Math.min(190, Math.round(taban * (1 + chapter * 0.15)));
 }
 function decoyCount(playerCount, chapter = 0) {
   return CHAPTERS[chapter].decoyPay + playerCount * 6;
