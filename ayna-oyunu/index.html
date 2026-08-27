@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ayna Oyunu</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="head">
+        <h1>🪞 Ayna Oyunu</h1>
+        <p class="tagline">Aynaları yerleştir, lazeri hedefe ulaştır.</p>
+      </header>
+
+      <section class="bar">
+        <button id="prev" class="btn" type="button">‹ Önceki</button>
+        <div class="level-info">
+          <span id="levelName">—</span>
+          <span id="levelCount" class="muted"></span>
+        </div>
+        <button id="next" class="btn" type="button">Sonraki ›</button>
+      </section>
+
+      <canvas id="board" width="600" height="500" aria-label="Oyun tahtası"></canvas>
+
+      <p id="status" class="status">Bir kareye tıklayarak ayna yerleştir.</p>
+
+      <section class="bar">
+        <span class="counter">Ayna: <strong id="mirrorCount">0/0</strong></span>
+        <button id="reset" class="btn" type="button">Sıfırla</button>
+        <button id="hint" class="btn" type="button">İpucu</button>
+      </section>
+
+      <p id="hintText" class="hint" hidden></p>
+
+      <footer class="legend">
+        <span><b>Tıkla:</b> ayna koy / döndür / kaldır</span>
+        <span><b>▨</b> duvar</span>
+        <span><b>◎</b> hedef</span>
+        <span><b>◆</b> lazer kaynağı</span>
+      </footer>
+    </main>
+
+    <script src="engine.js"></script>
+    <script src="levels.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
