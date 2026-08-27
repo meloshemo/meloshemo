@@ -689,6 +689,7 @@ kbd {
 
   let chapterIndex = 0;
   let carding = 0;          // bölüm kartının ekranda kalacağı ana kadar
+  let holdAtMirror = false; // yalnızca ekran görüntüsü almak için: geçişi bekletir
   let chapter, size, maze, mirrorCount, giant, giantSeg, decoys, warm;
   let players = [];
   let duel = false;
@@ -1040,8 +1041,9 @@ kbd {
 
     if (p.bloom > 0) {
       const gold = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rect.w, rect.h) * 0.75);
-      gold.addColorStop(0, `rgba(255, 222, 160, ${0.42 * p.bloom})`);
-      gold.addColorStop(0.45, `rgba(216, 178, 106, ${0.2 * p.bloom})`);
+      gold.addColorStop(0, `rgba(255, 222, 160, ${0.1 * p.bloom})`);
+      gold.addColorStop(0.35, `rgba(255, 214, 140, ${0.22 * p.bloom})`);
+      gold.addColorStop(0.7, `rgba(216, 178, 106, ${0.16 * p.bloom})`);
       gold.addColorStop(1, "rgba(216, 178, 106, 0)");
       ctx.fillStyle = gold;
       ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
@@ -1177,7 +1179,9 @@ kbd {
           if (!p.foundAt) p.foundAt = now;
           p.bloom = Math.min(1, (now - p.foundAt) / 1400);
           if (now - p.foundAt > 1600) {
-            if (chapter.returnTrip) {
+            if (holdAtMirror) {
+              // yalnızca ekran görüntüsü için: sahne dev aynada bekletilir
+            } else if (chapter.returnTrip) {
               // Son bölümde ayna bulunur, sonra kapıya dönülür.
               phase = "donus";
               els.objective.textContent = "Pirinç kapıya dön";
@@ -1302,12 +1306,25 @@ kbd {
       els.chapterCard.hidden = true;
     },
     skipCard() { carding = 0; els.chapterCard.hidden = true; },
+    holdAtMirror(v) { holdAtMirror = !!v; },
     teleportToGiant(index = 0) {
       const g = segGeometry(giant);
       const inside = (v, max) => (v >= max ? -CELL * 0.4 : CELL * 0.4);
       const p = players[index];
       p.x = giant.horizontal ? g.ax + CELL / 2 : g.ax + inside(giant.x, size);
       p.y = giant.horizontal ? g.ay + inside(giant.y, size) : g.ay + CELL / 2;
+    },
+    teleportToDecoy(index = 0) {
+      const id = [...decoys.keys()][0];
+      if (!id) return false;
+      const horizontal = id[0] === "h";
+      const [x, y] = id.slice(1).split(",").map(Number);
+      const g = segGeometry({ horizontal, x, y });
+      const inside = (v, max) => (v >= max ? -CELL * 0.4 : CELL * 0.4);
+      const p = players[index];
+      p.x = horizontal ? g.ax + CELL / 2 : g.ax + inside(x, size);
+      p.y = horizontal ? g.ay + inside(y, size) : g.ay + CELL / 2;
+      return true;
     },
     teleportToDoor(index = 0) {
       players[index].x = CELL * 0.5;
