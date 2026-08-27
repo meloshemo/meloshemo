@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dev Aynası</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <p class="eyebrow">Bir deyim oyunu</p>
+        <h1>Dev Aynası</h1>
+        <p class="lede">
+          Panayır aynalı salonundasın. Binlerce ayna, hepsi birbirinin aynı, hepsi seni olduğun gibi
+          gösteriyor. İçlerinden yalnızca <em>bir tanesi</em> seni devasa gösteriyor. Onu bul.
+        </p>
+      </header>
+
+      <div class="hud">
+        <span>SÜRE <b id="time">00:00</b></span>
+        <span>BAKILAN AYNA <b id="seen">0</b> / <b id="total">0</b></span>
+        <span>SEZGİ <b id="hints">3</b></span>
+        <span class="spacer"></span>
+        <button id="hintBtn" class="btn" type="button">Sezgi (H)</button>
+        <button id="restart" class="btn" type="button">Yeni salon (R)</button>
+      </div>
+
+      <div class="stage">
+        <canvas id="scene" aria-label="Aynalı salon"></canvas>
+        <div class="overlay" id="overlay" hidden>
+          <h2>Kendini dev aynasında gördün.</h2>
+          <p>
+            Binlerce ayna arasından seni olduğundan büyük gösteren tek aynayı buldun. Deyimin
+            anlattığı da tam olarak bu: insanın kendini gerçekte olduğundan büyük görmesi.
+          </p>
+          <dl>
+            <dt>Süre</dt><dd id="overlayTime">—</dd>
+            <dt>Baktığın ayna</dt><dd id="overlaySeen">—</dd>
+            <dt>En iyi süren</dt><dd id="best">—</dd>
+          </dl>
+          <button id="again" class="btn gilt" type="button">Yeni salon</button>
+        </div>
+      </div>
+
+      <footer class="help">
+        <span><b>Yürü</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> veya yön tuşları — dokunmatikte parmağını sürükle</span>
+        <span><b>Sezgi</b> <kbd>H</kbd> dev aynasının yönünü bir an gösterir (3 hak)</span>
+        <span><b>Yeni salon</b> <kbd>R</kbd></span>
+      </footer>
+    </main>
+
+    <script src="maze.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
