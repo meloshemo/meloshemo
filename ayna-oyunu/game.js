@@ -12,6 +12,7 @@
     next: document.getElementById("next"),
     reset: document.getElementById("reset"),
     hint: document.getElementById("hint"),
+    solve: document.getElementById("solve"),
     levelPicker: document.getElementById("levelPicker"),
   };
 
@@ -81,7 +82,7 @@
     return Object.keys(placed).length;
   }
 
-  function update() {
+  function update(options = {}) {
     result = Engine.trace(board, placed);
     els.levelName.textContent = `${levelIndex + 1}. ${board.name}`;
     els.levelCount.textContent = `${LEVELS.length} bölümden ${solvedLevels.size} tanesi çözüldü`;
@@ -92,7 +93,7 @@
     els.next.disabled = levelIndex === LEVELS.length - 1;
 
     if (result.solved) {
-      if (!solvedLevels.has(levelIndex)) {
+      if (!options.auto && !solvedLevels.has(levelIndex)) {
         solvedLevels.add(levelIndex);
         saveProgress();
         els.levelCount.textContent = `${LEVELS.length} bölümden ${solvedLevels.size} tanesi çözüldü`;
@@ -149,6 +150,23 @@
     placed = {};
     update();
   });
+  els.solve.addEventListener("click", () => {
+    els.solve.disabled = true;
+    els.status.textContent = "Çözüm aranıyor…";
+    // Arama senkron olduğu için önce durum yazısının çizilmesini bekle.
+    setTimeout(() => {
+      const solution = Solver.solve(board);
+      els.solve.disabled = false;
+      if (!solution) {
+        els.status.textContent = "Bu bölüm için çözüm bulunamadı.";
+        return;
+      }
+      placed = solution;
+      update({ auto: true });
+      els.status.textContent = `💡 Çözüm gösterildi (${Object.keys(solution).length} ayna).`;
+    }, 30);
+  });
+
   els.hint.addEventListener("click", () => {
     els.hintText.hidden = !els.hintText.hidden;
   });
@@ -240,6 +258,10 @@
     }
 
     if (cell.type === "wall") {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(cx - CELL / 2, cy - CELL / 2, CELL, CELL);
+      ctx.clip();
       ctx.strokeStyle = "#3d4a5c";
       ctx.lineWidth = 2;
       for (let i = -CELL; i < CELL; i += 12) {
@@ -248,6 +270,7 @@
         ctx.lineTo(cx - CELL / 2 + i + CELL, cy - CELL / 2);
         ctx.stroke();
       }
+      ctx.restore();
       return;
     }
 

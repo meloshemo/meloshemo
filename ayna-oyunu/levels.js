@@ -33,7 +33,7 @@ const LEVELS = [
   {
     name: "Duvarın Ardı",
     hint: "Duvarlar ışını durdurur, etrafından dolaş.",
-    mirrors: 3,
+    mirrors: 2,
     grid: [
       ">..#.",
       "...#.",
@@ -55,7 +55,7 @@ const LEVELS = [
   {
     name: "Labirent",
     hint: "Sabit aynaları hesaba kat.",
-    mirrors: 4,
+    mirrors: 2,
     grid: [
       ">...#.",
       ".#....",
@@ -67,7 +67,7 @@ const LEVELS = [
   {
     name: "Uzun Yol",
     hint: "Işını odanın çevresinde dolaştır.",
-    mirrors: 4,
+    mirrors: 2,
     grid: [
       "v.....",
       ".####.",
@@ -90,7 +90,7 @@ const LEVELS = [
   {
     name: "Dağılan Işık",
     hint: "Önce prizmaya ulaş, sonra kolları hedeflere yönlendir.",
-    mirrors: 4,
+    mirrors: 2,
     grid: [
       "v....",
       "...#.",
@@ -102,7 +102,7 @@ const LEVELS = [
   {
     name: "Son Perde",
     hint: "Üç hedefin üçü de aynı anda vurulmalı.",
-    mirrors: 5,
+    mirrors: 3,
     grid: [
       ">.....",
       "..X..T",
@@ -112,3 +112,5 @@ const LEVELS = [
     ],
   },
 ];
+
+if (typeof module === "object" && module.exports) module.exports = LEVELS;

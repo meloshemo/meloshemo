@@ -11,6 +11,7 @@ açman yeterli.
 - Prizma (◇) üzerine düşen ışını düz devam eden ve iki dik koldan oluşan üç ışına böler.
 - Tüm hedefler vurulduğunda bölüm tamamlanır; ilerleme `localStorage` içinde saklanır.
 - Alttaki numaralardan istediğin bölüme atlayabilirsin; çözülenler yeşil görünür.
+- **Çöz** düğmesi en az aynayı kullanan çözümü gösterir (bu bölümü çözülmüş saymaz).
 - Kısayollar: `←` / `→` bölüm değiştirir, `R` tahtayı sıfırlar.
 
 ## Dosyalar
@@ -22,7 +23,9 @@ açman yeterli.
 | `engine.js` | Işın simülasyonu (tarayıcı ve Node ortak) |
 | `levels.js` | Bölüm tanımları |
 | `game.js` | Arayüz, girdi ve canvas çizimi |
-| `solve.js` | Bölümlerin ayna limiti içinde çözülebildiğini doğrulayan betik |
+| `solver.js` | En az aynalı çözümü arayan çözücü (tarayıcı ve Node ortak) |
+| `solve.js` | Tüm bölümleri çözüp özet basan betik |
+| `test.js` | Motor ve çözücü regresyon testleri |
 
 ## Bölüm eklemek
 
@@ -38,8 +41,10 @@ açman yeterli.
 | `/` `\` | sabit ayna |
 | `X` | prizma (ışını üçe böler) |
 
-Sonra çözülebilirliği doğrula:
+Her bölümün ayna limiti, çözücünün bulduğu **en az ayna sayısına** eşittir;
+yani fazladan ayna hakkı yok. Yeni bölüm ekledikten sonra doğrula:
 
 ```bash
-node solve.js
+node solve.js   # her bölüm için en az ayna sayısı ve çözüm
+node test.js    # motor + çözücü testleri
 ```
