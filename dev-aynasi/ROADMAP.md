@@ -9,9 +9,12 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [x] **Oyuncu renkleri**: 1. oyuncu beyaz, sonra kırmızı, mavi, yeşil, mor,
       turuncu, turkuaz, pembe — renk sunucudan gelir, herkes diğerini kendi
       renginde görür
-- [x] **Kalabalık salonu büyütür**: 1 kişi 40×40 (~1.600 ayna) → 8 kişi 72×72
-      (~5.300 ayna); sahte dev ayna sayısı da oyuncu başına artar. Bulma
-      olasılığı düşer, yarış uzar
+- [x] **Kalabalık salonu büyütür**: 1 kişi 40×40 (~1.600 ayna) → 8 kişi 138×138
+      (**~18.800 ayna**); her bölümde oda %15 daha büyür, sahte dev ayna sayısı
+      da oyuncu başına artar
+- [x] **Bulan ilerler, diğerleri arar**: dev aynayı bulan aynadan geçip bir
+      sonraki bölüme girer; geride kalanlar kendi salonlarında aramaya devam
+      eder, herkes yalnızca kendi bölümündeki oyuncuları görür
 - [x] Hile koruması: "buldum" kararını sunucu verir, ışınlanma hız sınırıyla
       engellenir
 - [ ] `game.js`'e bağlama (5 adım, README'de)
@@ -27,7 +30,6 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [ ] Günlük salon: herkesin aynı salonu oynadığı günlük kod ve sıralama
 - [ ] Bölüm IV fikri: aynaların yer değiştirdiği "dönen salon"
 
-## 3. Seri fikri — başka deyimler, aynı iskelet
-- [ ] "Samanlıkta iğne aramak"
-- [ ] "Pireyi deve yapmak" (küçük bir şeyi büyüten ayna)
-- [ ] "Bir taşla iki kuş vurmak"
+## 3. Kapsam kararı
+Oyun tek bir deyimin oyunu olarak kalacak: **kendini dev aynasında görmek**.
+Başka deyimler için ayrı oyun yapılmayacak.

@@ -19,7 +19,8 @@
         <h1>Dev Aynası</h1>
         <p class="lede">
           Panayırın aynalı salonundasın. Binlerce ayna, hepsi birbirinin aynı, hepsi seni olduğun
-          gibi gösteriyor. İçlerinden <em>yalnızca bir tanesi</em> seni devasa gösteriyor.
+          gibi gösteriyor. İçlerinden <em>yalnızca bir tanesi</em> seni devasa gösteriyor —
+          ve onu bulduğunda içinden geçip bir sonraki odaya girersin.
         </p>
       </header>
 
@@ -73,6 +74,14 @@
           </div>
         </div>
 
+        <div class="veil card" id="chapterCard" hidden>
+          <div class="frame">
+            <p class="through">Aynanın içinden geçtin</p>
+            <h2 id="cardTitle">II · Aynanın İçinde</h2>
+            <p id="cardText">—</p>
+          </div>
+        </div>
+
         <div class="veil" id="overlay" hidden>
           <div class="frame">
             <h2 id="overlayTitle">Kendini dev aynasında gördün</h2>
@@ -83,8 +92,8 @@
               <div><dt>En iyi süren</dt><dd id="best">—</dd></div>
             </dl>
             <div class="modes">
-              <button id="next" class="btn solid" type="button" hidden>Sonraki bölüm</button>
-              <button id="againBtn" class="btn" type="button">Yeni salon</button>
+              <button id="next" class="btn solid" type="button" hidden></button>
+              <button id="againBtn" class="btn solid" type="button">Baştan oyna</button>
             </div>
             <p class="fine">Salon kodu: <b id="codeLabel">—</b></p>
           </div>

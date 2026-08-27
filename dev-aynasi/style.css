@@ -348,3 +348,17 @@ kbd {
   .code-row { gap: 6px; }
   .help { font-size: 0.8rem; gap: 8px 18px; }
 }
+
+/* Bölüm kartı: aynadan geçtikten sonra iki saniye görünür. */
+.veil.card {
+  background: radial-gradient(120% 90% at 50% 45%, rgba(255, 228, 176, 0.14), rgba(6, 4, 10, 0.94));
+}
+.veil.card .frame { border-color: var(--brass); }
+.through {
+  margin: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--brass-dim);
+}

@@ -31,15 +31,20 @@ gelir; herkes diğerlerini kendi renginde görür.
 
 **Kalabalık salonu büyütür.** Oyuncu sayısı arttıkça salon genişler:
 
-| Oyuncu | Salon | Yaklaşık ayna | Sahte dev ayna |
-| --- | --- | --- | --- |
-| 1 | 40×40 | ~1.600 | 14 |
-| 2 | 45×45 | ~2.100 | 20 |
-| 4 | 55×55 | ~3.100 | 32 |
-| 8 | 72×72 | ~5.300 | 56 |
+| Oyuncu | Salon (I. bölüm) | Yaklaşık ayna |
+| --- | --- | --- |
+| 1 | 40×40 | ~1.600 |
+| 2 | 54×54 | ~2.900 |
+| 4 | 82×82 | ~6.700 |
+| 8 | 138×138 | **~18.800** |
 
-Yani kalabalıkta dev aynayı bulma olasılığı düşer, yarış uzar — istediğin
-"zorlaştırıp oyunda tutma" etkisi buradan gelir.
+Her bölümde oda ayrıca %15 büyür. Yani kalabalıkta dev aynayı bulma olasılığı
+çok düşer, yarış uzar — istediğin "zorlaştırıp oyunda tutma" etkisi buradan gelir.
+
+**Bulan durmaz, ilerler.** Dev aynayı bulan oyuncu aynadan geçip bir sonraki
+bölümün salonuna girer ve orada aramaya başlar; geride kalanlar kendi
+salonlarında aramaya devam eder. Herkes yalnızca kendi bölümündeki oyuncuları
+görür. Yarış, III. bölümü bitirenlerin sırasına göre sonuçlanır.
 
 **Ağ trafiği.** İstemci saniyede 20 konum paketi yollar, sunucu saniyede 20 kez
 herkesin konumunu yayınlar. Paket başına oyuncu başına ~30 bayt; 8 kişilik bir
@@ -53,7 +58,9 @@ odada saniyede ~5 KB. Aradaki kareler istemcide yumuşatılır (`net.guncelle`).
    const net = Net.connect("ws://localhost:8787", { kod: salonKodu, ad: oyuncuAdi });
    net.on("salon", (s) => { /* s.tohum ve s.boyut ile newRoom çağır, s.decoys'u kullan */ });
    net.on("baslangic", (b) => { /* b.baslarAt anında sayacı başlat */ });
-   net.on("buldu", (b) => { /* b.ad + b.sira ile "X dev aynayı buldu" bildirimi */ });
+   net.on("buldu", (b) => { /* "X, b.bolumAdi bölümünde dev aynayı buldu" bildirimi */ });
+   net.on("bolum", (b) => { /* sen aynadan geçtin: b.tohum/b.boyut ile yeni salonu kur */ });
+   net.on("tamamladi", (b) => { /* X oyunu bitirdi, b.sira */ });
    net.on("bitti", (b) => { /* b.siralama ile sonuç tablosu */ });
    ```
 3. Oyun döngüsünde: `net.konum(p.x, p.y)` ve `net.guncelle(dt)`.

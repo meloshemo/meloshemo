@@ -13,6 +13,7 @@
     ledger: $("ledger"), overlayTime: $("overlayTime"), overlaySeen: $("overlaySeen"),
     best: $("best"), next: $("next"), againBtn: $("againBtn"),
     duelBadge: $("duelBadge"), p1Time: $("p1Time"), p2Time: $("p2Time"),
+    chapterCard: $("chapterCard"), cardTitle: $("cardTitle"), cardText: $("cardText"),
   };
 
   const CELL = 72;
@@ -25,28 +26,32 @@
   const BEST_KEY = "dev-aynasi:en-iyi";
 
   // Her bölüm salonu biraz daha zorlaştırır: ışık daralır, sahte devler artar.
+  // Her bölüm dev aynanın içinden geçilerek girilen ayrı bir dünyadır;
+  // ışığı da rengi de değişir.
   const CHAPTERS = [
     {
-      name: "I · Dev Aynası", size: 40, light: 235, hints: 3, decoys: 0, returnTrip: false,
+      name: "I · Aynalı Salon", size: 40, light: 235, hints: 3, decoys: 0, returnTrip: false,
       objective: "Seni devasa gösteren tek aynayı bul",
-      brief: "Işık yalnızca fenerinin ulaştığı yere kadar. Bir aynaya yaklaştığında yansıman camın arkasında belirir.",
+      card: "Panayırın aynalı salonu. Binlerce cam, hepsi birbirinin aynı.",
+      palette: { ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916", glass: "168, 203, 216", lamp: "255, 231, 194" },
     },
     {
-      name: "II · Sahte Devler", size: 44, light: 205, hints: 2, decoys: 12, returnTrip: false,
+      name: "II · Aynanın İçinde", size: 46, light: 200, hints: 2, decoys: 14, returnTrip: false,
       objective: "Çarpık aynalar arasından gerçek dev aynayı ayır",
-      brief: "Salona çarpık aynalar karıştı: kimi seni bir tık büyütüyor, kimi yayıyor, kimi küçültüyor. Gerçek dev ayna altın gibi parlar — gerisi seni oyalar.",
+      card: "Dev aynadan içeri girdin. Burada camlar soğuk, ışık cılız — ve bazıları seni çarpıtarak gösteriyor.",
+      palette: { ground: "#05090f", floorA: "#0b141d", floorB: "#081018", glass: "150, 214, 232", lamp: "196, 232, 255" },
     },
     {
-      name: "III · Kendine Gel", size: 48, light: 180, hints: 2, decoys: 18, returnTrip: true,
-      objective: "Dev aynayı bul, sonra kapıya dön",
-      brief: "Kendini dev aynasında görmek kolay; asıl iş oradan kendine dönmek. Aynayı bulduğunda ışık zayıflar ve pirinç kapıyı bulman gerekir.",
+      name: "III · Kibir Odası", size: 52, light: 175, hints: 2, decoys: 22, returnTrip: true,
+      objective: "Dev aynayı bul, sonra pirinç kapıya dön",
+      card: "En içteki oda. Her şey altın rengi, her cam seni büyütmeye hazır. Aynayı bul — sonra kendine dön.",
+      palette: { ground: "#100608", floorA: "#1b0e10", floorB: "#150a0c", glass: "236, 186, 150", lamp: "255, 208, 150" },
     },
   ];
 
-  const C = {
-    ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916",
-    glass: "168, 203, 216", brass: "216, 178, 106", ivory: "#f2eae0",
-  };
+  const BRASS = "216, 178, 106";
+  const IVORY = "#f2eae0";
+  let C = { ...CHAPTERS[0].palette, brass: BRASS, ivory: IVORY };
   const DISTORTIONS = [
     { sx: 1.45, sy: 1.45 },   // biraz büyük
     { sx: 1.9, sy: 0.85 },    // yayvan
@@ -59,6 +64,7 @@
   const scale = () => Math.min(window.devicePixelRatio || 1, 1.5);
 
   let chapterIndex = 0;
+  let carding = 0;          // bölüm kartının ekranda kalacağı ana kadar
   let chapter, size, maze, mirrorCount, giant, giantSeg, decoys, warm;
   let players = [];
   let duel = false;
@@ -93,6 +99,7 @@
 
   function newRoom(nextSeed) {
     chapter = CHAPTERS[chapterIndex];
+    C = { ...chapter.palette };
     size = chapter.size;
     seed = nextSeed;
     maze = Maze.generate(size, size, seed);
@@ -284,14 +291,14 @@
     ctx.stroke();
     if (glow > 0.2) {
       ctx.strokeStyle = isWarm
-        ? `rgba(${C.brass}, ${(glow - 0.2) * 0.85})`
+        ? `rgba(${BRASS}, ${(glow - 0.2) * 0.85})`
         : `rgba(255, 255, 255, ${(glow - 0.2) * 0.55})`;
       ctx.lineWidth = 1.3;
       ctx.beginPath();
       ctx.moveTo(g.ax, g.ay);
       ctx.lineTo(g.bx, g.by);
       ctx.stroke();
-      ctx.fillStyle = `rgba(${C.brass}, ${(glow - 0.2) * 0.8})`;
+      ctx.fillStyle = `rgba(${BRASS}, ${(glow - 0.2) * 0.8})`;
       for (const [px, py] of [[g.ax, g.ay], [g.bx, g.by]]) {
         ctx.beginPath();
         ctx.arc(px, py, 2.4, 0, Math.PI * 2);
@@ -304,7 +311,7 @@
     const cx = CELL * 0.5;
     const cy = CELL * 0.5;
     ctx.save();
-    ctx.strokeStyle = `rgba(${C.brass}, 0.9)`;
+    ctx.strokeStyle = `rgba(${BRASS}, 0.9)`;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(cx, cy, CELL * 0.3, Math.PI, 0);
@@ -312,7 +319,7 @@
     ctx.lineTo(cx - CELL * 0.3, cy + CELL * 0.3);
     ctx.closePath();
     ctx.stroke();
-    ctx.fillStyle = `rgba(${C.brass}, 0.14)`;
+    ctx.fillStyle = `rgba(${BRASS}, 0.14)`;
     ctx.fill();
     ctx.restore();
   }
@@ -350,7 +357,7 @@
     }
 
     const lamp = ctx.createRadialGradient(p.x, p.y, 6, p.x, p.y, light * 0.9);
-    lamp.addColorStop(0, "rgba(255, 231, 194, 0.15)");
+    lamp.addColorStop(0, `rgba(${C.lamp}, 0.15)`);
     lamp.addColorStop(0.55, "rgba(216, 178, 106, 0.05)");
     lamp.addColorStop(1, "rgba(0, 0, 0, 0)");
     ctx.fillStyle = lamp;
@@ -386,7 +393,7 @@
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(ang);
-      ctx.fillStyle = `rgba(${C.brass}, 0.9)`;
+      ctx.fillStyle = `rgba(${BRASS}, 0.9)`;
       ctx.beginPath();
       ctx.moveTo(50, 0);
       ctx.lineTo(32, -9);
@@ -401,9 +408,9 @@
     const cx = rect.x + rect.w / 2;
     const cy = rect.y + rect.h / 2;
     const dark = ctx.createRadialGradient(cx, cy, light * 0.24 * zoom, cx, cy, light * zoom);
-    dark.addColorStop(0, "rgba(10, 7, 16, 0)");
-    dark.addColorStop(0.7, "rgba(10, 7, 16, 0.6)");
-    dark.addColorStop(1, "rgba(10, 7, 16, 1)");
+    dark.addColorStop(0, "rgba(0, 0, 0, 0)");
+    dark.addColorStop(0.7, "rgba(0, 0, 0, 0.62)");
+    dark.addColorStop(1, C.ground);
     ctx.fillStyle = dark;
     ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
 
@@ -417,7 +424,7 @@
     }
 
     if (duel) {
-      ctx.fillStyle = `rgba(${C.brass}, 0.75)`;
+      ctx.fillStyle = `rgba(${BRASS}, 0.75)`;
       ctx.font = "500 13px 'IBM Plex Mono', monospace";
       ctx.fillText(`OYUNCU ${p.label}`, rect.x + 14, rect.y + 24);
     }
@@ -437,7 +444,7 @@
       const halfW = (view.w - 2) / 2;
       visible.push(drawView(players[0], { x: 0, y: 0, w: halfW, h: view.h }, now));
       visible.push(drawView(players[1], { x: halfW + 2, y: 0, w: halfW, h: view.h }, now));
-      ctx.fillStyle = `rgba(${C.brass}, 0.35)`;
+      ctx.fillStyle = `rgba(${BRASS}, 0.35)`;
       ctx.fillRect(halfW, 0, 2, view.h);
     } else {
       visible.push(drawView(players[0], { x: 0, y: 0, w: view.w, h: view.h }, now));
@@ -502,16 +509,33 @@
 
     els.overlayTime.textContent = formatTime(elapsed);
     els.overlaySeen.textContent = `${seenTotal.toLocaleString("tr-TR")} / ${mirrorCount.toLocaleString("tr-TR")}`;
-    els.next.hidden = duel || chapterIndex >= CHAPTERS.length - 1;
-    els.next.textContent = duel ? "" : `Sonraki bölüm · ${CHAPTERS[Math.min(chapterIndex + 1, CHAPTERS.length - 1)].name}`;
+    els.next.hidden = true;
     els.overlay.hidden = false;
+    updateHud();
+  }
+
+  // Dev aynayı bulan oyuncu aynanın içinden geçer: bir sonraki bölüm,
+  // kendi ışığı ve rengiyle açılır. Süre kaldığı yerden devam eder.
+  function enterMirror(now) {
+    chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
+    const gecenSure = startedAt;
+    newRoom(randomSeed());
+    startedAt = gecenSure;
+    carding = now + 2600;
+    els.cardTitle.textContent = chapter.name;
+    els.cardText.textContent = chapter.card;
+    els.chapterCard.hidden = false;
     updateHud();
   }
 
   function loop(now) {
     const dt = Math.min(0.05, (now - lastFrame) / 1000 || 0);
     lastFrame = now;
-    if (running && !finished) moveAll(dt);
+    if (carding && now > carding) {
+      carding = 0;
+      els.chapterCard.hidden = true;
+    }
+    if (running && !finished && !carding) moveAll(dt);
     const visible = finished ? [] : draw(now);
 
     if (running && !finished) {
@@ -529,14 +553,16 @@
           if (!p.foundAt) p.foundAt = now;
           p.bloom = Math.min(1, (now - p.foundAt) / 1400);
           if (now - p.foundAt > 1600) {
-            p.done = elapsedNow();
-            if (chapter.returnTrip && !duel) {
+            if (chapter.returnTrip) {
+              // Son bölümde ayna bulunur, sonra kapıya dönülür.
               phase = "donus";
               els.objective.textContent = "Pirinç kapıya dön";
               p.foundAt = 0;
-              p.done = 0;
-            } else {
+            } else if (duel) {
+              p.done = elapsedNow();
               finish(p, now);
+            } else {
+              enterMirror(now);
             }
           }
         } else {
@@ -581,6 +607,9 @@
 
   function begin(isDuel, nextSeed) {
     duel = isDuel;
+    chapterIndex = 0;
+    carding = 0;
+    els.chapterCard.hidden = true;
     els.intro.hidden = true;
     newRoom(nextSeed);
     running = true;
@@ -599,10 +628,6 @@
   els.hintBtn.addEventListener("click", () => useHint(players[0]));
   els.restart.addEventListener("click", restart);
   els.againBtn.addEventListener("click", () => begin(duel, randomSeed()));
-  els.next.addEventListener("click", () => {
-    chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
-    begin(duel, randomSeed());
-  });
   els.codeApply.addEventListener("click", () => {
     const code = parseInt(els.codeInput.value.trim(), 10);
     if (!code || code < 1 || code > 99999) {
@@ -643,7 +668,16 @@
   // testler için
   window.__devAynasi = {
     startSolo, startDuel,
-    setChapter(i) { chapterIndex = i; },
+    setChapter(i) { chapterIndex = i; chapter = CHAPTERS[i]; },
+    jumpToChapter(i) {
+      const t = startedAt;
+      chapterIndex = i;
+      newRoom(randomSeed());
+      startedAt = t;
+      carding = 0;
+      els.chapterCard.hidden = true;
+    },
+    skipCard() { carding = 0; els.chapterCard.hidden = true; },
     teleportToGiant(index = 0) {
       const g = segGeometry(giant);
       const inside = (v, max) => (v >= max ? -CELL * 0.4 : CELL * 0.4);

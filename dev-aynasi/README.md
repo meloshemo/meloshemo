@@ -11,15 +11,18 @@ Bağımlılık yok; `index.html` dosyasını tarayıcıda aç.
 
 ## Bölümler
 
-| Bölüm | Salon | Işık | Sahte dev | Hedef |
-| --- | --- | --- | --- | --- |
-| I · Dev Aynası | 40×40 | geniş | yok | Dev aynayı bul |
-| II · Sahte Devler | 44×44 | dar | 12 çarpık ayna | Gerçek dev aynayı ayırt et |
-| III · Kendine Gel | 48×48 | en dar | 18 çarpık ayna | Dev aynayı bul, sonra pirinç kapıya dön |
+Dev aynayı bulduğunda **aynanın içinden geçip** bir sonraki odaya girersin;
+her odanın ışığı ve rengi farklıdır. Süre kaldığı yerden işler.
+
+| Bölüm | Salon | Işık ve renk | Hedef |
+| --- | --- | --- | --- |
+| I · Aynalı Salon | 40×40 | kadife mor karanlık | Dev aynayı bul |
+| II · Aynanın İçinde | 46×46 | soğuk mavi, cılız ışık, 14 çarpık ayna | Gerçek dev aynayı ayırt et |
+| III · Kibir Odası | 52×52 | altın-kızıl, en dar ışık, 22 çarpık ayna | Aynayı bul, sonra pirinç kapıya dön |
 
 **Çarpık aynalar** seni bir tık büyük, yayvan, uzun ya da küçük gösterir; gerçek dev
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
-çerçevesi altın vurur — doğru köşeye girdiğini bu ipucundan anlarsın.
+çerçevesi altın vurur.
 
 ## Nasıl oynanır
 

@@ -33,32 +33,65 @@ const COLORS = [
   { id: "pembe", hex: "#ff7ec4" },
 ];
 
-// Oyuncu sayısı arttıkça salon büyür: bulma olasılığı düşer, yarış uzar.
-// 1 kişi 40x40 (~1.6 bin ayna), 8 kişi 72x72 (~5 bin ayna).
-function roomSize(playerCount) {
-  return Math.min(72, 40 + (playerCount - 1) * 5);
+// Kaç kişi varsa salon o kadar büyür: bulma olasılığı düşer, yarış uzar.
+// 1 kişi 40x40 (~1.6 bin ayna) ... 8 kişi 138x138 (~18 bin ayna).
+// Bölüm ilerledikçe oda ayrıca %15 büyür.
+const CHAPTERS = [
+  { ad: "I · Aynalı Salon", decoyPay: 0 },
+  { ad: "II · Aynanın İçinde", decoyPay: 14 },
+  { ad: "III · Kibir Odası", decoyPay: 22 },
+];
+
+function roomSize(playerCount, chapter = 0) {
+  const taban = Math.min(140, 40 + (playerCount - 1) * 14);
+  return Math.min(150, Math.round(taban * (1 + chapter * 0.15)));
 }
-function decoyCount(playerCount) {
-  return 8 + playerCount * 6;
+function decoyCount(playerCount, chapter = 0) {
+  return CHAPTERS[chapter].decoyPay + playerCount * 6;
 }
 
 const rooms = new Map(); // kod -> oda
 
-function createRoom(code, playerCount) {
+// Bir bölümün salonunu üretir. Her oyuncu kendi bölümünü ayrı bir salonda
+// oynar: dev aynayı bulan oyuncu aynadan geçip bir sonraki salona girer,
+// geride kalanlar kendi salonlarında aramaya devam eder.
+function createHall(playerCount, chapter) {
   const seed = (Math.random() * 99999) | 0 || 1;
-  const size = roomSize(playerCount);
+  const size = roomSize(playerCount, chapter);
   const maze = Maze.generate(size, size, seed);
   const giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed);
   const mirrors = Maze.mirrors(maze);
-  const decoys = pickDecoys(mirrors, giant, seed, decoyCount(playerCount));
   return {
-    code, seed, size, maze, giant,
+    chapter, seed, size, maze, giant,
     mirrorCount: mirrors.length,
-    decoys,
-    players: new Map(),   // socket -> oyuncu
-    state: "lobi",        // lobi | yaris | bitti
+    decoys: pickDecoys(mirrors, giant, seed, decoyCount(playerCount, chapter)),
+  };
+}
+
+function createRoom(code, playerCount) {
+  return {
+    code,
+    halls: [createHall(playerCount, 0)],  // bölüm başına bir salon
+    players: new Map(),                   // socket -> oyuncu
+    state: "lobi",                        // lobi | yaris | bitti
     startAt: 0,
     finishers: [],
+  };
+}
+
+// Bir bölümün salonunu getirir, yoksa üretir.
+function hallFor(room, chapter) {
+  while (room.halls.length <= chapter) {
+    room.halls.push(createHall(room.players.size, room.halls.length));
+  }
+  return room.halls[chapter];
+}
+
+function hallInfo(room, chapter) {
+  const h = hallFor(room, chapter);
+  return {
+    bolum: chapter, bolumAdi: CHAPTERS[chapter].ad,
+    tohum: h.seed, boyut: h.size, aynaSayisi: h.mirrorCount, decoys: h.decoys,
   };
 }
 
@@ -77,8 +110,8 @@ function pickDecoys(mirrors, giant, seed, count) {
   return out;
 }
 
-function giantCenter(room) {
-  const g = room.giant;
+function giantCenter(room, chapter) {
+  const g = hallFor(room, chapter).giant;
   return g.horizontal
     ? { x: g.x * CELL + CELL / 2, y: g.y * CELL }
     : { x: g.x * CELL, y: g.y * CELL + CELL / 2 };
@@ -93,7 +126,7 @@ function broadcast(room, type, data) {
 
 function roster(room) {
   return [...room.players.values()].map((p) => ({
-    id: p.id, ad: p.ad, renk: p.renk, hazir: p.hazir, sure: p.sure,
+    id: p.id, ad: p.ad, renk: p.renk, hazir: p.hazir, bolum: p.bolum, sure: p.sure,
   }));
 }
 
@@ -134,23 +167,18 @@ wss.on("connection", (ws) => {
         renk,
         x: CELL * 0.5, y: CELL * 0.5,
         hazir: false, sure: null,
+        bolum: 0,             // oyuncunun bulunduğu bölüm
         yakinlik: 0,          // dev aynanın önünde geçirilen süre
         sonPaket: Date.now(),
       };
       room.players.set(ws, me);
 
-      // Oyuncu sayısı değiştikçe salon yeniden üretilir (lobi aşamasında).
-      const yeni = createRoom(code, room.players.size);
-      Object.assign(room, {
-        seed: yeni.seed, size: yeni.size, maze: yeni.maze, giant: yeni.giant,
-        mirrorCount: yeni.mirrorCount, decoys: yeni.decoys,
-      });
+      // Kişi sayısı değiştikçe ilk salon yeniden üretilir (lobi aşamasında).
+      room.halls = [createHall(room.players.size, 0)];
 
       send(ws, "hosgeldin", { benim: me.id, renk: me.renk });
       broadcast(room, "salon", {
-        kod: room.code, tohum: room.seed, boyut: room.size,
-        aynaSayisi: room.mirrorCount, decoys: room.decoys,
-        oyuncular: roster(room),
+        kod: room.code, ...hallInfo(room, 0), oyuncular: roster(room),
       });
       return;
     }
@@ -192,19 +220,36 @@ wss.on("connection", (ws) => {
 
       // Dev aynanın önünde yeterince durduysa bulmuş sayılır - kararı sunucu verir.
       if (me.sure === null && now >= room.startAt) {
-        const c = giantCenter(room);
+        const c = giantCenter(room, me.bolum);
         const yakin = Math.hypot(me.x - c.x, me.y - c.y) < LOOK * 0.8;
         me.yakinlik = yakin ? me.yakinlik + dt * 1000 : 0;
         if (me.yakinlik >= FOUND_MS) {
-          me.sure = (now - room.startAt) / 1000;
-          room.finishers.push({ id: me.id, ad: me.ad, renk: me.renk, sure: me.sure });
+          me.yakinlik = 0;
+          const gecen = (now - room.startAt) / 1000;
           broadcast(room, "buldu", {
-            id: me.id, ad: me.ad, renk: me.renk, sure: me.sure,
-            sira: room.finishers.length,
+            id: me.id, ad: me.ad, renk: me.renk, bolum: me.bolum,
+            bolumAdi: CHAPTERS[me.bolum].ad, sure: gecen,
           });
-          if (room.finishers.length === room.players.size) {
-            room.state = "bitti";
-            broadcast(room, "bitti", { siralama: room.finishers });
+
+          if (me.bolum < CHAPTERS.length - 1) {
+            // Aynadan geçer: kendi bir sonraki salonuna girer, diğerleri
+            // kendi salonlarında aramaya devam eder.
+            me.bolum++;
+            me.x = CELL * 0.5;
+            me.y = CELL * 0.5;
+            send(ws, "bolum", { ...hallInfo(room, me.bolum), sure: gecen });
+            broadcast(room, "oyuncular", { oyuncular: roster(room) });
+          } else {
+            me.sure = gecen;
+            room.finishers.push({ id: me.id, ad: me.ad, renk: me.renk, sure: me.sure });
+            broadcast(room, "tamamladi", {
+              id: me.id, ad: me.ad, renk: me.renk, sure: me.sure,
+              sira: room.finishers.length,
+            });
+            if (room.finishers.length === room.players.size) {
+              room.state = "bitti";
+              broadcast(room, "bitti", { siralama: room.finishers });
+            }
           }
         }
       }
@@ -224,10 +269,13 @@ wss.on("connection", (ws) => {
 setInterval(() => {
   for (const room of rooms.values()) {
     if (room.state !== "yaris") continue;
-    const kisiler = [...room.players.values()].map((p) => ({
-      id: p.id, x: Math.round(p.x), y: Math.round(p.y), renk: p.renk.hex, sure: p.sure,
-    }));
-    broadcast(room, "durum", { t: Date.now(), kisiler });
+    // Herkes yalnızca kendi bölümündeki oyuncuları görür.
+    for (const [ws, me] of room.players) {
+      const kisiler = [...room.players.values()]
+        .filter((p) => p.bolum === me.bolum)
+        .map((p) => ({ id: p.id, x: Math.round(p.x), y: Math.round(p.y), renk: p.renk.hex, bolum: p.bolum }));
+      send(ws, "durum", { t: Date.now(), kisiler });
+    }
   }
 }, TICK);
 
