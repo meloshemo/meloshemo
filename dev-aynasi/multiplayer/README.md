@@ -31,15 +31,28 @@ gelir; herkes diğerlerini kendi renginde görür.
 
 **Kalabalık salonu büyütür.** Oyuncu sayısı arttıkça salon genişler:
 
-| Oyuncu | Salon (I. bölüm) | Yaklaşık ayna |
-| --- | --- | --- |
-| 1 | 40×40 | ~1.600 |
-| 2 | 54×54 | ~2.900 |
-| 4 | 82×82 | ~6.700 |
-| 8 | 138×138 | **~18.800** |
+| Oyuncu | Salon (I. oda) | Ayna | Fark |
+| --- | --- | --- | --- |
+| 1 | 40×40 | 1.630 | tek kişilik odayla aynı |
+| 2 | 74×74 | 5.451 | +3.821 |
+| 3 | 95×95 | 8.954 | +3.503 |
+| 4 | 113×113 | 12.629 | +3.675 |
+| 5 | 128×128 | 16.161 | +3.532 |
+| 6 | 141×141 | 19.601 | +3.440 |
+| 7 | 153×153 | 23.044 | +3.443 |
+| 8 | 165×165 | 26.755 | +3.711 |
 
-Her bölümde oda ayrıca %15 büyür. Yani kalabalıkta dev aynayı bulma olasılığı
-çok düşer, yarış uzar — istediğin "zorlaştırıp oyunda tutma" etkisi buradan gelir.
+**Kural:** tek kişilik boyut tabandır (çevrimiçi tek kişi, oyunun kendi
+odasıyla birebir aynı salonu görür), her ek oyuncu salona **+3.400 ayna**
+ekler. Ayna sayısı ≈ 0,94 × kare sayısı olduğundan gereken kenar uzunluğu
+buradan geri hesaplanır.
+
+**Eleme sırasında da orantılı:** oyuncu elendikçe yeni tur aynı formülle
+kurulur, yani salon küçülür — 8 kişi 26.755 ayna, 4 kişi 12.629, 2 kişi 5.451.
+Salon hep kalan kalabalığa göre ölçülür, sabit kalmaz.
+
+Son oda (XVI · Kaçan Ayna) tabanı 70×70 olduğu için tek kişide bile 4.905
+ayna vardır; sekiz kişide 26.755'e çıkar ve ayna ayrıca yer değiştirir.
 
 **Herkes farklı köşeden başlar.** Oyuncular salonun köşelerine ve kenar
 ortalarına dağıtılır; yollar kesişir, birbirinizi karanlıkta görürsünüz.

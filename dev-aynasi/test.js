@@ -111,6 +111,32 @@ test("bölüm boyutları büyüdükçe ayna sayısı artar", () => {
   assert.ok(counts[0] < counts[1] && counts[1] < counts[2], counts.join(" < "));
 });
 
+test("çok oyunculu salon oyuncu sayısıyla orantılı büyüyüp küçülür", () => {
+  // Sunucudaki kuralın aynısı: tek kişilik boyut taban, her ek oyuncu
+  // +3.400 ayna. Eleme sırasında sayı düşünce salon aynı formülle küçülür.
+  const CHAPTER_SIZES = [40, 46, 48, 50, 52, 54, 56, 54, 58, 60, 58, 62, 60, 66, 64, 70];
+  const boyut = (n, ch = 0) => {
+    const taban = CHAPTER_SIZES[Math.min(ch, CHAPTER_SIZES.length - 1)];
+    if (n <= 1) return taban;
+    return Math.min(200, Math.max(taban, Math.round(Math.sqrt((1700 + (n - 1) * 3400) / 0.94))));
+  };
+  const ayna = (s) => Maze.mirrors(Maze.generate(s, s, 11)).length;
+
+  let onceki = 0;
+  for (let n = 1; n <= 8; n++) {
+    const a = ayna(boyut(n));
+    if (n > 1) {
+      assert.ok(a > onceki, `${n} kişide ayna artmadı: ${onceki} -> ${a}`);
+      assert.ok(a - onceki > 2500, `${n}. oyuncu yeterince ayna eklemedi: +${a - onceki}`);
+    }
+    onceki = a;
+  }
+  // Eleme: sayı düştükçe salon küçülür
+  assert.ok(ayna(boyut(4)) < ayna(boyut(8)), "eleme sonrası salon küçülmedi");
+  // Çevrimiçi tek kişilik oda, oyunun kendi odasıyla aynı boyutta
+  for (const ch of [0, 8, 15]) assert.strictEqual(boyut(1, ch), CHAPTER_SIZES[ch]);
+});
+
 let failed = 0;
 for (const [name, fn] of tests) {
   try {

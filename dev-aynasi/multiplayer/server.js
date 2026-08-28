@@ -55,16 +55,32 @@ const CHAPTERS = [
   { ad: "XVI · Kaçan Ayna", decoyPay: 36 },
 ];
 
-// Hedeflenen ayna sayısı: tek kişi ~1.600; her yeni oyuncu +3.400 ayna.
-// Ayna sayısı ≈ 0.94 × kare sayısı olduğundan boyut buradan geri hesaplanır.
-//   1 kişi  40×40   ~1.600      5 kişi 122×122 ~14.000
-//   2 kişi  73×73   ~5.000      6 kişi 138×138 ~18.000
-//   3 kişi  92×92   ~8.000      7 kişi 153×153 ~22.000
-//   4 kişi 108×108 ~11.000      8 kişi 166×166 ~26.000
+// Salon boyutu iki kurala göre belirlenir:
+//
+//  1) Tek kişilik boyut tabandır. Oyunun kendi odaları elle ayarlandı;
+//     çevrimiçi tek kişilik oyun da aynı boyutu görür, daha küçüğü asla.
+//  2) Her ek oyuncu salona +3.400 ayna ekler. Ayna sayısı ≈ 0.94 × kare
+//     sayısı olduğundan gereken kenar uzunluğu buradan geri hesaplanır.
+//     Oyuncu elenip sayı düştüğünde salon aynı formülle küçülür — yani
+//     ölçek her iki yönde de orantılıdır.
+//
+// I. odada (taban 40×40) oyuncu sayısına göre yaklaşık ayna:
+//   1 kişi  40×40   ~1.700      5 kişi 127×127 ~15.900
+//   2 kişi  73×73   ~5.300      6 kişi 141×141 ~19.600
+//   3 kişi  95×95   ~8.900      7 kişi 153×153 ~22.000
+//   4 kişi 112×112 ~12.400      8 kişi 164×164 ~26.400
+// Bölüm ilerledikçe boyut ayrıca %8 artar; taban oda büyüdükçe hepsi büyür.
+const CHAPTER_SIZES = [40, 46, 48, 50, 52, 54, 56, 54, 58, 60, 58, 62, 60, 66, 64, 70];
+
 function roomSize(playerCount, chapter = 0) {
-  const hedefAyna = 1600 + (playerCount - 1) * 3400;
-  const taban = Math.round(Math.sqrt(hedefAyna / 0.94));
-  return Math.min(190, Math.round(taban * (1 + chapter * 0.08)));
+  const taban = CHAPTER_SIZES[Math.min(chapter, CHAPTER_SIZES.length - 1)];
+  if (playerCount <= 1) return taban;
+  const hedefAyna = 1700 + (playerCount - 1) * 3400;
+  const kalabalik = Math.round(Math.sqrt(hedefAyna / 0.94));
+  // Kalabalık her zaman o bölümün tek kişilik odasından büyük olur. Bölüm
+  // için ayrı bir çarpan yok: zorluk zaten taban boyuttan ve sahte dev
+  // sayısından geliyor; çarpan eklemek üst sınıra dayanıp ölçeği bozuyordu.
+  return Math.min(200, Math.max(taban, kalabalik));
 }
 function decoyCount(playerCount, chapter = 0) {
   return CHAPTERS[chapter].decoyPay + playerCount * 6;

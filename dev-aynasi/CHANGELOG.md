@@ -1,5 +1,12 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.0.1 — Ölçek düzeltmesi
+- Çevrimiçi salon boyutu artık her bölümün tek kişilik boyutunu taban alıyor:
+  çevrimiçi tek kişi oyunun kendi odasıyla birebir aynı salonu görüyor
+- Bölüm çarpanı kaldırıldı; üst sınıra dayanıp 8 ve 10 kişide aynı boyutu
+  üretiyordu. Artık her ek oyuncu +3.400 ayna ekliyor (1 → 1.630,
+  8 → 26.755) ve eleme sırasında aynı oranda küçülüyor
+
 ## 1.0.0 — Eleme turnuvası ve kaçan ayna
 - **Dört yeni oda:** XIII Londra (sis), XIV Dubai (cam kule), XV Rio (karnaval)
   ve final **XVI · Kaçan Ayna** — dev ayna 20 saniyede bir yer değiştirir,
