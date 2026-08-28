@@ -47,16 +47,7 @@ ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki
 
 Sağ üstteki **Ayarlar** düğmesi: parlaklık (0,75–1,35), hareketi azaltma,
 açtığın odalar arasında geçiş, oyun içi **gizlilik politikası** ve sürüm no.
-Ses ve dil düğmeleri de aynı satırda. Tüm tercihler tarayıcıda saklanır.
-
-## Ses
-
-Müzik dosyası yok: tüm ses tarayıcıda üretilir (`audio.js`, Web Audio).
-Salonun sabit uğultusu, dev aynayı görünce çınlama, aynadan geçiş ve oyun sonu.
-`M` ile açılıp kapanır, tercih tarayıcıda saklanır.
-
-Yaklaştıkça hızlanan kalp atışı ve sahte aynadaki cam çatlaması **kaldırıldı**:
-ikisi de oyuncuya ipucu veriyordu, oysa sıcak iz zaten bir ipucu.
+Dil düğmesi de aynı satırda. Tüm tercihler tarayıcıda saklanır.
 
 ## Kontroller (bilgisayar)
 
@@ -74,6 +65,7 @@ o eksendeki hız sıfırlanır.
 ## Nasıl oynanır
 
 - **Tek kişi:** `W A S D` veya yön tuşları, `Shift` koş, `H` sezgi. Dokunmatikte parmağını sürükle.
+- Oyun sessizdir: ses ve müzik yoktur.
 - **Düello (iki kişi, tek klavye):** ekran ikiye bölünür, iki oyuncu **aynı salonda**
   yarışır. 1. oyuncu `W A S D` + `Q` sezgi, 2. oyuncu yön tuşları + `M` sezgi.
   Dev aynayı önce gören kazanır; birbirinizi ışığınız yettiğince görürsünüz.
@@ -91,7 +83,6 @@ o eksendeki hız sıfırlanır.
 | `style.css` | Tema ve yerleşim |
 | `maze.js` | Tohumlu labirent üretimi, ayna listesi, dev aynasının seçimi |
 | `game.js` | Bölümler, düello, çarpışma, yansıma çizimi, karanlık, HUD |
-| `audio.js` | Prosedürel ses: uğultu, kalp atışı, çınlama, cam çatlaması |
 | `ikon/` | Uygulama ikonu (SVG + 64/128/256/512/1024 PNG) |
 | `i18n.js` | Türkçe/İngilizce metinler ve dil değiştirme |
 | `basin/` | Ekran görüntüleri (TR + EN) ve Steam mağaza görselleri |

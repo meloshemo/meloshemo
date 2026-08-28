@@ -54,7 +54,7 @@ dönmeniz gerekir.
   sizi taklit eden yankı, sönen fener.
 - **Bölünmüş ekran düello.** Tek klavyede iki kişi, aynı salonda yarış.
 - **Salon kodu.** Aynı kodu giren herkes birebir aynı salonu oynar.
-- **Dosyasız ses.** Tüm ses tarayıcıda üretilir; müzik dosyası yoktur.
+- **Sessiz tasarım.** Oyunda ses ve müzik yoktur; dikkat tamamen aramada kalır.
 - **Kurulum yok.** Tarayıcıda açılır, tek dosyalık çevrimdışı sürümü vardır.
 
 ## Odalar

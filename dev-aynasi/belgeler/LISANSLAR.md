@@ -18,8 +18,8 @@ serbesttir (yazı tiplerinin kendisi ayrıca satılamaz).
 
 ## Ses
 
-Oyundaki tüm sesler çalışma anında Web Audio API ile üretilir. Hiçbir ses
-dosyası, örnekleme (sample) veya telifli müzik kullanılmamıştır.
+Oyunda ses ve müzik yoktur. Hiçbir ses dosyası, örnekleme veya telifli müzik
+kullanılmamıştır.
 
 ## Kod bağımlılıkları
 

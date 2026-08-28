@@ -1,5 +1,10 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 0.8.1 — Sessiz sürüm
+- **Ses tamamen kaldırıldı.** Uğultu, çınlama ve geçiş sesleri; ses düğmesi,
+  `M` kısayolu ve `audio.js` dosyası kaldırıldı. Oyun artık AudioContext bile
+  açmıyor. Müzik ileride telifsiz bir parça bulununca eklenecek.
+
 ## 0.8.0 — Dünya turu ve ayarlar
 - **Altı yeni oda, altı şehir:** Paris (açık galeri), Venedik (su ve dalga),
   Tokyo (neon; dev ayna yanıp sönmeyen tek cam), New York (ızgara caddeler),

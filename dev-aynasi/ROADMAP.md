@@ -34,9 +34,9 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [x] Değişiklik günlüğü
 
 ## 3. Oyun mekaniği
-- [x] Ses: uğultu, yaklaştıkça hızlanan kalp atışı, buluş çınlaması
-- [x] Sahte dev aynaya bakınca cam çatlama sesi
-- [ ] Sahte aynada kısa süre cezası (ses var, ceza yok)
+- [x] Ses tamamen kaldırıldı (oyun sessiz)
+- [ ] Müzik: telifsiz ya da sipariş edilmiş bir parça bulunduğunda eklenecek
+- [ ] Sahte aynada kısa süre cezası
 - [ ] Günlük salon: herkesin aynı salonu oynadığı günlük kod ve sıralama
 - [x] Fragman videosu (TR + EN, WebM) — Steam için MP4'e çevrilecek
 - [x] Tam İngilizce sürüm (arayüz, bölüm adları, belgeler)

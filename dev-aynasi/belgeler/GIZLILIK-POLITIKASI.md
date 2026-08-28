@@ -18,7 +18,6 @@ depolamasında (`localStorage`) yalnızca sizin cihazınızda saklanır:
 | Anahtar | İçerik |
 | --- | --- |
 | `dev-aynasi:en-iyi:<bölüm>` | O bölümdeki en iyi süreniz (saniye) |
-| `dev-aynasi:ses` | Sesin açık mı kapalı mı olduğu |
 
 Bu kayıtlar bize ulaşmaz, başka kimseyle paylaşılmaz. Tarayıcınızın site
 verilerini temizlediğinizde silinirler.

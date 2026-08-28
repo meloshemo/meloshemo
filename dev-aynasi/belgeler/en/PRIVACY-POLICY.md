@@ -17,7 +17,6 @@ storage, on your device only:
 | Key | Contents |
 | --- | --- |
 | `dev-aynasi:en-iyi:<room>` | Your best time for that room, in seconds |
-| `dev-aynasi:ses` | Whether sound is on or off |
 | `dev-aynasi:dil` | Your language choice (Turkish or English) |
 
 We never receive these values and never share them. Clearing your browser's

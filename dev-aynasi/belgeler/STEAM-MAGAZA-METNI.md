@@ -47,7 +47,7 @@ Onu bulduğunda içine yürürsün ve bir sonraki oda açılır.
 [h2]Detaylar[/h2]
 [list]
 [*]Her ayna gerçek bir yansıma çizer
-[*]Tüm ses gerçek zamanlı üretilir — müzik dosyası yoktur
+[*]Sessiz tasarım: ses ve müzik yok, dikkat tamamen aramada
 [*]Kurulum gerektirmez, hafiftir, düşük donanımda da 60 FPS
 [/list]
 ```
@@ -66,7 +66,7 @@ MINIMUM:
   Bellek: 2 GB RAM
   Ekran Kartı: Tümleşik (WebGL/Canvas 2D destekli)
   Depolama: 50 MB
-  Ek not: Klavye gerekir. Ses için kulaklık önerilir.
+  Ek not: Klavye gerekir. Oyun sessizdir.
 
 ÖNERİLEN:
   İşletim Sistemi: Windows 11 / macOS 14
@@ -82,7 +82,6 @@ W A S D / yön tuşları — yürü
 Shift — koş
 H — sezgi (dev aynanın yönünü bir an gösterir)
 R — yeni salon
-M — ses aç/kapa
 Düello: 2. oyuncu yön tuşları + M
 ```
 

@@ -6,7 +6,7 @@
   const els = {
     time: $("time"), seen: $("seen"), total: $("total"), hints: $("hints"),
     chapter: $("chapter"), objective: $("objective"),
-    hintBtn: $("hintBtn"), restart: $("restart"), soundBtn: $("soundBtn"), langBtn: $("langBtn"),
+    hintBtn: $("hintBtn"), restart: $("restart"), langBtn: $("langBtn"),
     intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"),
     codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
     overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
@@ -793,8 +793,7 @@
       echo.x = (size - 0.5) * CELL;
       echo.y = (size - 0.5) * CELL;
       p.hints = Math.max(0, p.hints - 1);
-      Sound.through();
-      els.objective.textContent = I18n.t("echoHit");
+        els.objective.textContent = I18n.t("echoHit");
       updateHud();
     }
   }
@@ -845,7 +844,6 @@
     mirrorCount = Maze.mirrors(maze).length;
     els.total.textContent = mirrorCount.toLocaleString("tr-TR");
     shiftFlash = 1;
-    Sound.through();
   }
 
   // Oyuncu dev aynaya değip üstüne yürüyor mu? Geçiş bununla olur.
@@ -866,7 +864,6 @@
   // Dev aynayı bulan oyuncu aynanın içinden geçer: bir sonraki bölüm,
   // kendi ışığı ve rengiyle açılır. Süre kaldığı yerden devam eder.
   function enterMirror(now) {
-    Sound.through();
     chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
     acilaniKaydet(chapterIndex);
     const gecenSure = startedAt;
@@ -911,10 +908,7 @@
           return;
         }
         if (visible[i]) {
-          if (!p.foundAt) {
-            p.foundAt = now;
-            Sound.discovery();
-          }
+          if (!p.foundAt) p.foundAt = now;
           // Işık, aynaya yaklaştıkça güçlenir; asıl geçiş içine yürüyünce olur.
           p.bloom = Math.min(1, p.bloom + dt * 2.2);
           if (!holdAtMirror && pushingIntoGiant(p)) {
@@ -922,8 +916,7 @@
               phase = "donus";
               els.objective.textContent = I18n.t("doorObjective");
               p.foundAt = 0;
-              Sound.through();
-            } else if (duel) {
+                      } else if (duel) {
               p.done = elapsedNow();
               finish(p, now);
             } else {
@@ -951,7 +944,6 @@
     if (k === "h" || k === "q") useHint(players[0]);
     if (k === "m" && duel) useHint(players[1]);
     if (k === "r") restart();
-    if (k === "m" && !duel) toggleSound();   // "s" yürüme tuşu, sessize alma M
     if (!running && (k === "Enter" || k === " ")) startSolo();
   });
   window.addEventListener("keyup", (e) => {
@@ -972,7 +964,6 @@
   }
 
   function begin(isDuel, nextSeed, bolum = 0) {
-    Sound.start();
     duel = isDuel;
     chapterIndex = Math.min(bolum, CHAPTERS.length - 1);
     carding = 0;
@@ -992,12 +983,6 @@
 
   els.enterSolo.addEventListener("click", startSolo);
   els.enterDuel.addEventListener("click", startDuel);
-  function toggleSound() {
-    Sound.start();
-    const acik = Sound.toggle();
-    els.soundBtn.textContent = I18n.t(acik ? "soundOn" : "soundOff");
-    els.soundBtn.setAttribute("aria-pressed", String(acik));
-  }
   // --- ayarlar penceresi ---
   function bolumListesiKur() {
     els.roomPicker.textContent = "";
@@ -1041,11 +1026,9 @@
   });
   els.privacyClose.addEventListener("click", () => { els.privacy.hidden = true; });
 
-  els.soundBtn.addEventListener("click", toggleSound);
   function refreshLanguage() {
     I18n.apply();
     els.langBtn.textContent = I18n.lang === "tr" ? "EN" : "TR";
-    els.soundBtn.textContent = I18n.t(Sound.isOn() ? "soundOn" : "soundOff");
     els.chapter.textContent = chapterText().name;
     els.objective.textContent = phase === "donus" ? I18n.t("doorObjective") : chapterText().objective;
     els.cardTitle.textContent = chapterText().name;

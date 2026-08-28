@@ -53,7 +53,7 @@ back.
   a mimicking echo, a dying lantern.
 - **Split-screen duel.** Two players, one keyboard, the same hall.
 - **Hall codes.** Anyone entering the same code plays the exact same hall.
-- **No audio files.** All sound is generated at runtime in the browser.
+- **Silent by design.** The game has no sound or music; attention stays on the search.
 - **No install.** Runs in a browser; a single-file offline build is included.
 
 ## Rooms

@@ -13,7 +13,6 @@
       lede: 'Binlerce ayna, hepsi aynı. <em>Yalnızca biri</em> seni devasa gösteriyor.',
       chapter: "Bölüm", time: "Süre", seen: "Bakılan ayna", hint: "Sezgi", duel: "Düello",
       objective: "Hedef",
-      soundOn: "Ses açık", soundOff: "Ses kapalı",
       hintBtn: "Sezgi · H", newRoom: "Yeni salon · R",
       introTitle: "Salona giriyorsun",
       introText: "Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.",
@@ -23,7 +22,7 @@
       through: "Aynanın içinden geçtin",
       ledgerTime: "Süre", ledgerSeen: "Baktığın ayna", ledgerBest: "En iyi süren",
       again: "Baştan oyna", roomCode: "Salon kodu:",
-      helpWalk: "yürü", helpRun: "koş", helpHint: "sezgi", helpNew: "yeni salon", helpSound: "ses",
+      helpWalk: "yürü", helpRun: "koş", helpHint: "sezgi", helpNew: "yeni salon",
       player: "OYUNCU",
       doorObjective: "Pirinç kapıya dön",
       echoHit: "Yankı sana değdi — baştan",
@@ -43,7 +42,6 @@
         <p>Yalnızca kendi tarayıcınızda kalır, bize ulaşmaz:</p>
         <ul>
           <li>Her odadaki en iyi süreniz</li>
-          <li>Ses açık mı kapalı mı</li>
           <li>Dil, parlaklık ve hareket tercihiniz</li>
           <li>Hangi odaları açtığınız</li>
         </ul>
@@ -81,7 +79,6 @@
       lede: 'A thousand mirrors, all identical. <em>Only one</em> makes you a giant.',
       chapter: "Room", time: "Time", seen: "Mirrors seen", hint: "Hunch", duel: "Duel",
       objective: "Goal",
-      soundOn: "Sound on", soundOff: "Sound off",
       hintBtn: "Hunch · H", newRoom: "New hall · R",
       introTitle: "You step into the hall",
       introText: "You see only as far as your lantern reaches. Find the giant mirror.",
@@ -91,7 +88,7 @@
       through: "You stepped through the mirror",
       ledgerTime: "Time", ledgerSeen: "Mirrors seen", ledgerBest: "Your best",
       again: "Play again", roomCode: "Hall code:",
-      helpWalk: "walk", helpRun: "run", helpHint: "hunch", helpNew: "new hall", helpSound: "sound",
+      helpWalk: "walk", helpRun: "run", helpHint: "hunch", helpNew: "new hall",
       player: "PLAYER",
       doorObjective: "Return to the brass door",
       echoHit: "The echo caught you — back to the start",
@@ -111,7 +108,6 @@
         <p>Kept in your own browser only; it never reaches us:</p>
         <ul>
           <li>Your best time in each room</li>
-          <li>Whether sound is on or off</li>
           <li>Your language, brightness and motion preferences</li>
           <li>Which rooms you have unlocked</li>
         </ul>

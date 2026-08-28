@@ -46,7 +46,7 @@ Find it, walk into it, and the next room opens.
 [h2]Details[/h2]
 [list]
 [*]Every mirror draws a true reflection
-[*]All sound is generated at runtime — there are no audio files
+[*]Silent by design: no sound or music, attention stays on the search
 [*]Turkish and English; light, no install, 60 FPS on modest hardware
 [/list]
 ```
@@ -65,7 +65,7 @@ MINIMUM:
   Memory: 2 GB RAM
   Graphics: Integrated (Canvas 2D)
   Storage: 50 MB
-  Additional Notes: Keyboard required. Headphones recommended.
+  Additional Notes: Keyboard required. The game is silent.
 
 RECOMMENDED:
   OS: Windows 11 / macOS 14
@@ -81,6 +81,5 @@ W A S D / arrow keys — walk
 Shift — run
 H — hunch (points toward the giant mirror for a moment)
 R — new hall
-M — sound on/off
 Duel: player 2 uses arrow keys + M
 ```
