@@ -1,69 +1,61 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <title>Dev Aynası</title>
+  <title>Dev Aynası — Hall of Giants</title>
   <defs>
-    <radialGradient id="zemin" cx="50%" cy="34%" r="78%">
-      <stop offset="0%" stop-color="#2a1838"/>
-      <stop offset="58%" stop-color="#140c1e"/>
-      <stop offset="100%" stop-color="#08050d"/>
+    <radialGradient id="zemin" cx="50%" cy="30%" r="82%">
+      <stop offset="0%" stop-color="#2d1a3c"/>
+      <stop offset="55%" stop-color="#150d20"/>
+      <stop offset="100%" stop-color="#07050c"/>
     </radialGradient>
+    <linearGradient id="cam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1b2436"/>
+      <stop offset="100%" stop-color="#0a1018"/>
+    </linearGradient>
     <linearGradient id="altin" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fff0c9"/>
-      <stop offset="42%" stop-color="#f0c579"/>
-      <stop offset="100%" stop-color="#b8863c"/>
+      <stop offset="0%" stop-color="#fff3d6"/>
+      <stop offset="38%" stop-color="#f2c877"/>
+      <stop offset="100%" stop-color="#b07f34"/>
     </linearGradient>
-    <linearGradient id="pirinc" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#8a6a35" stop-opacity="0.15"/>
-      <stop offset="50%" stop-color="#e8c887" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#8a6a35" stop-opacity="0.15"/>
+    <linearGradient id="cerceve" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f6dfa8"/>
+      <stop offset="45%" stop-color="#c99f52"/>
+      <stop offset="100%" stop-color="#8a672c"/>
     </linearGradient>
-    <radialGradient id="hale" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ffd98a" stop-opacity="0.5"/>
-      <stop offset="60%" stop-color="#d8b26a" stop-opacity="0.16"/>
+    <radialGradient id="hale" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#ffd98a" stop-opacity="0.55"/>
       <stop offset="100%" stop-color="#d8b26a" stop-opacity="0"/>
     </radialGradient>
-    <clipPath id="ustBolme">
-      <rect x="0" y="0" width="1024" height="596"/>
+    <clipPath id="camIci">
+      <path d="M312 470 a200 200 0 0 1 400 0 V782 a24 24 0 0 1 -24 24 H336 a24 24 0 0 1 -24 -24 Z"/>
     </clipPath>
-    <clipPath id="kutu">
-      <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228"/>
-    </clipPath>
+    <clipPath id="kutu"><rect width="1024" height="1024" rx="228" ry="228"/></clipPath>
   </defs>
 
   <g clip-path="url(#kutu)">
     <rect width="1024" height="1024" fill="url(#zemin)"/>
 
-    <!-- salonun uzaktaki cam sıraları -->
-    <g stroke="#a8cbd8" stroke-linecap="round" opacity="0.16">
-      <path d="M104 250 H300" stroke-width="9"/>
-      <path d="M724 250 H920" stroke-width="9"/>
-      <path d="M150 806 H336" stroke-width="9"/>
-      <path d="M688 806 H874" stroke-width="9"/>
-      <path d="M104 250 V372" stroke-width="9"/>
-      <path d="M920 250 V372" stroke-width="9"/>
+    <!-- yandaki diğer aynalar: hepsi aynı, hepsi boş -->
+    <g fill="#131c28" stroke="#5f7488" stroke-width="6" opacity="0.5">
+      <path d="M104 486 a68 68 0 0 1 136 0 V772 a14 14 0 0 1 -14 14 H118 a14 14 0 0 1 -14 -14 Z"/>
+      <path d="M784 486 a68 68 0 0 1 136 0 V772 a14 14 0 0 1 -14 14 H798 a14 14 0 0 1 -14 -14 Z"/>
     </g>
 
-    <!-- dev yansımanın halesi -->
-    <ellipse cx="512" cy="380" rx="420" ry="360" fill="url(#hale)"/>
+    <!-- dev aynanın halesi -->
+    <ellipse cx="512" cy="600" rx="330" ry="330" fill="url(#hale)"/>
 
-    <!-- aynanın içindeki devasa görüntü: panele sığmaz, taşar -->
-    <g clip-path="url(#ustBolme)" fill="url(#altin)">
-      <circle cx="512" cy="286" r="150"/>
-      <ellipse cx="512" cy="620" rx="196" ry="264"/>
+    <!-- dev ayna: cam + içindeki devasa yansıma -->
+    <path d="M312 470 a200 200 0 0 1 400 0 V782 a24 24 0 0 1 -24 24 H336 a24 24 0 0 1 -24 -24 Z" fill="url(#cam)"/>
+    <g clip-path="url(#camIci)" fill="url(#altin)">
+      <circle cx="512" cy="424" r="122"/>
+      <ellipse cx="512" cy="792" rx="172" ry="220"/>
     </g>
+    <path d="M312 470 a200 200 0 0 1 400 0 V782 a24 24 0 0 1 -24 24 H336 a24 24 0 0 1 -24 -24 Z"
+          fill="none" stroke="url(#cerceve)" stroke-width="26"/>
 
-    <!-- aynanın pirinç kenarı -->
-    <rect x="176" y="588" width="672" height="12" rx="6" fill="url(#pirinc)"/>
-    <circle cx="176" cy="594" r="13" fill="#e8c887"/>
-    <circle cx="848" cy="594" r="13" fill="#e8c887"/>
-
-    <!-- aynanın önündeki gerçek oyuncu: küçücük ama küçük boyutta da seçilir -->
+    <!-- aynanın önünde duran küçük oyuncu -->
+    <ellipse cx="512" cy="906" rx="168" ry="30" fill="#000" opacity="0.4"/>
     <g fill="#f8f4ea">
-      <circle cx="512" cy="712" r="50"/>
-      <ellipse cx="512" cy="828" rx="64" ry="86"/>
+      <circle cx="512" cy="856" r="32"/>
+      <ellipse cx="512" cy="918" rx="42" ry="54"/>
     </g>
-
-    <!-- çerçeve -->
-    <rect x="26" y="26" width="972" height="972" rx="204" ry="204"
-          fill="none" stroke="#d8b26a" stroke-opacity="0.42" stroke-width="10"/>
   </g>
 </svg>

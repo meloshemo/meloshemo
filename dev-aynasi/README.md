@@ -1,4 +1,8 @@
-# 🪞 Dev Aynası
+# 🪞 Dev Aynası — Hall of Giants
+
+**Türkçe ve İngilizce.** Tarayıcı dili Türkçe ise oyun Türkçe, değilse İngilizce
+açılır; sağ üstteki düğmeyle her an değiştirilebilir. Seçim tarayıcıda saklanır.
+
 
 Türkçedeki **"kendini dev aynasında görmek"** deyiminin oyunlaştırılmış hali.
 
@@ -71,8 +75,11 @@ o eksendeki hız sıfırlanır.
 | `game.js` | Bölümler, düello, çarpışma, yansıma çizimi, karanlık, HUD |
 | `audio.js` | Prosedürel ses: uğultu, kalp atışı, çınlama, cam çatlaması |
 | `ikon/` | Uygulama ikonu (SVG + 64/128/256/512/1024 PNG) |
-| `basin/` | Ekran görüntüleri ve Steam mağaza görselleri |
+| `i18n.js` | Türkçe/İngilizce metinler ve dil değiştirme |
+| `basin/` | Ekran görüntüleri (TR + EN) ve Steam mağaza görselleri |
+| `fragman/` | Türkçe ve İngilizce fragman videoları (WebM) |
 | `belgeler/` | Gizlilik politikası, kullanım koşulları, basın kiti, Steam metni, lisanslar |
+| `belgeler/en/` | Aynı belgelerin İngilizcesi |
 | `multiplayer/` | Çevrimiçi yarış sunucusu ve istemcisi (bağlanmayı bekliyor) |
 | `test.js` | Labirent üretimi regresyon testleri |
 | `dev-aynasi-tek-dosya.html` | Her şeyin tek dosyada toplandığı paylaşılabilir sürüm |

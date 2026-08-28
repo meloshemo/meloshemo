@@ -376,65 +376,64 @@ kbd {
   color: var(--brass-dim);
 }
 
+.help i { font-style: normal; }
+
 </style>
   </head>
   <body>
     <main class="app">
       <header class="masthead">
-        <div class="rule"><span>Bir deyim oyunu</span></div>
-        <h1>Dev Aynası</h1>
-        <p class="lede">
+        <div class="rule"><span data-i18n="eyebrow">Bir deyim oyunu</span></div>
+        <h1 data-i18n="title">Dev Aynası</h1>
+        <p class="lede" data-i18n="lede" data-i18n-html>
           Binlerce ayna, hepsi aynı. <em>Yalnızca biri</em> seni devasa gösteriyor.
         </p>
       </header>
 
       <div class="hud">
-        <div class="stat"><span class="label">Bölüm</span><span class="value small" id="chapter">I · Dev Aynası</span></div>
-        <div class="stat"><span class="label">Süre</span><span class="value" id="time">00:00</span></div>
+        <div class="stat"><span class="label" data-i18n="chapter">Bölüm</span><span class="value small" id="chapter">I · Dev Aynası</span></div>
+        <div class="stat"><span class="label" data-i18n="time">Süre</span><span class="value" id="time">00:00</span></div>
         <div class="stat">
-          <span class="label">Bakılan ayna</span>
+          <span class="label" data-i18n="seen">Bakılan ayna</span>
           <span class="value"><span id="seen">0</span> <small>/ <span id="total">0</span></small></span>
         </div>
-        <div class="stat"><span class="label">Sezgi</span><span class="value" id="hints">3</span></div>
+        <div class="stat"><span class="label" data-i18n="hint">Sezgi</span><span class="value" id="hints">3</span></div>
         <div class="stat duel-badge" id="duelBadge" hidden>
-          <span class="label">Düello</span>
+          <span class="label" data-i18n="duel">Düello</span>
           <span class="value small">1 <b id="p1Time">—</b> · 2 <b id="p2Time">—</b></span>
         </div>
         <span class="spacer"></span>
         <button id="soundBtn" class="btn" type="button" aria-pressed="true">Ses açık</button>
-        <button id="hintBtn" class="btn" type="button">Sezgi · H</button>
-        <button id="restart" class="btn" type="button">Yeni salon · R</button>
+        <button id="langBtn" class="btn" type="button">EN</button>
+        <button id="hintBtn" class="btn" type="button" data-i18n="hintBtn">Sezgi · H</button>
+        <button id="restart" class="btn" type="button" data-i18n="newRoom">Yeni salon · R</button>
       </div>
 
-      <p class="objective"><span>Hedef</span> <b id="objective">Seni devasa gösteren tek aynayı bul</b></p>
+      <p class="objective"><span data-i18n="objective">Hedef</span> <b id="objective">Seni devasa gösteren tek aynayı bul</b></p>
 
       <div class="stage">
         <canvas id="scene" aria-label="Aynalı salon"></canvas>
 
         <div class="veil" id="intro">
           <div class="frame">
-            <h2>Salona giriyorsun</h2>
-            <p>Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.</p>
+            <h2 data-i18n="introTitle">Salona giriyorsun</h2>
+            <p data-i18n="introText">Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.</p>
             <div class="modes">
-              <button id="enterSolo" class="btn solid" type="button">Tek başına gir</button>
-              <button id="enterDuel" class="btn" type="button">Düello · iki kişi</button>
+              <button id="enterSolo" class="btn solid" type="button" data-i18n="solo">Tek başına gir</button>
+              <button id="enterDuel" class="btn" type="button" data-i18n="duelBtn">Düello · iki kişi</button>
             </div>
-            <p class="keys">
-              <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · <kbd>Shift</kbd> koş ·
-              <kbd>H</kbd> sezgi<br />
-              Düello: 2. oyuncu yön tuşları + <kbd>M</kbd>
-            </p>
+            <p class="keys" data-i18n="keys" data-i18n-html></p>
             <div class="code-row">
-              <label for="codeInput">Salon kodu</label>
-              <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" />
-              <button id="codeApply" class="btn" type="button">Aç</button>
+              <label for="codeInput" data-i18n="codeLabel">Salon kodu</label>
+              <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" data-i18n="codePlaceholder" data-i18n-attr="placeholder" />
+              <button id="codeApply" class="btn" type="button" data-i18n="codeApply">Aç</button>
             </div>
           </div>
         </div>
 
         <div class="veil card" id="chapterCard" hidden>
           <div class="frame">
-            <p class="through">Aynanın içinden geçtin</p>
+            <p class="through" data-i18n="through">Aynanın içinden geçtin</p>
             <h2 id="cardTitle">II · Aynanın İçinde</h2>
             <p id="cardText">—</p>
           </div>
@@ -445,28 +444,156 @@ kbd {
             <h2 id="overlayTitle">Kendini dev aynasında gördün</h2>
             <p id="overlayText">—</p>
             <dl class="ledger" id="ledger">
-              <div><dt>Süre</dt><dd id="overlayTime">—</dd></div>
-              <div><dt>Baktığın ayna</dt><dd id="overlaySeen">—</dd></div>
-              <div><dt>En iyi süren</dt><dd id="best">—</dd></div>
+              <div><dt data-i18n="ledgerTime">Süre</dt><dd id="overlayTime">—</dd></div>
+              <div><dt data-i18n="ledgerSeen">Baktığın ayna</dt><dd id="overlaySeen">—</dd></div>
+              <div><dt data-i18n="ledgerBest">En iyi süren</dt><dd id="best">—</dd></div>
             </dl>
             <div class="modes">
               <button id="next" class="btn solid" type="button" hidden></button>
-              <button id="againBtn" class="btn solid" type="button">Baştan oyna</button>
+              <button id="againBtn" class="btn solid" type="button" data-i18n="again">Baştan oyna</button>
             </div>
-            <p class="fine">Salon kodu: <b id="codeLabel">—</b></p>
+            <p class="fine"><span data-i18n="roomCode">Salon kodu:</span> <b id="codeLabel">—</b></p>
           </div>
         </div>
       </div>
 
       <footer class="help">
-        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü</span>
-        <span><kbd>Shift</kbd> koş</span>
-        <span><kbd>H</kbd> sezgi</span>
-        <span><kbd>R</kbd> yeni salon</span>
-        <span><kbd>M</kbd> ses</span>
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <i data-i18n="helpWalk">yürü</i></span>
+        <span><kbd>Shift</kbd> <i data-i18n="helpRun">koş</i></span>
+        <span><kbd>H</kbd> <i data-i18n="helpHint">sezgi</i></span>
+        <span><kbd>R</kbd> <i data-i18n="helpNew">yeni salon</i></span>
+        <span><kbd>M</kbd> <i data-i18n="helpSound">ses</i></span>
       </footer>
     </main>
 
+    <script>
+// Dev Aynası - dil desteği (Türkçe / English)
+// Tarayıcı dili Türkçe ise TR, değilse EN ile açılır; seçim saklanır.
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.I18n = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  const KEY = "dev-aynasi:dil";
+
+  const S = {
+    tr: {
+      eyebrow: "Bir deyim oyunu",
+      title: "Dev Aynası",
+      lede: 'Binlerce ayna, hepsi aynı. <em>Yalnızca biri</em> seni devasa gösteriyor.',
+      chapter: "Bölüm", time: "Süre", seen: "Bakılan ayna", hint: "Sezgi", duel: "Düello",
+      objective: "Hedef",
+      soundOn: "Ses açık", soundOff: "Ses kapalı",
+      hintBtn: "Sezgi · H", newRoom: "Yeni salon · R",
+      introTitle: "Salona giriyorsun",
+      introText: "Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.",
+      solo: "Tek başına gir", duelBtn: "Düello · iki kişi",
+      keys: "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · <kbd>Shift</kbd> koş · <kbd>H</kbd> sezgi<br />Düello: 2. oyuncu yön tuşları + <kbd>M</kbd>",
+      codeLabel: "Salon kodu", codePlaceholder: "örn. 4821", codeApply: "Aç",
+      through: "Aynanın içinden geçtin",
+      ledgerTime: "Süre", ledgerSeen: "Baktığın ayna", ledgerBest: "En iyi süren",
+      again: "Baştan oyna", roomCode: "Salon kodu:",
+      helpWalk: "yürü", helpRun: "koş", helpHint: "sezgi", helpNew: "yeni salon", helpSound: "ses",
+      player: "OYUNCU",
+      doorObjective: "Pirinç kapıya dön",
+      echoHit: "Yankı sana değdi — baştan",
+      duelWin: (n) => `Oyuncu ${n} kazandı`,
+      duelText: "Dev aynayı önce o buldu.",
+      endTitle: "Kendine geldin",
+      endText: "Kendini dev aynasında gördün — ve oradan kendine döndün.",
+      chapters: [
+        { name: "I · Aynalı Salon", objective: "Dev aynayı bul ve içine yürü", card: "Binlerce cam, hepsi birbirinin aynı." },
+        { name: "II · Aynanın İçinde", objective: "Çarpık aynalar arasından gerçeğini bul", card: "Camlar soğuk, ışık cılız. Bazıları seni çarpıtıyor." },
+        { name: "III · Ters Salon", objective: "Kontroller aynalandı — sola bastığında sağa gidersin", card: "Burada her şey ters. Sola bastığında sağa gidiyorsun." },
+        { name: "IV · Kayan Aynalar", objective: "Salon yerinde durmuyor — aynalar yer değiştiriyor", card: "Duvarlar kayıyor. Ezberlediğin yol birazdan başka bir yer olacak." },
+        { name: "V · Yankı", objective: "Yankın seni taklit ediyor — sana değerse başa dönersin", card: "Aynadan biri çıktı. Her adımını tersten tekrar ediyor; sana değmesin." },
+        { name: "VI · Kibir Odası", objective: "Dev aynayı bul, sonra sönen ışıkla kapıya dön", card: "Her cam seni büyütmeye hazır. Aynayı bul, sonra kapıya dön — fener sönüyor." },
+      ],
+    },
+    en: {
+      eyebrow: "Hall of Giants · a game about a proverb",
+      title: "Dev Aynası",
+      lede: 'A thousand mirrors, all identical. <em>Only one</em> makes you a giant.',
+      chapter: "Room", time: "Time", seen: "Mirrors seen", hint: "Hunch", duel: "Duel",
+      objective: "Goal",
+      soundOn: "Sound on", soundOff: "Sound off",
+      hintBtn: "Hunch · H", newRoom: "New hall · R",
+      introTitle: "You step into the hall",
+      introText: "You see only as far as your lantern reaches. Find the giant mirror.",
+      solo: "Enter alone", duelBtn: "Duel · two players",
+      keys: "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Shift</kbd> run · <kbd>H</kbd> hunch<br />Duel: player 2 uses arrow keys + <kbd>M</kbd>",
+      codeLabel: "Hall code", codePlaceholder: "e.g. 4821", codeApply: "Open",
+      through: "You stepped through the mirror",
+      ledgerTime: "Time", ledgerSeen: "Mirrors seen", ledgerBest: "Your best",
+      again: "Play again", roomCode: "Hall code:",
+      helpWalk: "walk", helpRun: "run", helpHint: "hunch", helpNew: "new hall", helpSound: "sound",
+      player: "PLAYER",
+      doorObjective: "Return to the brass door",
+      echoHit: "The echo caught you — back to the start",
+      duelWin: (n) => `Player ${n} wins`,
+      duelText: "They found the giant mirror first.",
+      endTitle: "You came back to yourself",
+      endText: "You saw yourself as a giant — and found your way back.",
+      chapters: [
+        { name: "I · Hall of Mirrors", objective: "Find the giant mirror and walk into it", card: "A thousand panes, every one the same." },
+        { name: "II · Inside the Mirror", objective: "Tell the real giant from the crooked ones", card: "The glass is cold, the light is thin. Some of it bends you." },
+        { name: "III · Inverted Hall", objective: "Controls are mirrored — press left, go right", card: "Everything is reversed here. Press left and you go right." },
+        { name: "IV · Shifting Mirrors", objective: "The hall will not hold still — the mirrors move", card: "The walls are sliding. The path you memorised is about to be elsewhere." },
+        { name: "V · The Echo", objective: "Your echo mirrors you — if it touches you, you start over", card: "Something stepped out of the glass. It repeats every move of yours, reversed." },
+        { name: "VI · Room of Pride", objective: "Find the mirror, then reach the door as the light dies", card: "Every pane is ready to enlarge you. Find the mirror, then find the door — your lantern is fading." },
+      ],
+    },
+  };
+
+  let lang = "tr";
+  try {
+    const saved = localStorage.getItem(KEY);
+    lang = saved === "tr" || saved === "en"
+      ? saved
+      : (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
+  } catch (err) {
+    lang = "tr";
+  }
+
+  const t = (key) => S[lang][key];
+
+  // data-i18n taşıyan her öğeyi günceller. data-i18n-html varsa HTML olarak,
+  // data-i18n-attr varsa o özniteliğe yazar.
+  function apply() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.dataset.i18n;
+      const val = S[lang][key];
+      if (val === undefined) return;
+      if (el.dataset.i18nAttr) el.setAttribute(el.dataset.i18nAttr, val);
+      else if (el.dataset.i18nHtml !== undefined) el.innerHTML = val;
+      else el.textContent = val;
+    });
+  }
+
+  return {
+    t,
+    apply,
+    chapters: () => S[lang].chapters,
+    get lang() { return lang; },
+    toggle() {
+      lang = lang === "tr" ? "en" : "tr";
+      try {
+        localStorage.setItem(KEY, lang);
+      } catch (err) {
+        /* depolama kapalıysa sessizce geç */
+      }
+      apply();
+      return lang;
+    },
+    set(l) {
+      if (l === "tr" || l === "en") lang = l;
+      apply();
+      return lang;
+    },
+  };
+});
+
+</script>
     <script>
 // Dev Aynası - prosedürel ses (telifsiz, dosyasız: her şey Web Audio ile üretilir)
 //
@@ -768,7 +895,7 @@ kbd {
   const els = {
     time: $("time"), seen: $("seen"), total: $("total"), hints: $("hints"),
     chapter: $("chapter"), objective: $("objective"),
-    hintBtn: $("hintBtn"), restart: $("restart"), soundBtn: $("soundBtn"),
+    hintBtn: $("hintBtn"), restart: $("restart"), soundBtn: $("soundBtn"), langBtn: $("langBtn"),
     intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"),
     codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
     overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
@@ -798,43 +925,31 @@ kbd {
   // ışığı da rengi de değişir.
   const CHAPTERS = [
     {
-      name: "I · Aynalı Salon", size: 40, light: 235, hints: 3, decoys: 0,
-      objective: "Dev aynayı bul ve içine yürü",
-      card: "Binlerce cam, hepsi birbirinin aynı.",
+      size: 40, light: 235, hints: 3, decoys: 0,
       palette: { ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916", glass: "168, 203, 216", lamp: "255, 231, 194" },
     },
     {
-      name: "II · Aynanın İçinde", size: 46, light: 205, hints: 2, decoys: 14,
-      objective: "Çarpık aynalar arasından gerçeğini bul",
-      card: "Camlar soğuk, ışık cılız. Bazıları seni çarpıtıyor.",
+      size: 46, light: 205, hints: 2, decoys: 14,
       palette: { ground: "#05090f", floorA: "#0b141d", floorB: "#081018", glass: "150, 214, 232", lamp: "196, 232, 255" },
     },
     {
-      name: "III · Ters Salon", size: 48, light: 195, hints: 2, decoys: 16,
+      size: 48, light: 195, hints: 2, decoys: 16,
       mirrorControls: true,
-      objective: "Kontroller aynalandı — sola bastığında sağa gidersin",
-      card: "Burada her şey ters. Sola bastığında sağa gidiyorsun.",
       palette: { ground: "#0d0612", floorA: "#180d22", floorB: "#12091a", glass: "206, 178, 232", lamp: "226, 200, 255" },
     },
     {
-      name: "IV · Kayan Aynalar", size: 50, light: 190, hints: 2, decoys: 18,
+      size: 50, light: 190, hints: 2, decoys: 18,
       shiftEvery: 11000,
-      objective: "Salon yerinde durmuyor — aynalar yer değiştiriyor",
-      card: "Duvarlar kayıyor. Ezberlediğin yol birazdan başka bir yer olacak.",
       palette: { ground: "#050d0c", floorA: "#0a1a18", floorB: "#071312", glass: "150, 232, 210", lamp: "190, 255, 236" },
     },
     {
-      name: "V · Yankı", size: 52, light: 185, hints: 2, decoys: 20,
+      size: 52, light: 185, hints: 2, decoys: 20,
       echo: true,
-      objective: "Yankın seni taklit ediyor — sana değerse başa dönersin",
-      card: "Aynadan biri çıktı. Her adımını tersten tekrar ediyor; sana değmesin.",
       palette: { ground: "#0b0710", floorA: "#161020", floorB: "#100b18", glass: "196, 200, 224", lamp: "222, 226, 255" },
     },
     {
-      name: "VI · Kibir Odası", size: 54, light: 180, hints: 2, decoys: 24,
+      size: 54, light: 180, hints: 2, decoys: 24,
       returnTrip: true, fading: true,
-      objective: "Dev aynayı bul, sonra sönen ışıkla kapıya dön",
-      card: "Her cam seni büyütmeye hazır. Aynayı bul, sonra kapıya dön — fener sönüyor.",
       palette: { ground: "#100608", floorA: "#1b0e10", floorB: "#150a0c", glass: "236, 186, 150", lamp: "255, 208, 150" },
     },
   ];
@@ -891,6 +1006,11 @@ kbd {
       hints: chapter.hints, hintUntil: 0,
       seen: new Set(), foundAt: 0, bloom: 0, done: 0, reachedDoor: false,
     };
+  }
+
+  // Bölümün metinleri seçili dilden okunur.
+  function chapterText() {
+    return I18n.chapters()[chapterIndex];
   }
 
   function newRoom(nextSeed) {
@@ -954,8 +1074,8 @@ kbd {
     startedAt = performance.now();
     keys.clear();
     els.total.textContent = mirrorCount.toLocaleString("tr-TR");
-    els.chapter.textContent = chapter.name;
-    els.objective.textContent = chapter.objective;
+    els.chapter.textContent = chapterText().name;
+    els.objective.textContent = chapterText().objective;
     els.codeLabel.textContent = String(seed).padStart(5, "0");
     els.duelBadge.hidden = !duel;
     els.overlay.hidden = true;
@@ -1306,7 +1426,7 @@ kbd {
     if (duel) {
       ctx.fillStyle = `rgba(${BRASS}, 0.75)`;
       ctx.font = "500 13px 'IBM Plex Mono', monospace";
-      ctx.fillText(`OYUNCU ${p.label}`, rect.x + 14, rect.y + 24);
+      ctx.fillText(`${I18n.t("player")} ${p.label}`, rect.x + 14, rect.y + 24);
     }
     ctx.restore();
     return giantVisible;
@@ -1360,17 +1480,13 @@ kbd {
     const seenTotal = players.reduce((n, p) => n + p.seen.size, 0);
 
     if (duel) {
-      els.overlayTitle.textContent = `Oyuncu ${winner.label} kazandı`;
-      els.overlayText.textContent = "Dev aynayı önce o buldu.";
+      els.overlayTitle.textContent = I18n.t("duelWin")(winner.label);
+      els.overlayText.textContent = I18n.t("duelText");
       els.best.parentElement.hidden = true;
     } else {
       const last = chapterIndex === CHAPTERS.length - 1;
-      els.overlayTitle.textContent = chapter.returnTrip
-        ? "Kendine geldin"
-        : "Kendini dev aynasında gördün";
-      els.overlayText.textContent = chapter.returnTrip
-        ? "Kendini dev aynasında gördün — ve oradan kendine döndün."
-        : "Binlerce ayna arasından doğru olanı buldun.";
+      els.overlayTitle.textContent = I18n.t("endTitle");
+      els.overlayText.textContent = I18n.t("endText");
       els.best.parentElement.hidden = false;
       let best = Number(localStorage.getItem(`${BEST_KEY}:${chapterIndex}`) || 0);
       if (!best || elapsed < best) {
@@ -1408,7 +1524,7 @@ kbd {
       echo.y = (size - 0.5) * CELL;
       p.hints = Math.max(0, p.hints - 1);
       Sound.through();
-      els.objective.textContent = "Yankı sana değdi — baştan";
+      els.objective.textContent = I18n.t("echoHit");
       updateHud();
     }
   }
@@ -1486,8 +1602,8 @@ kbd {
     newRoom(randomSeed());
     startedAt = gecenSure;
     carding = now + 2600;
-    els.cardTitle.textContent = chapter.name;
-    els.cardText.textContent = chapter.card;
+    els.cardTitle.textContent = chapterText().name;
+    els.cardText.textContent = chapterText().card;
     els.chapterCard.hidden = false;
     updateHud();
   }
@@ -1529,7 +1645,7 @@ kbd {
           if (!holdAtMirror && pushingIntoGiant(p)) {
             if (chapter.returnTrip) {
               phase = "donus";
-              els.objective.textContent = "Pirinç kapıya dön";
+              els.objective.textContent = I18n.t("doorObjective");
               p.foundAt = 0;
               Sound.through();
             } else if (duel) {
@@ -1604,10 +1720,24 @@ kbd {
   function toggleSound() {
     Sound.start();
     const acik = Sound.toggle();
-    els.soundBtn.textContent = acik ? "Ses açık" : "Ses kapalı";
+    els.soundBtn.textContent = I18n.t(acik ? "soundOn" : "soundOff");
     els.soundBtn.setAttribute("aria-pressed", String(acik));
   }
   els.soundBtn.addEventListener("click", toggleSound);
+  function refreshLanguage() {
+    I18n.apply();
+    els.langBtn.textContent = I18n.lang === "tr" ? "EN" : "TR";
+    els.soundBtn.textContent = I18n.t(Sound.isOn() ? "soundOn" : "soundOff");
+    els.chapter.textContent = chapterText().name;
+    els.objective.textContent = phase === "donus" ? I18n.t("doorObjective") : chapterText().objective;
+    els.cardTitle.textContent = chapterText().name;
+    els.cardText.textContent = chapterText().card;
+    document.title = I18n.t("title");
+  }
+  els.langBtn.addEventListener("click", () => {
+    I18n.toggle();
+    refreshLanguage();
+  });
   els.hintBtn.addEventListener("click", () => useHint(players[0]));
   els.restart.addEventListener("click", restart);
   els.againBtn.addEventListener("click", () => begin(duel, randomSeed()));
@@ -1643,6 +1773,7 @@ kbd {
   resize();
   chapter = CHAPTERS[0];
   newRoom(randomSeed());
+  refreshLanguage();
   requestAnimationFrame((t) => {
     lastFrame = t;
     loop(t);
@@ -1709,7 +1840,15 @@ kbd {
     nudge(dx, dy, i = 0) { players[i].x += dx; players[i].y += dy; },
     bloom: (i = 0) => players[i].bloom,
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
+    setLang(l) { I18n.set(l); refreshLanguage(); },
+    lang: () => I18n.lang,
     echoPos: () => (echo ? { x: echo.x, y: echo.y } : null),
+    placeEchoNear(dx = 90, dy = -30) {
+      if (!echo) return false;
+      echo.x = players[0].x + dx;
+      echo.y = players[0].y + dy;
+      return true;
+    },
     mirrorCount: () => mirrorCount,
     wallsHash: () => maze.hWalls.flat().concat(maze.vWalls.flat()).reduce((a, v, i) => a + (v ? i % 97 : 0), 0),
     forceShift() { nextShift = performance.now() - 1; },

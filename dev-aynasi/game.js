@@ -6,7 +6,7 @@
   const els = {
     time: $("time"), seen: $("seen"), total: $("total"), hints: $("hints"),
     chapter: $("chapter"), objective: $("objective"),
-    hintBtn: $("hintBtn"), restart: $("restart"), soundBtn: $("soundBtn"),
+    hintBtn: $("hintBtn"), restart: $("restart"), soundBtn: $("soundBtn"), langBtn: $("langBtn"),
     intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"),
     codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
     overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
@@ -36,43 +36,31 @@
   // ışığı da rengi de değişir.
   const CHAPTERS = [
     {
-      name: "I · Aynalı Salon", size: 40, light: 235, hints: 3, decoys: 0,
-      objective: "Dev aynayı bul ve içine yürü",
-      card: "Binlerce cam, hepsi birbirinin aynı.",
+      size: 40, light: 235, hints: 3, decoys: 0,
       palette: { ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916", glass: "168, 203, 216", lamp: "255, 231, 194" },
     },
     {
-      name: "II · Aynanın İçinde", size: 46, light: 205, hints: 2, decoys: 14,
-      objective: "Çarpık aynalar arasından gerçeğini bul",
-      card: "Camlar soğuk, ışık cılız. Bazıları seni çarpıtıyor.",
+      size: 46, light: 205, hints: 2, decoys: 14,
       palette: { ground: "#05090f", floorA: "#0b141d", floorB: "#081018", glass: "150, 214, 232", lamp: "196, 232, 255" },
     },
     {
-      name: "III · Ters Salon", size: 48, light: 195, hints: 2, decoys: 16,
+      size: 48, light: 195, hints: 2, decoys: 16,
       mirrorControls: true,
-      objective: "Kontroller aynalandı — sola bastığında sağa gidersin",
-      card: "Burada her şey ters. Sola bastığında sağa gidiyorsun.",
       palette: { ground: "#0d0612", floorA: "#180d22", floorB: "#12091a", glass: "206, 178, 232", lamp: "226, 200, 255" },
     },
     {
-      name: "IV · Kayan Aynalar", size: 50, light: 190, hints: 2, decoys: 18,
+      size: 50, light: 190, hints: 2, decoys: 18,
       shiftEvery: 11000,
-      objective: "Salon yerinde durmuyor — aynalar yer değiştiriyor",
-      card: "Duvarlar kayıyor. Ezberlediğin yol birazdan başka bir yer olacak.",
       palette: { ground: "#050d0c", floorA: "#0a1a18", floorB: "#071312", glass: "150, 232, 210", lamp: "190, 255, 236" },
     },
     {
-      name: "V · Yankı", size: 52, light: 185, hints: 2, decoys: 20,
+      size: 52, light: 185, hints: 2, decoys: 20,
       echo: true,
-      objective: "Yankın seni taklit ediyor — sana değerse başa dönersin",
-      card: "Aynadan biri çıktı. Her adımını tersten tekrar ediyor; sana değmesin.",
       palette: { ground: "#0b0710", floorA: "#161020", floorB: "#100b18", glass: "196, 200, 224", lamp: "222, 226, 255" },
     },
     {
-      name: "VI · Kibir Odası", size: 54, light: 180, hints: 2, decoys: 24,
+      size: 54, light: 180, hints: 2, decoys: 24,
       returnTrip: true, fading: true,
-      objective: "Dev aynayı bul, sonra sönen ışıkla kapıya dön",
-      card: "Her cam seni büyütmeye hazır. Aynayı bul, sonra kapıya dön — fener sönüyor.",
       palette: { ground: "#100608", floorA: "#1b0e10", floorB: "#150a0c", glass: "236, 186, 150", lamp: "255, 208, 150" },
     },
   ];
@@ -129,6 +117,11 @@
       hints: chapter.hints, hintUntil: 0,
       seen: new Set(), foundAt: 0, bloom: 0, done: 0, reachedDoor: false,
     };
+  }
+
+  // Bölümün metinleri seçili dilden okunur.
+  function chapterText() {
+    return I18n.chapters()[chapterIndex];
   }
 
   function newRoom(nextSeed) {
@@ -192,8 +185,8 @@
     startedAt = performance.now();
     keys.clear();
     els.total.textContent = mirrorCount.toLocaleString("tr-TR");
-    els.chapter.textContent = chapter.name;
-    els.objective.textContent = chapter.objective;
+    els.chapter.textContent = chapterText().name;
+    els.objective.textContent = chapterText().objective;
     els.codeLabel.textContent = String(seed).padStart(5, "0");
     els.duelBadge.hidden = !duel;
     els.overlay.hidden = true;
@@ -544,7 +537,7 @@
     if (duel) {
       ctx.fillStyle = `rgba(${BRASS}, 0.75)`;
       ctx.font = "500 13px 'IBM Plex Mono', monospace";
-      ctx.fillText(`OYUNCU ${p.label}`, rect.x + 14, rect.y + 24);
+      ctx.fillText(`${I18n.t("player")} ${p.label}`, rect.x + 14, rect.y + 24);
     }
     ctx.restore();
     return giantVisible;
@@ -598,17 +591,13 @@
     const seenTotal = players.reduce((n, p) => n + p.seen.size, 0);
 
     if (duel) {
-      els.overlayTitle.textContent = `Oyuncu ${winner.label} kazandı`;
-      els.overlayText.textContent = "Dev aynayı önce o buldu.";
+      els.overlayTitle.textContent = I18n.t("duelWin")(winner.label);
+      els.overlayText.textContent = I18n.t("duelText");
       els.best.parentElement.hidden = true;
     } else {
       const last = chapterIndex === CHAPTERS.length - 1;
-      els.overlayTitle.textContent = chapter.returnTrip
-        ? "Kendine geldin"
-        : "Kendini dev aynasında gördün";
-      els.overlayText.textContent = chapter.returnTrip
-        ? "Kendini dev aynasında gördün — ve oradan kendine döndün."
-        : "Binlerce ayna arasından doğru olanı buldun.";
+      els.overlayTitle.textContent = I18n.t("endTitle");
+      els.overlayText.textContent = I18n.t("endText");
       els.best.parentElement.hidden = false;
       let best = Number(localStorage.getItem(`${BEST_KEY}:${chapterIndex}`) || 0);
       if (!best || elapsed < best) {
@@ -646,7 +635,7 @@
       echo.y = (size - 0.5) * CELL;
       p.hints = Math.max(0, p.hints - 1);
       Sound.through();
-      els.objective.textContent = "Yankı sana değdi — baştan";
+      els.objective.textContent = I18n.t("echoHit");
       updateHud();
     }
   }
@@ -724,8 +713,8 @@
     newRoom(randomSeed());
     startedAt = gecenSure;
     carding = now + 2600;
-    els.cardTitle.textContent = chapter.name;
-    els.cardText.textContent = chapter.card;
+    els.cardTitle.textContent = chapterText().name;
+    els.cardText.textContent = chapterText().card;
     els.chapterCard.hidden = false;
     updateHud();
   }
@@ -767,7 +756,7 @@
           if (!holdAtMirror && pushingIntoGiant(p)) {
             if (chapter.returnTrip) {
               phase = "donus";
-              els.objective.textContent = "Pirinç kapıya dön";
+              els.objective.textContent = I18n.t("doorObjective");
               p.foundAt = 0;
               Sound.through();
             } else if (duel) {
@@ -842,10 +831,24 @@
   function toggleSound() {
     Sound.start();
     const acik = Sound.toggle();
-    els.soundBtn.textContent = acik ? "Ses açık" : "Ses kapalı";
+    els.soundBtn.textContent = I18n.t(acik ? "soundOn" : "soundOff");
     els.soundBtn.setAttribute("aria-pressed", String(acik));
   }
   els.soundBtn.addEventListener("click", toggleSound);
+  function refreshLanguage() {
+    I18n.apply();
+    els.langBtn.textContent = I18n.lang === "tr" ? "EN" : "TR";
+    els.soundBtn.textContent = I18n.t(Sound.isOn() ? "soundOn" : "soundOff");
+    els.chapter.textContent = chapterText().name;
+    els.objective.textContent = phase === "donus" ? I18n.t("doorObjective") : chapterText().objective;
+    els.cardTitle.textContent = chapterText().name;
+    els.cardText.textContent = chapterText().card;
+    document.title = I18n.t("title");
+  }
+  els.langBtn.addEventListener("click", () => {
+    I18n.toggle();
+    refreshLanguage();
+  });
   els.hintBtn.addEventListener("click", () => useHint(players[0]));
   els.restart.addEventListener("click", restart);
   els.againBtn.addEventListener("click", () => begin(duel, randomSeed()));
@@ -881,6 +884,7 @@
   resize();
   chapter = CHAPTERS[0];
   newRoom(randomSeed());
+  refreshLanguage();
   requestAnimationFrame((t) => {
     lastFrame = t;
     loop(t);
@@ -947,6 +951,8 @@
     nudge(dx, dy, i = 0) { players[i].x += dx; players[i].y += dy; },
     bloom: (i = 0) => players[i].bloom,
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
+    setLang(l) { I18n.set(l); refreshLanguage(); },
+    lang: () => I18n.lang,
     echoPos: () => (echo ? { x: echo.x, y: echo.y } : null),
     placeEchoNear(dx = 90, dy = -30) {
       if (!echo) return false;

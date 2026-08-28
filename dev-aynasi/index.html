@@ -15,60 +15,57 @@
   <body>
     <main class="app">
       <header class="masthead">
-        <div class="rule"><span>Bir deyim oyunu</span></div>
-        <h1>Dev Aynası</h1>
-        <p class="lede">
+        <div class="rule"><span data-i18n="eyebrow">Bir deyim oyunu</span></div>
+        <h1 data-i18n="title">Dev Aynası</h1>
+        <p class="lede" data-i18n="lede" data-i18n-html>
           Binlerce ayna, hepsi aynı. <em>Yalnızca biri</em> seni devasa gösteriyor.
         </p>
       </header>
 
       <div class="hud">
-        <div class="stat"><span class="label">Bölüm</span><span class="value small" id="chapter">I · Dev Aynası</span></div>
-        <div class="stat"><span class="label">Süre</span><span class="value" id="time">00:00</span></div>
+        <div class="stat"><span class="label" data-i18n="chapter">Bölüm</span><span class="value small" id="chapter">I · Dev Aynası</span></div>
+        <div class="stat"><span class="label" data-i18n="time">Süre</span><span class="value" id="time">00:00</span></div>
         <div class="stat">
-          <span class="label">Bakılan ayna</span>
+          <span class="label" data-i18n="seen">Bakılan ayna</span>
           <span class="value"><span id="seen">0</span> <small>/ <span id="total">0</span></small></span>
         </div>
-        <div class="stat"><span class="label">Sezgi</span><span class="value" id="hints">3</span></div>
+        <div class="stat"><span class="label" data-i18n="hint">Sezgi</span><span class="value" id="hints">3</span></div>
         <div class="stat duel-badge" id="duelBadge" hidden>
-          <span class="label">Düello</span>
+          <span class="label" data-i18n="duel">Düello</span>
           <span class="value small">1 <b id="p1Time">—</b> · 2 <b id="p2Time">—</b></span>
         </div>
         <span class="spacer"></span>
         <button id="soundBtn" class="btn" type="button" aria-pressed="true">Ses açık</button>
-        <button id="hintBtn" class="btn" type="button">Sezgi · H</button>
-        <button id="restart" class="btn" type="button">Yeni salon · R</button>
+        <button id="langBtn" class="btn" type="button">EN</button>
+        <button id="hintBtn" class="btn" type="button" data-i18n="hintBtn">Sezgi · H</button>
+        <button id="restart" class="btn" type="button" data-i18n="newRoom">Yeni salon · R</button>
       </div>
 
-      <p class="objective"><span>Hedef</span> <b id="objective">Seni devasa gösteren tek aynayı bul</b></p>
+      <p class="objective"><span data-i18n="objective">Hedef</span> <b id="objective">Seni devasa gösteren tek aynayı bul</b></p>
 
       <div class="stage">
         <canvas id="scene" aria-label="Aynalı salon"></canvas>
 
         <div class="veil" id="intro">
           <div class="frame">
-            <h2>Salona giriyorsun</h2>
-            <p>Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.</p>
+            <h2 data-i18n="introTitle">Salona giriyorsun</h2>
+            <p data-i18n="introText">Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.</p>
             <div class="modes">
-              <button id="enterSolo" class="btn solid" type="button">Tek başına gir</button>
-              <button id="enterDuel" class="btn" type="button">Düello · iki kişi</button>
+              <button id="enterSolo" class="btn solid" type="button" data-i18n="solo">Tek başına gir</button>
+              <button id="enterDuel" class="btn" type="button" data-i18n="duelBtn">Düello · iki kişi</button>
             </div>
-            <p class="keys">
-              <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · <kbd>Shift</kbd> koş ·
-              <kbd>H</kbd> sezgi<br />
-              Düello: 2. oyuncu yön tuşları + <kbd>M</kbd>
-            </p>
+            <p class="keys" data-i18n="keys" data-i18n-html></p>
             <div class="code-row">
-              <label for="codeInput">Salon kodu</label>
-              <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" />
-              <button id="codeApply" class="btn" type="button">Aç</button>
+              <label for="codeInput" data-i18n="codeLabel">Salon kodu</label>
+              <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" data-i18n="codePlaceholder" data-i18n-attr="placeholder" />
+              <button id="codeApply" class="btn" type="button" data-i18n="codeApply">Aç</button>
             </div>
           </div>
         </div>
 
         <div class="veil card" id="chapterCard" hidden>
           <div class="frame">
-            <p class="through">Aynanın içinden geçtin</p>
+            <p class="through" data-i18n="through">Aynanın içinden geçtin</p>
             <h2 id="cardTitle">II · Aynanın İçinde</h2>
             <p id="cardText">—</p>
           </div>
@@ -79,28 +76,29 @@
             <h2 id="overlayTitle">Kendini dev aynasında gördün</h2>
             <p id="overlayText">—</p>
             <dl class="ledger" id="ledger">
-              <div><dt>Süre</dt><dd id="overlayTime">—</dd></div>
-              <div><dt>Baktığın ayna</dt><dd id="overlaySeen">—</dd></div>
-              <div><dt>En iyi süren</dt><dd id="best">—</dd></div>
+              <div><dt data-i18n="ledgerTime">Süre</dt><dd id="overlayTime">—</dd></div>
+              <div><dt data-i18n="ledgerSeen">Baktığın ayna</dt><dd id="overlaySeen">—</dd></div>
+              <div><dt data-i18n="ledgerBest">En iyi süren</dt><dd id="best">—</dd></div>
             </dl>
             <div class="modes">
               <button id="next" class="btn solid" type="button" hidden></button>
-              <button id="againBtn" class="btn solid" type="button">Baştan oyna</button>
+              <button id="againBtn" class="btn solid" type="button" data-i18n="again">Baştan oyna</button>
             </div>
-            <p class="fine">Salon kodu: <b id="codeLabel">—</b></p>
+            <p class="fine"><span data-i18n="roomCode">Salon kodu:</span> <b id="codeLabel">—</b></p>
           </div>
         </div>
       </div>
 
       <footer class="help">
-        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü</span>
-        <span><kbd>Shift</kbd> koş</span>
-        <span><kbd>H</kbd> sezgi</span>
-        <span><kbd>R</kbd> yeni salon</span>
-        <span><kbd>M</kbd> ses</span>
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <i data-i18n="helpWalk">yürü</i></span>
+        <span><kbd>Shift</kbd> <i data-i18n="helpRun">koş</i></span>
+        <span><kbd>H</kbd> <i data-i18n="helpHint">sezgi</i></span>
+        <span><kbd>R</kbd> <i data-i18n="helpNew">yeni salon</i></span>
+        <span><kbd>M</kbd> <i data-i18n="helpSound">ses</i></span>
       </footer>
     </main>
 
+    <script src="i18n.js"></script>
     <script src="audio.js"></script>
     <script src="maze.js"></script>
     <script src="game.js"></script>

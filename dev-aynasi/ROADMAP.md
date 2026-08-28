@@ -38,9 +38,10 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [x] Sahte dev aynaya bakınca cam çatlama sesi
 - [ ] Sahte aynada kısa süre cezası (ses var, ceza yok)
 - [ ] Günlük salon: herkesin aynı salonu oynadığı günlük kod ve sıralama
-- [ ] Fragman videosu (30-60 sn)
+- [x] Fragman videosu (TR + EN, WebM) — Steam için MP4'e çevrilecek
+- [x] Tam İngilizce sürüm (arayüz, bölüm adları, belgeler)
+- [x] Yeni uygulama ikonu (ayna çerçevesi kompozisyonu)
 - [ ] Masaüstü paketi (Electron/Tauri) — Steam için gerekli
-- [ ] İngilizce çeviri
 
 ## 4. Kapsam kararı
 Oyun tek bir deyimin oyunu olarak kalacak: **kendini dev aynasında görmek**.

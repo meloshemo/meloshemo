@@ -362,3 +362,5 @@ kbd {
   text-transform: uppercase;
   color: var(--brass-dim);
 }
+
+.help i { font-style: normal; }

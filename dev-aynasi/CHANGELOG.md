@@ -1,5 +1,15 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 0.7.0 — İngilizce ve tanıtım paketi
+- Tam **İngilizce sürüm**: arayüz, bölüm adları, hedefler, kartlar, bitiş
+  metinleri; tarayıcı diline göre otomatik seçim, tek düğmeyle değiştirme
+- Yeni **uygulama ikonu**: ayna çerçevesi içinde dev yansıma, önünde küçük oyuncu
+- **Fragman** (TR + EN, 1280×720 WebM) — oyunun kendisinden kaydedildi
+- Steam görselleri Türkçe ve İngilizce olarak yenilendi, 231×87 küçük kapsül ve
+  1200×630 sosyal kart eklendi
+- Ekran görüntülerinin İngilizce sürümleri
+- İngilizce gizlilik politikası, kullanım koşulları, basın kiti, mağaza metni
+
 ## 0.6.0 — Altı oda
 - Üç yeni bölüm: **III · Ters Salon** (kontroller aynalandı), **IV · Kayan
   Aynalar** (duvarlar 11 saniyede bir yer değiştirir), **V · Yankı** (her
