@@ -77,6 +77,10 @@
         { name: "X · New York — Izgara", objective: "Caddeleri tara, her köşe birbirinin aynı", card: "Cadde ve sokaklar dümdüz. Koşmak serbest ama her köşe birbirinin aynı." },
         { name: "XI · Kahire — Kum Fırtınası", objective: "Görüş açılıp kapanıyor, sabırlı ol", card: "Kum havada. Görüşün sürekli daralıp açılıyor; fırtına dinince bak." },
         { name: "XII · İstanbul — Kapalıçarşı", objective: "Dev aynayı bul, sonra kapıya dön", card: "Uzun çarşı sokakları, en kalabalık ayna yığını. Dünyayı gezdin — şimdi kendine dön." },
+        { name: "XIII · Londra — Sis", objective: "Sis açılınca bak, kapanınca yürü", card: "Sis basıyor. Görüşün dakikada birkaç kez kapanıp açılıyor." },
+        { name: "XIV · Dubai — Cam Kule", objective: "Dev katı tara, mesafeler uzun", card: "Tek bir dev kat. Işık geniş ama salon daha da geniş." },
+        { name: "XV · Rio — Karnaval", objective: "Renkler dönüyor, duvarlar geçiyor", card: "Renkler dönüyor, geçit yürüyor. Duvarlar bile yerinde durmuyor." },
+        { name: "XVI · Kaçan Ayna", objective: "Dev ayna yerinde durmuyor — yaklaş ve yakala", card: "Son oda. Dev ayna her yirmi saniyede bir başka duvara geçiyor; yaklaşırsan kaçıyor. Kaçtığı yerde bir an altın bir iz kalıyor." },
       ],
     },
     en: {
@@ -149,6 +153,10 @@
         { name: "X · New York — The Grid", objective: "Sweep the avenues; every corner looks the same", card: "Avenues and streets run dead straight. Run all you like — every corner is identical." },
         { name: "XI · Cairo — Sandstorm", objective: "Your sight narrows and widens; be patient", card: "Sand in the air. Your vision keeps closing and opening; look when the storm eases." },
         { name: "XII · Istanbul — The Grand Bazaar", objective: "Find the giant mirror, then return to the door", card: "Long bazaar lanes and the densest crowd of mirrors yet. You have seen the world — now find your way back." },
+        { name: "XIII · London — Fog", objective: "Look when the fog lifts, walk when it closes", card: "The fog rolls in. Your sight closes and opens several times a minute." },
+        { name: "XIV · Dubai — Glass Tower", objective: "Sweep one vast floor; the distances are long", card: "A single enormous floor. The light is wide, but the hall is wider." },
+        { name: "XV · Rio — Carnival", objective: "Colours turn, the walls parade past", card: "Colours turn, the parade walks. Even the walls will not stay put." },
+        { name: "XVI · The Fleeing Mirror", objective: "The giant mirror will not stay — get close and catch it", card: "The last room. The giant mirror moves to another wall every twenty seconds, and flees if you come near. Where it fled from, a golden trace lingers for a moment." },
       ],
     },
   };

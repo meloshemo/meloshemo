@@ -43,6 +43,16 @@ const CHAPTERS = [
   { ad: "IV · Kayan Aynalar", decoyPay: 18 },
   { ad: "V · Yankı", decoyPay: 20 },
   { ad: "VI · Kibir Odası", decoyPay: 24 },
+  { ad: "VII · Paris", decoyPay: 26 },
+  { ad: "VIII · Venedik", decoyPay: 24 },
+  { ad: "IX · Tokyo", decoyPay: 30 },
+  { ad: "X · New York", decoyPay: 28 },
+  { ad: "XI · Kahire", decoyPay: 26 },
+  { ad: "XII · İstanbul", decoyPay: 34 },
+  { ad: "XIII · Londra", decoyPay: 28 },
+  { ad: "XIV · Dubai", decoyPay: 32 },
+  { ad: "XV · Rio", decoyPay: 30 },
+  { ad: "XVI · Kaçan Ayna", decoyPay: 36 },
 ];
 
 // Hedeflenen ayna sayısı: tek kişi ~1.600; her yeni oyuncu +3.400 ayna.
@@ -76,8 +86,25 @@ function spawnPoints(size, count) {
   return havuz.slice(0, Math.max(1, count));
 }
 
-// Dev ayna, bütün başlangıçlara yaklaşık eşit uzaklıkta olmalı: yarış adil
-// olsun diye kimsenin kapısının önüne düşmez.
+// Dev ayna yerleşimi iki tarzda olur:
+//   adil  : bütün başlangıçlara yaklaşık eşit uzaklıkta (turların %70'i)
+//   zalim : birine yakın, ötekine salonun ta öbür ucunda (%30) — bazı turlar
+//           haksız olsun, kimse rahat etmesin
+function cruelGiant(maze, spawns, seed) {
+  const mesafeler = spawns.map((s) => Maze.distances(maze, s));
+  let en = null;
+  for (let deneme = 0; deneme < 40; deneme++) {
+    const g = Maze.pickGiant(maze, spawns[deneme % spawns.length], seed + deneme * 23, "uzak");
+    const cx = g.horizontal ? g.x : Math.min(g.x, maze.width - 1);
+    const cy = g.horizontal ? Math.min(g.y, maze.height - 1) : g.y;
+    const d = mesafeler.map((m) => m[cy * maze.width + cx]);
+    if (d.some((v) => v < 0)) continue;
+    const fark = Math.max(...d) - Math.min(...d);
+    if (!en || fark > en.fark) en = { g, fark };
+  }
+  return en ? en.g : Maze.pickGiant(maze, spawns[0], seed, "uzak");
+}
+
 function fairGiant(maze, spawns, seed) {
   const mesafeler = spawns.map((s) => Maze.distances(maze, s));
   const adaylar = [];
@@ -101,12 +128,13 @@ function createHall(playerCount, chapter) {
   const size = roomSize(playerCount, chapter);
   const maze = Maze.generate(size, size, seed);
   const spawns = spawnPoints(size, playerCount);
+  const tarz = playerCount > 1 && Math.random() < 0.3 ? "zalim" : "adil";
   const giant = playerCount > 1
-    ? fairGiant(maze, spawns, seed)
+    ? (tarz === "zalim" ? cruelGiant(maze, spawns, seed) : fairGiant(maze, spawns, seed))
     : Maze.pickGiant(maze, spawns[0], seed);
   const mirrors = Maze.mirrors(maze);
   return {
-    chapter, seed, size, maze, giant, spawns,
+    chapter, seed, size, maze, giant, spawns, tarz,
     mirrorCount: mirrors.length,
     decoys: pickDecoys(mirrors, giant, seed, decoyCount(playerCount, chapter)),
   };
@@ -115,21 +143,28 @@ function createHall(playerCount, chapter) {
 function createRoom(code, playerCount) {
   return {
     code,
-    halls: [createHall(playerCount, 0)],  // bölüm başına bir salon
+    halls: [createHall(playerCount, 0)],  // tur başına bir salon
     players: new Map(),                   // socket -> oyuncu
     state: "lobi",                        // lobi | yaris | bitti
     startAt: 0,
-    finishers: [],
+    tur: 0,                               // kaçıncı tur
+    finishers: [],                        // bu turda dev aynayı bulanlar
+    elenenler: [],                        // eleme sırası (ilk elenen başta)
   };
 }
 
 // Bir bölümün salonunu getirir, yoksa üretir.
 function hallFor(room, chapter) {
   while (room.halls.length <= chapter) {
-    room.halls.push(createHall(room.players.size, room.halls.length));
+    room.halls.push(createHall(hayattakiler(room).length || room.players.size, room.halls.length));
   }
   return room.halls[chapter];
 }
+
+// DEV_AYNASI_TEST=1 ile çalıştırıldığında salon bilgisine dev aynanın yeri de
+// eklenir. Yalnızca otomatik testler içindir; üretimde bu alan gönderilmez,
+// aksi halde istemci aynayı doğrudan öğrenirdi.
+const TEST_MODU = process.env.DEV_AYNASI_TEST === "1";
 
 function hallInfo(room, chapter, oyuncu) {
   const h = hallFor(room, chapter);
@@ -137,8 +172,9 @@ function hallInfo(room, chapter, oyuncu) {
   const s = h.spawns[sira];
   return {
     bolum: chapter, bolumAdi: CHAPTERS[chapter].ad,
-    tohum: h.seed, boyut: h.size, aynaSayisi: h.mirrorCount, decoys: h.decoys,
+    tohum: h.seed, boyut: h.size, aynaSayisi: h.mirrorCount, decoys: h.decoys, tarz: h.tarz,
     baslangic: { x: (s.x + 0.5) * CELL, y: (s.y + 0.5) * CELL },
+    ...(TEST_MODU ? { devAyna: h.giant } : {}),
   };
 }
 
@@ -171,9 +207,73 @@ function broadcast(room, type, data) {
   for (const ws of room.players.keys()) send(ws, type, data);
 }
 
+// Elenmemiş oyuncular
+function hayattakiler(room) {
+  return [...room.players.values()].filter((p) => !p.elendi);
+}
+
+// Bir turda son kalan elenir; kalanlarla yeni tur kurulur.
+// 10 kişi girer, her turda biri elenir: 10 → 9 → 8 → ... → 1 kazanan.
+function turKontrol(room) {
+  const canli = hayattakiler(room);
+  if (room.finishers.length < canli.length - (canli.length > 1 ? 1 : 0)) return;
+
+  if (canli.length <= 1) return;
+
+  const bulanIdler = new Set(room.finishers.map((f) => f.id));
+  const gecKalan = canli.find((p) => !bulanIdler.has(p.id));
+  if (gecKalan) {
+    gecKalan.elendi = true;
+    room.elenenler.push({ id: gecKalan.id, ad: gecKalan.ad, renk: gecKalan.renk, tur: room.tur + 1 });
+    broadcast(room, "elendi", {
+      id: gecKalan.id, ad: gecKalan.ad, renk: gecKalan.renk,
+      tur: room.tur + 1, kalan: hayattakiler(room).length,
+    });
+  }
+
+  const kalanlar = hayattakiler(room);
+  if (kalanlar.length <= 1) {
+    room.state = "bitti";
+    const kazanan = kalanlar[0];
+    broadcast(room, "bitti", {
+      kazanan: kazanan ? { id: kazanan.id, ad: kazanan.ad, renk: kazanan.renk } : null,
+      siralama: [
+        ...(kazanan ? [{ id: kazanan.id, ad: kazanan.ad, renk: kazanan.renk, tur: room.tur + 1 }] : []),
+        ...room.elenenler.slice().reverse(),
+      ],
+    });
+    return;
+  }
+
+  // Yeni tur: kalan oyuncu sayısına göre yeni salon, herkes yeni köşesinde.
+  room.tur++;
+  room.finishers = [];
+  room.halls[room.tur] = createHall(kalanlar.length, Math.min(room.tur, CHAPTERS.length - 1));
+  const salon = room.halls[room.tur];
+  kalanlar.forEach((p, i) => {
+    p.spawnIndex = i;
+    p.bolum = room.tur;
+    p.sure = null;
+    p.yakinlik = 0;
+    const s = salon.spawns[i % salon.spawns.length];
+    p.x = (s.x + 0.5) * CELL;
+    p.y = (s.y + 0.5) * CELL;
+  });
+  room.startAt = Date.now() + 3000;
+  for (const [sock, p] of room.players) {
+    if (p.elendi) continue;
+    send(sock, "tur", {
+      tur: room.tur + 1, kalan: kalanlar.length, baslarAt: room.startAt,
+      ...hallInfo(room, room.tur, p),
+    });
+  }
+  broadcast(room, "oyuncular", { oyuncular: roster(room) });
+}
+
 function roster(room) {
   return [...room.players.values()].map((p) => ({
     id: p.id, ad: p.ad, renk: p.renk, hazir: p.hazir, bolum: p.bolum, sure: p.sure,
+    elendi: !!p.elendi,
   }));
 }
 
@@ -253,7 +353,7 @@ wss.on("connection", (ws) => {
     }
 
     // --- konum bildirimi ---
-    if (msg.type === "konum" && room.state === "yaris") {
+    if (msg.type === "konum" && room.state === "yaris" && !me.elendi) {
       const now = Date.now();
       const dt = Math.max(0.001, (now - me.sonPaket) / 1000);
       me.sonPaket = now;
@@ -285,27 +385,13 @@ wss.on("connection", (ws) => {
             bolumAdi: CHAPTERS[me.bolum].ad, sure: gecen,
           });
 
-          if (me.bolum < CHAPTERS.length - 1) {
-            // Aynadan geçer: kendi bir sonraki salonuna girer, diğerleri
-            // kendi salonlarında aramaya devam eder.
-            me.bolum++;
-            const bilgi = hallInfo(room, me.bolum, me);
-            me.x = bilgi.baslangic.x;
-            me.y = bilgi.baslangic.y;
-            send(ws, "bolum", { ...bilgi, sure: gecen });
-            broadcast(room, "oyuncular", { oyuncular: roster(room) });
-          } else {
-            me.sure = gecen;
-            room.finishers.push({ id: me.id, ad: me.ad, renk: me.renk, sure: me.sure });
-            broadcast(room, "tamamladi", {
-              id: me.id, ad: me.ad, renk: me.renk, sure: me.sure,
-              sira: room.finishers.length,
-            });
-            if (room.finishers.length === room.players.size) {
-              room.state = "bitti";
-              broadcast(room, "bitti", { siralama: room.finishers });
-            }
-          }
+          me.sure = gecen;
+          room.finishers.push({ id: me.id, ad: me.ad, renk: me.renk, sure: gecen });
+          broadcast(room, "gecti", {
+            id: me.id, ad: me.ad, renk: me.renk, sure: gecen,
+            sira: room.finishers.length, kalan: hayattakiler(room).length,
+          });
+          turKontrol(room);
         }
       }
       return;
@@ -315,8 +401,13 @@ wss.on("connection", (ws) => {
   ws.on("close", () => {
     if (!room) return;
     room.players.delete(ws);
-    if (room.players.size === 0) rooms.delete(room.code);
-    else broadcast(room, "oyuncular", { oyuncular: roster(room) });
+    if (room.players.size === 0) {
+      rooms.delete(room.code);
+      return;
+    }
+    broadcast(room, "oyuncular", { oyuncular: roster(room) });
+    // Biri ayrılınca tur kilitlenmesin: kalanlarla kontrol et.
+    if (room.state === "yaris") turKontrol(room);
   });
 });
 

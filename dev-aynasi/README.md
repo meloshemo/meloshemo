@@ -39,6 +39,14 @@ getirir. Açtığın odalara ayarlardan geri dönebilirsin.
 | XI | **Kahire** — Kum Fırtınası | Görüş sürekli daralıp açılır, kum havada süzülür |
 | XII | **İstanbul** — Kapalıçarşı | Uzun çarşı sokakları, 34 sahte dev; aynayı bul ve sönen fenerle kapıya dön |
 
+### III. Perde — Son metropoller ve kaçan ayna
+| Oda | Şehir | Kural |
+| --- | --- | --- |
+| XIII | **Londra** — Sis | Görüş dakikada birkaç kez kapanıp açılır |
+| XIV | **Dubai** — Cam Kule | Tek dev kat: açık galeri + ızgara, en uzun mesafeler |
+| XV | **Rio** — Karnaval | Renkler döner, duvarlar geçit gibi kayar |
+| XVI | **Kaçan Ayna** | Dev ayna 20 saniyede bir başka duvara geçer, yaklaşınca kaçar. Kaçtığı yerde üç saniyelik altın bir iz kalır. Yakalarsan kapıya dön |
+
 **Çarpık aynalar** seni bir tık büyük, yayvan, uzun ya da küçük gösterir; gerçek dev
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).

@@ -1,5 +1,14 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.0.0 — Eleme turnuvası ve kaçan ayna
+- **Dört yeni oda:** XIII Londra (sis), XIV Dubai (cam kule), XV Rio (karnaval)
+  ve final **XVI · Kaçan Ayna** — dev ayna 20 saniyede bir yer değiştirir,
+  yaklaşınca kaçar, kaçtığı yerde altın bir iz bırakır
+- **Çok oyunculu eleme:** her turda dev aynayı son bulan elenir.
+  10 → 9 → 8 → ... → 1 kazanan. Her tur yeni salon, yeni köşeler
+- **Zalim yerleşim:** turların %30'unda dev ayna adil değil, birine yakın
+  ötekine salonun ta öbür ucunda konur
+
 ## 0.9.0 — Sonsuz salon, tam ekran, adil yarış
 - **Sonsuz salon modu:** her salon rastgele kural karışımıyla kurulur, büyür
   ve kararır; geçilen salon sayısı ve en iyi seri saklanır

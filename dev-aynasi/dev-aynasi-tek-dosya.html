@@ -655,6 +655,10 @@ body.sinema .veil { inset: 0; }
         { name: "X · New York — Izgara", objective: "Caddeleri tara, her köşe birbirinin aynı", card: "Cadde ve sokaklar dümdüz. Koşmak serbest ama her köşe birbirinin aynı." },
         { name: "XI · Kahire — Kum Fırtınası", objective: "Görüş açılıp kapanıyor, sabırlı ol", card: "Kum havada. Görüşün sürekli daralıp açılıyor; fırtına dinince bak." },
         { name: "XII · İstanbul — Kapalıçarşı", objective: "Dev aynayı bul, sonra kapıya dön", card: "Uzun çarşı sokakları, en kalabalık ayna yığını. Dünyayı gezdin — şimdi kendine dön." },
+        { name: "XIII · Londra — Sis", objective: "Sis açılınca bak, kapanınca yürü", card: "Sis basıyor. Görüşün dakikada birkaç kez kapanıp açılıyor." },
+        { name: "XIV · Dubai — Cam Kule", objective: "Dev katı tara, mesafeler uzun", card: "Tek bir dev kat. Işık geniş ama salon daha da geniş." },
+        { name: "XV · Rio — Karnaval", objective: "Renkler dönüyor, duvarlar geçiyor", card: "Renkler dönüyor, geçit yürüyor. Duvarlar bile yerinde durmuyor." },
+        { name: "XVI · Kaçan Ayna", objective: "Dev ayna yerinde durmuyor — yaklaş ve yakala", card: "Son oda. Dev ayna her yirmi saniyede bir başka duvara geçiyor; yaklaşırsan kaçıyor. Kaçtığı yerde bir an altın bir iz kalıyor." },
       ],
     },
     en: {
@@ -727,6 +731,10 @@ body.sinema .veil { inset: 0; }
         { name: "X · New York — The Grid", objective: "Sweep the avenues; every corner looks the same", card: "Avenues and streets run dead straight. Run all you like — every corner is identical." },
         { name: "XI · Cairo — Sandstorm", objective: "Your sight narrows and widens; be patient", card: "Sand in the air. Your vision keeps closing and opening; look when the storm eases." },
         { name: "XII · Istanbul — The Grand Bazaar", objective: "Find the giant mirror, then return to the door", card: "Long bazaar lanes and the densest crowd of mirrors yet. You have seen the world — now find your way back." },
+        { name: "XIII · London — Fog", objective: "Look when the fog lifts, walk when it closes", card: "The fog rolls in. Your sight closes and opens several times a minute." },
+        { name: "XIV · Dubai — Glass Tower", objective: "Sweep one vast floor; the distances are long", card: "A single enormous floor. The light is wide, but the hall is wider." },
+        { name: "XV · Rio — Carnival", objective: "Colours turn, the walls parade past", card: "Colours turn, the parade walks. Even the walls will not stay put." },
+        { name: "XVI · The Fleeing Mirror", objective: "The giant mirror will not stay — get close and catch it", card: "The last room. The giant mirror moves to another wall every twenty seconds, and flees if you come near. Where it fled from, a golden trace lingers for a moment." },
       ],
     },
   };
@@ -1100,6 +1108,31 @@ body.sinema .veil { inset: 0; }
       returnTrip: true, fading: true,
       palette: { ground: "#0f0906", floorA: "#1d1410", floorB: "#160f0b", glass: "240, 200, 140", lamp: "255, 214, 150" },
     },
+
+    // --- Üçüncü perde: son üç metropol ve kaçan ayna ---
+    {
+      // XIII · Londra — Sis: görüş sık sık kapanır, camlar griye çalar.
+      size: 60, light: 205, hints: 2, decoys: 28, fog: true,
+      palette: { ground: "#0a0c0e", floorA: "#161b1f", floorB: "#111518", glass: "206, 216, 222", lamp: "226, 236, 244" },
+    },
+    {
+      // XIV · Dubai — Cam Kule: dev bir açık kat, uzak mesafeler, geniş ışık.
+      size: 66, light: 300, hints: 2, decoys: 32, openHall: 0.45, grid: true,
+      palette: { ground: "#080a12", floorA: "#141a28", floorB: "#0f1420", glass: "186, 220, 255", lamp: "224, 240, 255" },
+    },
+    {
+      // XV · Rio — Karnaval: renkler döner, duvarlar da geçit gibi kayar.
+      size: 64, light: 215, hints: 2, decoys: 30, neon: true, shiftEvery: 13000,
+      palette: { ground: "#0d0510", floorA: "#1c0d20", floorB: "#150818", glass: "255, 170, 90", lamp: "255, 214, 170" },
+    },
+    {
+      // XVI · Kaçan Ayna: dev ayna yerinde durmaz. Her 20 saniyede bir
+      // başka bir duvara geçer, yaklaşınca kaçar. Yakalarsan kapıya dön.
+      size: 70, light: 185, hints: 3, decoys: 36,
+      fleeing: { every: 20000, range: CELL * 3.2, grace: 1200 },
+      returnTrip: true, fading: true,
+      palette: { ground: "#050308", floorA: "#0f0a16", floorB: "#0a0710", glass: "214, 196, 255", lamp: "236, 224, 255" },
+    },
   ];
 
   const BRASS = "216, 178, 106";
@@ -1123,6 +1156,9 @@ body.sinema .veil { inset: 0; }
   let endless = false;      // sonsuz mod
   let endlessCount = 0;     // sonsuz modda geçilen oda sayısı
   let bandOfRoom = "orta";  // dev aynanın bu salondaki mesafe kuşağı
+  let nextFlee = 0;         // aynanın kaçacağı an
+  let fleeTrail = null;     // kaçtıktan sonra eski yerde kalan iz
+  let nearSince = 0;        // oyuncunun aynaya yaklaştığı an (kaçış gecikmesi)
   let nextShift = 0;        // IV. bölümde aynaların kayacağı an
   let shiftFlash = 0;       // kayma anındaki parlama
   let fade = 1;             // sönen fener (final)
@@ -1160,6 +1196,57 @@ body.sinema .veil { inset: 0; }
       hints: chapter.hints, hintUntil: 0,
       seen: new Set(), foundAt: 0, bloom: 0, done: 0, reachedDoor: false,
     };
+  }
+
+  // Sıcak iz: dev aynanın çevresindeki camların çerçevesi hafif altın vurur.
+  function hesaplaSicakIz() {
+    warm = new Set();
+    const gx = giant.x;
+    const gy = giant.y;
+    for (let y = gy - WARM_CELLS; y <= gy + WARM_CELLS; y++) {
+      for (let x = gx - WARM_CELLS; x <= gx + WARM_CELLS; x++) {
+        if (x < 0 || y < 0 || x > size || y > size) continue;
+        if (Math.hypot(x - gx, y - gy) > WARM_CELLS) continue;
+        if (x < size && maze.hWalls[y][x]) warm.add(idOf(true, x, y));
+        if (y < size && maze.vWalls[y][x]) warm.add(idOf(false, x, y));
+      }
+    }
+  }
+
+  // XVI · Kaçan Ayna: dev ayna yer değiştirir. Yaklaşınca da kaçar ama
+  // "grace" kadar bir soluk payı bırakır; o an içinde içine yürüyebilirsen
+  // yakalarsın. Eski yerinde birkaç saniye altın bir iz kalır.
+  function fleeGiant(now) {
+    const eski = segCenter(giant);
+    let yeni = giant;
+    for (let deneme = 0; deneme < 30; deneme++) {
+      const aday = Maze.pickGiant(maze, { x: 0, y: 0 }, (seed + now + deneme * 7919) | 0, "uzak");
+      const m = segCenter(aday);
+      if (Math.hypot(m.x - players[0].x, m.y - players[0].y) > CELL * 8) {
+        yeni = aday;
+        break;
+      }
+    }
+    giant = yeni;
+    giantSeg = segCenter(giant);
+    hesaplaSicakIz();
+    fleeTrail = { x: eski.x, y: eski.y, at: now };
+    nextFlee = now + chapter.fleeing.every;
+    nearSince = 0;
+    players.forEach((p) => { p.foundAt = 0; p.bloom = 0; });
+  }
+
+  function maybeFlee(now) {
+    if (!chapter.fleeing || phase !== "arayis") return;
+    const p = players[0];
+    const d = Math.hypot(p.x - giantSeg.x, p.y - giantSeg.y);
+    if (d < chapter.fleeing.range) {
+      if (!nearSince) nearSince = now;
+      if (now - nearSince > chapter.fleeing.grace) fleeGiant(now);
+      return;
+    }
+    nearSince = 0;
+    if (now > nextFlee) fleeGiant(now);
   }
 
   // Şehirlere özgü salon düzenleri: Paris'in açık galerisi, New York'un
@@ -1258,18 +1345,7 @@ body.sinema .veil { inset: 0; }
       }
     }
 
-    // Sıcak iz: dev aynanın çevresindeki camların çerçevesi hafif altın vurur.
-    warm = new Set();
-    const gx = giant.x;
-    const gy = giant.y;
-    for (let y = gy - WARM_CELLS; y <= gy + WARM_CELLS; y++) {
-      for (let x = gx - WARM_CELLS; x <= gx + WARM_CELLS; x++) {
-        if (x < 0 || y < 0 || x > size || y > size) continue;
-        if (Math.hypot(x - gx, y - gy) > WARM_CELLS) continue;
-        if (x < size && maze.hWalls[y][x]) warm.add(idOf(true, x, y));
-        if (y < size && maze.vWalls[y][x]) warm.add(idOf(false, x, y));
-      }
-    }
+    hesaplaSicakIz();
 
     players = duel
       ? [
@@ -1286,6 +1362,9 @@ body.sinema .veil { inset: 0; }
       : null;
     nextShift = chapter.shiftEvery ? performance.now() + chapter.shiftEvery : 0;
     nextRipple = chapter.water ? performance.now() + 2500 : 0;
+    nextFlee = chapter.fleeing ? performance.now() + chapter.fleeing.every : 0;
+    fleeTrail = null;
+    nearSince = 0;
     ripple = 0;
     sand = chapter.storm
       ? Array.from({ length: 90 }, () => ({
@@ -1556,7 +1635,10 @@ body.sinema .veil { inset: 0; }
   // Tek bir oyuncunun bakış açısını verilen dikdörtgene çizer.
   function drawView(p, rect, now, dt = 0.016) {
     const firtina = chapter.storm ? 0.72 + 0.4 * (0.5 + 0.5 * Math.sin(now / 2600)) : 1;
-    const light = chapter.light * (phase === "donus" ? 0.78 : 1) * fade * firtina * ayarlar.parlaklik;
+    const sis = chapter.fog
+      ? 0.6 + 0.5 * (0.5 + 0.5 * Math.sin(now / 4100) * Math.sin(now / 1700))
+      : 1;
+    const light = chapter.light * (phase === "donus" ? 0.78 : 1) * fade * firtina * sis * ayarlar.parlaklik;
     ctx.save();
     ctx.beginPath();
     ctx.rect(rect.x, rect.y, rect.w, rect.h);
@@ -1622,6 +1704,16 @@ body.sinema .veil { inset: 0; }
         ctx.arc(camX + halfW + k.x, camY + halfH + k.y, k.r, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+
+    // Kaçan aynanın bıraktığı iz: nereden kaçtığını üç saniye gösterir.
+    if (fleeTrail && now - fleeTrail.at < 3000) {
+      const omur = 1 - (now - fleeTrail.at) / 3000;
+      ctx.strokeStyle = `rgba(${BRASS}, ${0.5 * omur})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(fleeTrail.x, fleeTrail.y, CELL * (0.4 + (1 - omur) * 1.6), 0, Math.PI * 2);
+      ctx.stroke();
     }
 
     if (echo) {
@@ -1894,6 +1986,7 @@ body.sinema .veil { inset: 0; }
       moveAll(dt);
       updateEcho(dt);
       maybeShift(now);
+      maybeFlee(now);
       if (chapter.fading && phase === "donus") fade = Math.max(0.42, fade - dt * 0.012);
       if (chapter.water) {
         if (now > nextRipple) { nextRipple = now + 5000; ripple = 0.001; }
@@ -2203,6 +2296,7 @@ body.sinema .veil { inset: 0; }
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
     setLang(l) { I18n.set(l); refreshLanguage(); },
     lang: () => I18n.lang,
+    giantPos: () => ({ ...giantSeg }),
     band: () => bandOfRoom,
     endlessInfo: () => ({ endless, count: endlessCount }),
     echoPos: () => (echo ? { x: echo.x, y: echo.y } : null),

@@ -47,6 +47,14 @@ Dev ayna, bütün başlangıçlara yaklaşık eşit uzaklıkta olacak şekilde s
 (40 aday arasından mesafe farkı en küçük olan) — kimsenin kapısının önüne
 düşmez.
 
+**Eleme usulü.** Her turda dev aynayı bulamayan son oyuncu elenir:
+10 kişi girer, tur tur 9, 8, 7... diye azalır, son kalan kazanır. Her tur için
+yeni salon üretilir (kalan oyuncu sayısına göre boyutlanır), herkes yeni bir
+köşeden başlar. Sunucu mesajları: `gecti`, `elendi`, `tur`, `bitti`.
+
+**Zalim yerleşim.** Turların %30'unda dev ayna adil değil: birine yakın,
+ötekine salonun ta öbür ucunda. Kimse rahat etmesin.
+
 **Bulan durmaz, ilerler.** Dev aynayı bulan oyuncu aynadan geçip bir sonraki
 bölümün salonuna girer ve orada aramaya başlar; geride kalanlar kendi
 salonlarında aramaya devam eder. Herkes yalnızca kendi bölümündeki oyuncuları
