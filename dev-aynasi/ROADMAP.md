@@ -25,13 +25,23 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [ ] Yayına alma: `wss://` sertifika, sunucuyu bir VPS'e koyma, `?kod=1234`
       ile tek linkle davet
 
-## 2. Oyun mekaniği
+## 2. Tamamlananlar (bu sürüm)
+- [x] Üç yeni bölüm: Ters Salon, Kayan Aynalar, Yankı
+- [x] Kibir Odası finale taşındı, dönüşte fener sönüyor
+- [x] Gizlilik politikası, kullanım koşulları, lisans bildirimleri
+- [x] Basın kiti, Steam mağaza metni, sistem gereksinimleri
+- [x] Steam kapsül görselleri ve 1920×1080 ekran görüntüleri
+- [x] Değişiklik günlüğü
+
+## 3. Oyun mekaniği
 - [x] Ses: uğultu, yaklaştıkça hızlanan kalp atışı, buluş çınlaması
 - [x] Sahte dev aynaya bakınca cam çatlama sesi
 - [ ] Sahte aynada kısa süre cezası (ses var, ceza yok)
 - [ ] Günlük salon: herkesin aynı salonu oynadığı günlük kod ve sıralama
-- [ ] Bölüm IV fikri: aynaların yer değiştirdiği "dönen salon"
+- [ ] Fragman videosu (30-60 sn)
+- [ ] Masaüstü paketi (Electron/Tauri) — Steam için gerekli
+- [ ] İngilizce çeviri
 
-## 3. Kapsam kararı
+## 4. Kapsam kararı
 Oyun tek bir deyimin oyunu olarak kalacak: **kendini dev aynasında görmek**.
 Başka deyimler için ayrı oyun yapılmayacak.

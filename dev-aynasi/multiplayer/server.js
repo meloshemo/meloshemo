@@ -39,7 +39,10 @@ const COLORS = [
 const CHAPTERS = [
   { ad: "I · Aynalı Salon", decoyPay: 0 },
   { ad: "II · Aynanın İçinde", decoyPay: 14 },
-  { ad: "III · Kibir Odası", decoyPay: 22 },
+  { ad: "III · Ters Salon", decoyPay: 16 },
+  { ad: "IV · Kayan Aynalar", decoyPay: 18 },
+  { ad: "V · Yankı", decoyPay: 20 },
+  { ad: "VI · Kibir Odası", decoyPay: 24 },
 ];
 
 // Hedeflenen ayna sayısı: tek kişi ~1.600; her yeni oyuncu +3.400 ayna.
@@ -51,7 +54,7 @@ const CHAPTERS = [
 function roomSize(playerCount, chapter = 0) {
   const hedefAyna = 1600 + (playerCount - 1) * 3400;
   const taban = Math.round(Math.sqrt(hedefAyna / 0.94));
-  return Math.min(190, Math.round(taban * (1 + chapter * 0.15)));
+  return Math.min(190, Math.round(taban * (1 + chapter * 0.08)));
 }
 function decoyCount(playerCount, chapter = 0) {
   return CHAPTERS[chapter].decoyPay + playerCount * 6;

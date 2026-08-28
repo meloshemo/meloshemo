@@ -11,22 +11,21 @@ Bağımlılık yok; `index.html` dosyasını tarayıcıda aç.
 
 ## Bölümler
 
-Dev aynayı bulduğunda **aynanın içinden geçip** bir sonraki odaya girersin;
-her odanın ışığı ve rengi farklıdır. Süre kaldığı yerden işler.
+Dev aynayı bulduğunda **içine yürüyerek** bir sonraki odaya girersin; her odanın
+ışığı, rengi ve kuralı farklıdır. Süre kaldığı yerden işler.
 
-| Bölüm | Salon | Işık ve renk | Hedef |
-| --- | --- | --- | --- |
-| I · Aynalı Salon | 40×40 | kadife mor karanlık | Dev aynayı bul |
-| II · Aynanın İçinde | 46×46 | soğuk mavi, cılız ışık, 14 çarpık ayna | Gerçek dev aynayı ayırt et |
-| III · Kibir Odası | 52×52 | altın-kızıl, en dar ışık, 22 çarpık ayna | Aynayı bul, sonra pirinç kapıya dön |
+| Oda | Salon | Kural |
+| --- | --- | --- |
+| I · Aynalı Salon | 40×40 | Dev aynayı bul ve içine yürü |
+| II · Aynanın İçinde | 46×46 | 14 çarpık sahte dev arasından gerçeğini ayır |
+| III · Ters Salon | 48×48 | Kontroller aynalandı: sola bastığında sağa gidersin |
+| IV · Kayan Aynalar | 50×50 | Duvarlar 11 saniyede bir yer değiştirir |
+| V · Yankı | 52×52 | Her adımını tersten tekrar eden ikiz; değerse başa dönersin |
+| VI · Kibir Odası | 54×54 | Aynayı bul, sonra sönen fenerle kapıya dön |
 
 **Çarpık aynalar** seni bir tık büyük, yayvan, uzun ya da küçük gösterir; gerçek dev
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
-çerçevesi altın vurur.
-
-**Dev ayna ancak dibinden geçerken parlar** (0,8 kare). Uzaktan ışığı görünmez,
-yani yanından geçmen gerekir. Parlamayı görünce **aynanın üstüne yürürsün**;
-içine girince bir sonraki oda açılır. Önünde beklemek bir şey yapmaz.
+çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).
 
 ## Ses
 
@@ -72,6 +71,9 @@ o eksendeki hız sıfırlanır.
 | `game.js` | Bölümler, düello, çarpışma, yansıma çizimi, karanlık, HUD |
 | `audio.js` | Prosedürel ses: uğultu, kalp atışı, çınlama, cam çatlaması |
 | `ikon/` | Uygulama ikonu (SVG + 64/128/256/512/1024 PNG) |
+| `basin/` | Ekran görüntüleri ve Steam mağaza görselleri |
+| `belgeler/` | Gizlilik politikası, kullanım koşulları, basın kiti, Steam metni, lisanslar |
+| `multiplayer/` | Çevrimiçi yarış sunucusu ve istemcisi (bağlanmayı bekliyor) |
 | `test.js` | Labirent üretimi regresyon testleri |
 | `dev-aynasi-tek-dosya.html` | Her şeyin tek dosyada toplandığı paylaşılabilir sürüm |
 

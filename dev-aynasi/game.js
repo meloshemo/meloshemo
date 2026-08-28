@@ -36,21 +36,43 @@
   // ışığı da rengi de değişir.
   const CHAPTERS = [
     {
-      name: "I · Aynalı Salon", size: 40, light: 235, hints: 3, decoys: 0, returnTrip: false,
+      name: "I · Aynalı Salon", size: 40, light: 235, hints: 3, decoys: 0,
       objective: "Dev aynayı bul ve içine yürü",
       card: "Binlerce cam, hepsi birbirinin aynı.",
       palette: { ground: "#0a0710", floorA: "#120c1a", floorB: "#0e0916", glass: "168, 203, 216", lamp: "255, 231, 194" },
     },
     {
-      name: "II · Aynanın İçinde", size: 46, light: 200, hints: 2, decoys: 14, returnTrip: false,
-      objective: "Çarpık aynalar arasından gerçeğini bul ve içine yürü",
+      name: "II · Aynanın İçinde", size: 46, light: 205, hints: 2, decoys: 14,
+      objective: "Çarpık aynalar arasından gerçeğini bul",
       card: "Camlar soğuk, ışık cılız. Bazıları seni çarpıtıyor.",
       palette: { ground: "#05090f", floorA: "#0b141d", floorB: "#081018", glass: "150, 214, 232", lamp: "196, 232, 255" },
     },
     {
-      name: "III · Kibir Odası", size: 52, light: 175, hints: 2, decoys: 22, returnTrip: true,
-      objective: "Dev aynayı bul, sonra pirinç kapıya dön",
-      card: "Her cam seni büyütmeye hazır. Aynayı bul, sonra kapıya dön.",
+      name: "III · Ters Salon", size: 48, light: 195, hints: 2, decoys: 16,
+      mirrorControls: true,
+      objective: "Kontroller aynalandı — sola bastığında sağa gidersin",
+      card: "Burada her şey ters. Sola bastığında sağa gidiyorsun.",
+      palette: { ground: "#0d0612", floorA: "#180d22", floorB: "#12091a", glass: "206, 178, 232", lamp: "226, 200, 255" },
+    },
+    {
+      name: "IV · Kayan Aynalar", size: 50, light: 190, hints: 2, decoys: 18,
+      shiftEvery: 11000,
+      objective: "Salon yerinde durmuyor — aynalar yer değiştiriyor",
+      card: "Duvarlar kayıyor. Ezberlediğin yol birazdan başka bir yer olacak.",
+      palette: { ground: "#050d0c", floorA: "#0a1a18", floorB: "#071312", glass: "150, 232, 210", lamp: "190, 255, 236" },
+    },
+    {
+      name: "V · Yankı", size: 52, light: 185, hints: 2, decoys: 20,
+      echo: true,
+      objective: "Yankın seni taklit ediyor — sana değerse başa dönersin",
+      card: "Aynadan biri çıktı. Her adımını tersten tekrar ediyor; sana değmesin.",
+      palette: { ground: "#0b0710", floorA: "#161020", floorB: "#100b18", glass: "196, 200, 224", lamp: "222, 226, 255" },
+    },
+    {
+      name: "VI · Kibir Odası", size: 54, light: 180, hints: 2, decoys: 24,
+      returnTrip: true, fading: true,
+      objective: "Dev aynayı bul, sonra sönen ışıkla kapıya dön",
+      card: "Her cam seni büyütmeye hazır. Aynayı bul, sonra kapıya dön — fener sönüyor.",
       palette: { ground: "#100608", floorA: "#1b0e10", floorB: "#150a0c", glass: "236, 186, 150", lamp: "255, 208, 150" },
     },
   ];
@@ -72,6 +94,10 @@
   let chapterIndex = 0;
   let carding = 0;          // bölüm kartının ekranda kalacağı ana kadar
   let holdAtMirror = false; // yalnızca ekran görüntüsü almak için: geçişi bekletir
+  let echo = null;          // V. bölümdeki yankı
+  let nextShift = 0;        // IV. bölümde aynaların kayacağı an
+  let shiftFlash = 0;       // kayma anındaki parlama
+  let fade = 1;             // VI. bölümde sönen fener
   let chapter, size, maze, mirrorCount, giant, giantSeg, decoys, warm;
   let players = [];
   let duel = false;
@@ -153,6 +179,14 @@
     players[0].y = duel ? CELL * 0.34 : CELL * 0.5;
     if (duel) players[1].y = CELL * 0.68;
 
+    // Yankı: oyuncunun odanın merkezine göre simetriği, hareketi tersten tekrar eder.
+    echo = chapter.echo
+      ? { x: (size - 0.5) * CELL, y: (size - 0.5) * CELL, vurus: 0 }
+      : null;
+    nextShift = chapter.shiftEvery ? performance.now() + chapter.shiftEvery : 0;
+    shiftFlash = 0;
+    fade = 1;
+
     phase = "arayis";
     finished = null;
     startedAt = performance.now();
@@ -182,6 +216,8 @@
       if (keys.has(k.up) || (!duel && keys.has("ArrowUp"))) iy -= 1;
       if (keys.has(k.down) || (!duel && keys.has("ArrowDown"))) iy += 1;
       if (!duel && joystick) { ix += joystick.x; iy += joystick.y; }
+      // Ters Salon: aynadaki gibi, sağ-sol yer değişir.
+      if (chapter.mirrorControls) ix = -ix;
 
       const len = Math.hypot(ix, iy);
       const hedefHiz = kosu ? SPRINT : SPEED;
@@ -391,7 +427,7 @@
 
   // Tek bir oyuncunun bakış açısını verilen dikdörtgene çizer.
   function drawView(p, rect, now) {
-    const light = chapter.light * (phase === "donus" ? 0.78 : 1);
+    const light = chapter.light * (phase === "donus" ? 0.78 : 1) * fade;
     ctx.save();
     ctx.beginPath();
     ctx.rect(rect.x, rect.y, rect.w, rect.h);
@@ -446,6 +482,16 @@
       drawPanel({ horizontal, x, y }, d, light, warm.has(idOf(horizontal, x, y)));
     });
 
+    if (echo) {
+      const d = Math.hypot(echo.x - p.x, echo.y - p.y);
+      if (d < light * 1.1) {
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        drawFigure(echo.x, echo.y, 1.05, 1.05, 0.85, "rgba(214, 226, 255, 0.92)", "rgba(150, 190, 255, 0.5)");
+        ctx.restore();
+      }
+    }
+
     for (const other of players) {
       if (other === p) continue;
       const d = Math.hypot(other.x - p.x, other.y - p.y);
@@ -479,6 +525,11 @@
     dark.addColorStop(1, C.ground);
     ctx.fillStyle = dark;
     ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+
+    if (shiftFlash > 0) {
+      ctx.fillStyle = `rgba(190, 255, 236, ${0.16 * shiftFlash})`;
+      ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    }
 
     if (p.bloom > 0) {
       const gold = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(rect.w, rect.h) * 0.75);
@@ -578,6 +629,77 @@
     updateHud();
   }
 
+  // V · Yankı: oyuncunun hareketini ters yönde tekrarlar, duvarlara takılır.
+  // Değerse oyuncuyu başlangıca gönderir ve bir sezgi hakkı yakar.
+  function updateEcho(dt) {
+    if (!echo) return;
+    const p = players[0];
+    echo.x = slide(echo, echo.x - p.vx * dt, echo.y, "x");
+    echo.y = slide(echo, echo.x, echo.y - p.vy * dt, "y");
+    if (Math.hypot(echo.x - p.x, echo.y - p.y) < RADIUS * 2.1) {
+      echo.vurus++;
+      p.x = CELL * 0.5;
+      p.y = CELL * 0.5;
+      p.vx = 0;
+      p.vy = 0;
+      echo.x = (size - 0.5) * CELL;
+      echo.y = (size - 0.5) * CELL;
+      p.hints = Math.max(0, p.hints - 1);
+      Sound.through();
+      els.objective.textContent = "Yankı sana değdi — baştan";
+      updateHud();
+    }
+  }
+
+  // IV · Kayan Aynalar: belirli aralıklarla aynalar yer değiştirir.
+  // Önce birkaç duvar kaldırılır (bu bağlantıyı asla bozmaz), sonra aynı
+  // sayıda duvar başka yerlere konur; her ekleme salonun her yerinin
+  // yürüyerek ulaşılabilir kaldığı doğrulanarak yapılır.
+  function maybeShift(now) {
+    if (!nextShift || now < nextShift) return;
+    nextShift = now + chapter.shiftEvery;
+    const pcx = Math.floor(players[0].x / CELL);
+    const pcy = Math.floor(players[0].y / CELL);
+    const uzakOyuncudan = (x, y) => Math.abs(x - pcx) > 1 || Math.abs(y - pcy) > 1;
+    const rastgeleKenar = () => {
+      const x = 1 + Math.floor(Math.random() * (size - 2));
+      const y = 1 + Math.floor(Math.random() * (size - 2));
+      return { x, y, yatay: Math.random() < 0.5 };
+    };
+
+    let kaldirilan = 0;
+    for (let deneme = 0; deneme < 120 && kaldirilan < 10; deneme++) {
+      const k = rastgeleKenar();
+      if (!uzakOyuncudan(k.x, k.y)) continue;
+      const id = idOf(k.yatay, k.x, k.y);
+      if (id === giant.id) continue;
+      const dizi = k.yatay ? maze.hWalls : maze.vWalls;
+      if (!dizi[k.y][k.x]) continue;
+      dizi[k.y][k.x] = false;
+      kaldirilan++;
+    }
+
+    let eklenen = 0;
+    for (let deneme = 0; deneme < 300 && eklenen < kaldirilan; deneme++) {
+      const k = rastgeleKenar();
+      if (!uzakOyuncudan(k.x, k.y)) continue;
+      const dizi = k.yatay ? maze.hWalls : maze.vWalls;
+      if (dizi[k.y][k.x]) continue;
+      dizi[k.y][k.x] = true;
+      if (Maze.distances(maze, { x: 0, y: 0 }).some((d) => d < 0)) {
+        dizi[k.y][k.x] = false;   // bir köşeyi koparıyor, vazgeç
+        continue;
+      }
+      eklenen++;
+    }
+
+    if (!kaldirilan && !eklenen) return;
+    mirrorCount = Maze.mirrors(maze).length;
+    els.total.textContent = mirrorCount.toLocaleString("tr-TR");
+    shiftFlash = 1;
+    Sound.through();
+  }
+
   // Oyuncu dev aynaya değip üstüne yürüyor mu? Geçiş bununla olur.
   function pushingIntoGiant(p) {
     const g = segGeometry(giant);
@@ -615,7 +737,13 @@
       carding = 0;
       els.chapterCard.hidden = true;
     }
-    if (running && !finished && !carding) moveAll(dt);
+    if (running && !finished && !carding) {
+      moveAll(dt);
+      updateEcho(dt);
+      maybeShift(now);
+      if (chapter.fading && phase === "donus") fade = Math.max(0.42, fade - dt * 0.012);
+    }
+    if (shiftFlash > 0) shiftFlash = Math.max(0, shiftFlash - dt * 1.6);
     const visible = finished ? [] : draw(now);
 
     if (running && !finished) {
@@ -819,6 +947,16 @@
     nudge(dx, dy, i = 0) { players[i].x += dx; players[i].y += dy; },
     bloom: (i = 0) => players[i].bloom,
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
+    echoPos: () => (echo ? { x: echo.x, y: echo.y } : null),
+    placeEchoNear(dx = 90, dy = -30) {
+      if (!echo) return false;
+      echo.x = players[0].x + dx;
+      echo.y = players[0].y + dy;
+      return true;
+    },
+    mirrorCount: () => mirrorCount,
+    wallsHash: () => maze.hWalls.flat().concat(maze.vWalls.flat()).reduce((a, v, i) => a + (v ? i % 97 : 0), 0),
+    forceShift() { nextShift = performance.now() - 1; },
     state: () => ({
       chapter: chapter.name, seed, duel, phase, mirrors: mirrorCount,
       decoys: decoys.size, seen: players.reduce((n, p) => n + p.seen.size, 0),
