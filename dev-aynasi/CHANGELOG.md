@@ -1,5 +1,13 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 0.8.0 — Dünya turu ve ayarlar
+- **Altı yeni oda, altı şehir:** Paris (açık galeri), Venedik (su ve dalga),
+  Tokyo (neon; dev ayna yanıp sönmeyen tek cam), New York (ızgara caddeler),
+  Kahire (kum fırtınası), İstanbul (Kapalıçarşı, finale taşındı)
+- **Ayarlar penceresi:** parlaklık, hareketi azaltma, oda seçimi, sürüm
+- **Oyun içi gizlilik politikası** — iki dilde, ayarlardan açılır
+- Açılan odalar tarayıcıda saklanır; bitirdiğin odalara geri dönebilirsin
+
 ## 0.7.0 — İngilizce ve tanıtım paketi
 - Tam **İngilizce sürüm**: arayüz, bölüm adları, hedefler, kartlar, bitiş
   metinleri; tarayıcı diline göre otomatik seçim, tek düğmeyle değiştirme

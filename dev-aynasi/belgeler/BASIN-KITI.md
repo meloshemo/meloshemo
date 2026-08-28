@@ -10,6 +10,7 @@
 | **Tür** | Arama / bulmaca, atmosferik |
 | **Platform** | Tarayıcı (PC, Mac, mobil) · Steam sürümü planlanıyor |
 | **Dil** | Türkçe (İngilizce planlanıyor) |
+| **Oda sayısı** | 12 (6 salon + 6 şehir: Paris, Venedik, Tokyo, New York, Kahire, İstanbul) |
 | **Oyuncu** | 1 kişi · 2 kişi bölünmüş ekran · çevrimiçi yarış (planlanıyor) |
 | **Fiyat** | Ücretsiz |
 | **Çıkış** | Erken sürüm yayında |

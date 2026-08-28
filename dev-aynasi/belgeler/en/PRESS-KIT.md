@@ -9,6 +9,7 @@
 | **Genre** | Search / puzzle, atmospheric |
 | **Platforms** | Browser (PC, Mac, mobile) · Steam release planned |
 | **Languages** | Turkish, English |
+| **Rooms** | 12 (6 hall rooms + 6 cities: Paris, Venice, Tokyo, New York, Cairo, Istanbul) |
 | **Players** | 1 · 2 local split-screen · online race (planned) |
 | **Price** | Free |
 | **Status** | Early build playable |

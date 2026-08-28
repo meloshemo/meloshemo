@@ -37,6 +37,7 @@
         <span class="spacer"></span>
         <button id="soundBtn" class="btn" type="button" aria-pressed="true">Ses açık</button>
         <button id="langBtn" class="btn" type="button">EN</button>
+        <button id="settingsBtn" class="btn" type="button" data-i18n="settings">Ayarlar</button>
         <button id="hintBtn" class="btn" type="button" data-i18n="hintBtn">Sezgi · H</button>
         <button id="restart" class="btn" type="button" data-i18n="newRoom">Yeni salon · R</button>
       </div>
@@ -68,6 +69,42 @@
             <p class="through" data-i18n="through">Aynanın içinden geçtin</p>
             <h2 id="cardTitle">II · Aynanın İçinde</h2>
             <p id="cardText">—</p>
+          </div>
+        </div>
+
+        <div class="veil panel" id="settings" hidden>
+          <div class="frame wide">
+            <h2 data-i18n="settingsTitle">Ayarlar</h2>
+
+            <label class="satir">
+              <span data-i18n="brightness">Parlaklık</span>
+              <input id="brightness" type="range" min="0.75" max="1.35" step="0.05" />
+            </label>
+
+            <label class="satir">
+              <span data-i18n="reduceMotion">Hareketi azalt</span>
+              <input id="reduceMotion" type="checkbox" />
+            </label>
+
+            <div class="blok">
+              <span class="baslik" data-i18n="rooms">Odalar</span>
+              <div id="roomPicker" class="rooms"></div>
+              <p class="fine" data-i18n="roomsNote">Yalnızca açtığın odalara geçebilirsin.</p>
+            </div>
+
+            <div class="modes">
+              <button id="privacyBtn" class="btn" type="button" data-i18n="privacy">Gizlilik</button>
+              <button id="settingsClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
+            </div>
+            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">0.8.0</b></p>
+          </div>
+        </div>
+
+        <div class="veil panel" id="privacy" hidden>
+          <div class="frame wide">
+            <h2 data-i18n="privacyTitle">Gizlilik</h2>
+            <div id="privacyText" class="metin"></div>
+            <button id="privacyClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
           </div>
         </div>
 

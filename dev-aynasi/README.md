@@ -13,23 +13,41 @@ gösterir. Oyun, o tek aynayı bulmaktır.
 
 Bağımlılık yok; `index.html` dosyasını tarayıcıda aç.
 
-## Bölümler
+## Odalar
 
-Dev aynayı bulduğunda **içine yürüyerek** bir sonraki odaya girersin; her odanın
-ışığı, rengi ve kuralı farklıdır. Süre kaldığı yerden işler.
+Dev aynayı bulduğunda **içine yürüyerek** bir sonraki odaya girersin. İlk perde
+salonun kendi kuralları, ikinci perde dünya turu: her şehir kendi mekaniğini
+getirir. Açtığın odalara ayarlardan geri dönebilirsin.
 
-| Oda | Salon | Kural |
+### I. Perde — Salon
+| Oda | Kural |
+| --- | --- |
+| I · Aynalı Salon | Dev aynayı bul ve içine yürü |
+| II · Aynanın İçinde | 14 çarpık sahte dev arasından gerçeğini ayır |
+| III · Ters Salon | Kontroller aynalandı: sola bastığında sağa gidersin |
+| IV · Kayan Aynalar | Duvarlar 11 saniyede bir yer değiştirir |
+| V · Yankı | Her adımını tersten tekrar eden ikiz; değerse başa dönersin |
+| VI · Kibir Odası | Kibrin en parlak odası, 24 sahte dev |
+
+### II. Perde — Dünya turu
+| Oda | Şehir | Kural |
 | --- | --- | --- |
-| I · Aynalı Salon | 40×40 | Dev aynayı bul ve içine yürü |
-| II · Aynanın İçinde | 46×46 | 14 çarpık sahte dev arasından gerçeğini ayır |
-| III · Ters Salon | 48×48 | Kontroller aynalandı: sola bastığında sağa gidersin |
-| IV · Kayan Aynalar | 50×50 | Duvarlar 11 saniyede bir yer değiştirir |
-| V · Yankı | 52×52 | Her adımını tersten tekrar eden ikiz; değerse başa dönersin |
-| VI · Kibir Odası | 54×54 | Aynayı bul, sonra sönen fenerle kapıya dön |
+| VII | **Paris** — Aynalar Galerisi | Duvarların %55'i yok, ışık iki katı geniş: saklanacak yer yok, mesafeler uzun |
+| VIII | **Venedik** — Su Basmış Salon | Suda yürümek %28 daha ağır; beş saniyede bir yayılan dalga uzaktaki camları bir an aydınlatır |
+| IX | **Tokyo** — Neon | Bütün camlar renk değiştirir; dev ayna yanıp sönmez — kalabalıkta duran tek şey odur |
+| X | **New York** — Izgara | Her üç karede bir cadde: düz, uzun, birbirinin aynı köşeler |
+| XI | **Kahire** — Kum Fırtınası | Görüş sürekli daralıp açılır, kum havada süzülür |
+| XII | **İstanbul** — Kapalıçarşı | Uzun çarşı sokakları, 34 sahte dev; aynayı bul ve sönen fenerle kapıya dön |
 
 **Çarpık aynalar** seni bir tık büyük, yayvan, uzun ya da küçük gösterir; gerçek dev
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).
+
+## Ayarlar
+
+Sağ üstteki **Ayarlar** düğmesi: parlaklık (0,75–1,35), hareketi azaltma,
+açtığın odalar arasında geçiş, oyun içi **gizlilik politikası** ve sürüm no.
+Ses ve dil düğmeleri de aynı satırda. Tüm tercihler tarayıcıda saklanır.
 
 ## Ses
 

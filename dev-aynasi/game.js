@@ -14,6 +14,10 @@
     best: $("best"), next: $("next"), againBtn: $("againBtn"),
     duelBadge: $("duelBadge"), p1Time: $("p1Time"), p2Time: $("p2Time"),
     chapterCard: $("chapterCard"), cardTitle: $("cardTitle"), cardText: $("cardText"),
+    settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
+    brightness: $("brightness"), reduceMotion: $("reduceMotion"), roomPicker: $("roomPicker"),
+    privacyBtn: $("privacyBtn"), privacy: $("privacy"), privacyClose: $("privacyClose"),
+    privacyText: $("privacyText"), version: $("version"),
   };
 
   const CELL = 72;
@@ -30,6 +34,42 @@
   const ENTER_REACH = RADIUS + 12;  // aynaya değip içine girme mesafesi
   const WARM_CELLS = 5;      // dev aynasının çevresindeki "sıcak" camlar
   const BEST_KEY = "dev-aynasi:en-iyi";
+  const AYAR_KEY = "dev-aynasi:ayarlar";
+  const ACIK_KEY = "dev-aynasi:acilan";
+  const SURUM = "0.8.0";
+
+  // Ayarlar ve açılan bölümler tarayıcıda saklanır.
+  const ayarlar = Object.assign(
+    { parlaklik: 1, azHareket: false },
+    (() => {
+      try {
+        return JSON.parse(localStorage.getItem(AYAR_KEY) || "{}");
+      } catch (err) {
+        return {};
+      }
+    })()
+  );
+  function ayarlariKaydet() {
+    try {
+      localStorage.setItem(AYAR_KEY, JSON.stringify(ayarlar));
+    } catch (err) {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }
+  let acilan = 0;
+  try {
+    acilan = Math.max(0, Number(localStorage.getItem(ACIK_KEY) || 0));
+  } catch (err) {
+    acilan = 0;
+  }
+  function acilaniKaydet(i) {
+    acilan = Math.max(acilan, i);
+    try {
+      localStorage.setItem(ACIK_KEY, String(acilan));
+    } catch (err) {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }
 
   // Her bölüm salonu biraz daha zorlaştırır: ışık daralır, sahte devler artar.
   // Her bölüm dev aynanın içinden geçilerek girilen ayrı bir dünyadır;
@@ -60,8 +100,46 @@
     },
     {
       size: 54, light: 180, hints: 2, decoys: 24,
-      returnTrip: true, fading: true,
       palette: { ground: "#100608", floorA: "#1b0e10", floorB: "#150a0c", glass: "236, 186, 150", lamp: "255, 208, 150" },
+    },
+
+    // --- İkinci perde: dünya turu ---
+    {
+      // VII · Paris — Aynalar Galerisi: duvarların yarısı yok, salon açık ve
+      // ışık geniş. Saklanacak yer yok ama mesafeler uzun.
+      size: 56, light: 320, hints: 2, decoys: 26, openHall: 0.55,
+      palette: { ground: "#0b0910", floorA: "#191524", floorB: "#13101c", glass: "228, 214, 236", lamp: "255, 236, 214" },
+    },
+    {
+      // VIII · Venedik — Su Basmış Salon: su yürümeyi ağırlaştırır, beş
+      // saniyede bir yayılan dalga uzaktaki camları bir an aydınlatır.
+      size: 54, light: 190, hints: 2, decoys: 24, water: true,
+      palette: { ground: "#040d12", floorA: "#0a1a24", floorB: "#07141c", glass: "158, 222, 232", lamp: "186, 240, 255" },
+    },
+    {
+      // IX · Tokyo — Neon: bütün camlar renk değiştirir. Dev ayna
+      // yanıp sönmez; kalabalıkta kıpırdamayan tek şey odur.
+      size: 58, light: 210, hints: 2, decoys: 30, neon: true,
+      palette: { ground: "#0a0413", floorA: "#170a26", floorB: "#11071c", glass: "255, 120, 220", lamp: "180, 220, 255" },
+    },
+    {
+      // X · New York — Izgara: cadde ve sokaklar düz; koşmak serbest ama
+      // her köşe birbirinin aynı.
+      size: 60, light: 200, hints: 2, decoys: 28, grid: true,
+      palette: { ground: "#080a0f", floorA: "#12171f", floorB: "#0d1219", glass: "196, 214, 232", lamp: "255, 244, 214" },
+    },
+    {
+      // XI · Kahire — Kum Fırtınası: görüş sürekli daralıp açılır, kum
+      // taneleri havada süzülür.
+      size: 58, light: 215, hints: 2, decoys: 26, storm: true,
+      palette: { ground: "#100c05", floorA: "#1e1810", floorB: "#17120b", glass: "236, 208, 150", lamp: "255, 226, 168" },
+    },
+    {
+      // XII · İstanbul — Kapalıçarşı: uzun çarşı sokakları, en kalabalık
+      // ayna yığını ve dönüş. Dünyayı gezdin, şimdi kendine dön.
+      size: 62, light: 195, hints: 3, decoys: 34, bazaar: true,
+      returnTrip: true, fading: true,
+      palette: { ground: "#0f0906", floorA: "#1d1410", floorB: "#160f0b", glass: "240, 200, 140", lamp: "255, 214, 150" },
     },
   ];
 
@@ -85,7 +163,10 @@
   let echo = null;          // V. bölümdeki yankı
   let nextShift = 0;        // IV. bölümde aynaların kayacağı an
   let shiftFlash = 0;       // kayma anındaki parlama
-  let fade = 1;             // VI. bölümde sönen fener
+  let fade = 1;             // sönen fener (final)
+  let ripple = 0;           // Venedik dalgası: 0..1
+  let nextRipple = 0;
+  let sand = [];            // Kahire kum taneleri
   let chapter, size, maze, mirrorCount, giant, giantSeg, decoys, warm;
   let players = [];
   let duel = false;
@@ -119,6 +200,44 @@
     };
   }
 
+  // Şehirlere özgü salon düzenleri: Paris'in açık galerisi, New York'un
+  // ızgarası, İstanbul'un uzun çarşı sokakları.
+  function applyCityLayout() {
+    let s = (seed * 22695477 + 1) >>> 0;
+    const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+    if (chapter.openHall) {
+      for (let y = 1; y < size; y++) {
+        for (let x = 1; x < size; x++) {
+          if (rand() < chapter.openHall) maze.hWalls[y][x] = false;
+          if (rand() < chapter.openHall) maze.vWalls[y][x] = false;
+        }
+      }
+    }
+
+    if (chapter.grid) {
+      // Cadde ve sokaklar: her üç karede bir tam koridor açılır.
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          if (y % 3 === 1) maze.vWalls[y][x] = x === 0;
+          if (x % 3 === 1) maze.hWalls[y][x] = y === 0;
+        }
+      }
+    }
+
+    if (chapter.bazaar) {
+      // Çarşı sokakları: rastgele satır ve sütunlar boydan boya açılır.
+      for (let i = 0; i < Math.floor(size / 4); i++) {
+        const y = 1 + Math.floor(rand() * (size - 2));
+        const x = 1 + Math.floor(rand() * (size - 2));
+        for (let k = 1; k < size; k++) {
+          maze.vWalls[y][k] = false;
+          maze.hWalls[k][x] = false;
+        }
+      }
+    }
+  }
+
   // Bölümün metinleri seçili dilden okunur.
   function chapterText() {
     return I18n.chapters()[chapterIndex];
@@ -130,6 +249,7 @@
     size = chapter.size;
     seed = nextSeed;
     maze = Maze.generate(size, size, seed);
+    applyCityLayout();
     mirrorCount = Maze.mirrors(maze).length;
     giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed);
     giantSeg = segCenter(giant);
@@ -177,6 +297,15 @@
       ? { x: (size - 0.5) * CELL, y: (size - 0.5) * CELL, vurus: 0 }
       : null;
     nextShift = chapter.shiftEvery ? performance.now() + chapter.shiftEvery : 0;
+    nextRipple = chapter.water ? performance.now() + 2500 : 0;
+    ripple = 0;
+    sand = chapter.storm
+      ? Array.from({ length: 90 }, () => ({
+          x: Math.random() * 1400 - 700, y: Math.random() * 900 - 450,
+          r: 0.8 + Math.random() * 1.8, a: 0.05 + Math.random() * 0.2,
+          vx: 90 + Math.random() * 120, vy: -20 + Math.random() * 40,
+        }))
+      : [];
     shiftFlash = 0;
     fade = 1;
 
@@ -213,7 +342,8 @@
       if (chapter.mirrorControls) ix = -ix;
 
       const len = Math.hypot(ix, iy);
-      const hedefHiz = kosu ? SPRINT : SPEED;
+      const suKatsayi = chapter.water ? 0.72 : 1;
+      const hedefHiz = (kosu ? SPRINT : SPEED) * suKatsayi;
       if (len) {
         p.vx += (ix / len) * ACCEL * dt;
         p.vy += (iy / len) * ACCEL * dt;
@@ -374,10 +504,25 @@
     ctx.restore();
   }
 
-  function drawPanel(seg, dist, light, isWarm) {
+  function drawPanel(seg, dist, light, isWarm, now) {
     const g = segGeometry(seg);
-    const glow = Math.max(0, 1 - dist / (light * 1.15));
-    ctx.strokeStyle = `rgba(${C.glass}, ${(0.1 + glow * 0.6).toFixed(3)})`;
+    let glow = Math.max(0, 1 - dist / (light * 1.15));
+    // Venedik dalgası geçerken uzaktaki camlar bir an parlar.
+    if (ripple > 0) {
+      const halka = ripple * light * 3.2;
+      if (Math.abs(dist - halka) < 46) glow = Math.max(glow, 0.55 * (1 - ripple));
+    }
+    if (chapter.neon) {
+      // Tokyo: her cam kendi ritminde renk değiştirir; dev ayna kıpırdamaz.
+      const faz = (seg.x * 37 + seg.y * 61) % 360;
+      const t = now / 520 + faz;
+      const r = 150 + 105 * Math.sin(t);
+      const yesil = 120 + 90 * Math.sin(t + 2.1);
+      const m = 190 + 65 * Math.sin(t + 4.2);
+      ctx.strokeStyle = `rgba(${r | 0}, ${yesil | 0}, ${m | 0}, ${(0.12 + glow * 0.7).toFixed(3)})`;
+    } else {
+      ctx.strokeStyle = `rgba(${C.glass}, ${(0.1 + glow * 0.6).toFixed(3)})`;
+    }
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(g.ax, g.ay);
@@ -419,8 +564,9 @@
   }
 
   // Tek bir oyuncunun bakış açısını verilen dikdörtgene çizer.
-  function drawView(p, rect, now) {
-    const light = chapter.light * (phase === "donus" ? 0.78 : 1) * fade;
+  function drawView(p, rect, now, dt = 0.016) {
+    const firtina = chapter.storm ? 0.72 + 0.4 * (0.5 + 0.5 * Math.sin(now / 2600)) : 1;
+    const light = chapter.light * (phase === "donus" ? 0.78 : 1) * fade * firtina * ayarlar.parlaklik;
     ctx.save();
     ctx.beginPath();
     ctx.rect(rect.x, rect.y, rect.w, rect.h);
@@ -428,7 +574,7 @@
     ctx.fillStyle = C.ground;
     ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
 
-    const zoom = 1 + p.bloom * 0.14;
+    const zoom = 1 + p.bloom * (ayarlar.azHareket ? 0 : 0.14);
     ctx.save();
     ctx.translate(rect.x + rect.w / 2, rect.y + rect.h / 2);
     ctx.scale(zoom, zoom);
@@ -471,9 +617,22 @@
     });
 
     ctx.lineCap = "round";
-    forEachNearSegment(p, light * 1.25, (horizontal, x, y, d) => {
-      drawPanel({ horizontal, x, y }, d, light, warm.has(idOf(horizontal, x, y)));
+    const panelMenzil = ripple > 0 ? light * 3.4 : light * 1.25;
+    forEachNearSegment(p, panelMenzil, (horizontal, x, y, d) => {
+      drawPanel({ horizontal, x, y }, d, light, warm.has(idOf(horizontal, x, y)), now);
     });
+
+    if (sand.length && !ayarlar.azHareket) {
+      for (const k of sand) {
+        k.x += k.vx * dt;
+        k.y += k.vy * dt;
+        if (k.x > halfW) { k.x = -halfW; k.y = (Math.random() - 0.5) * halfH * 2; }
+        ctx.fillStyle = `rgba(255, 226, 168, ${k.a})`;
+        ctx.beginPath();
+        ctx.arc(camX + halfW + k.x, camY + halfH + k.y, k.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
 
     if (echo) {
       const d = Math.hypot(echo.x - p.x, echo.y - p.y);
@@ -543,7 +702,7 @@
     return giantVisible;
   }
 
-  function draw(now) {
+  function draw(now, dt) {
     const ratio = scale();
     const view = viewSize();
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -553,12 +712,12 @@
     const visible = [];
     if (duel) {
       const halfW = (view.w - 2) / 2;
-      visible.push(drawView(players[0], { x: 0, y: 0, w: halfW, h: view.h }, now));
-      visible.push(drawView(players[1], { x: halfW + 2, y: 0, w: halfW, h: view.h }, now));
+      visible.push(drawView(players[0], { x: 0, y: 0, w: halfW, h: view.h }, now, dt));
+      visible.push(drawView(players[1], { x: halfW + 2, y: 0, w: halfW, h: view.h }, now, dt));
       ctx.fillStyle = `rgba(${BRASS}, 0.35)`;
       ctx.fillRect(halfW, 0, 2, view.h);
     } else {
-      visible.push(drawView(players[0], { x: 0, y: 0, w: view.w, h: view.h }, now));
+      visible.push(drawView(players[0], { x: 0, y: 0, w: view.w, h: view.h }, now, dt));
     }
     return visible;
   }
@@ -709,6 +868,7 @@
   function enterMirror(now) {
     Sound.through();
     chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
+    acilaniKaydet(chapterIndex);
     const gecenSure = startedAt;
     newRoom(randomSeed());
     startedAt = gecenSure;
@@ -731,9 +891,13 @@
       updateEcho(dt);
       maybeShift(now);
       if (chapter.fading && phase === "donus") fade = Math.max(0.42, fade - dt * 0.012);
+      if (chapter.water) {
+        if (now > nextRipple) { nextRipple = now + 5000; ripple = 0.001; }
+        if (ripple > 0) ripple = ripple > 1 ? 0 : ripple + dt * 0.55;
+      }
     }
     if (shiftFlash > 0) shiftFlash = Math.max(0, shiftFlash - dt * 1.6);
-    const visible = finished ? [] : draw(now);
+    const visible = finished ? [] : draw(now, dt);
 
     if (running && !finished) {
       players.forEach((p, i) => {
@@ -807,10 +971,10 @@
     return 1 + Math.floor(Math.random() * 99998);
   }
 
-  function begin(isDuel, nextSeed) {
+  function begin(isDuel, nextSeed, bolum = 0) {
     Sound.start();
     duel = isDuel;
-    chapterIndex = 0;
+    chapterIndex = Math.min(bolum, CHAPTERS.length - 1);
     carding = 0;
     els.chapterCard.hidden = true;
     els.intro.hidden = true;
@@ -834,6 +998,49 @@
     els.soundBtn.textContent = I18n.t(acik ? "soundOn" : "soundOff");
     els.soundBtn.setAttribute("aria-pressed", String(acik));
   }
+  // --- ayarlar penceresi ---
+  function bolumListesiKur() {
+    els.roomPicker.textContent = "";
+    I18n.chapters().forEach((b, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "room";
+      btn.textContent = b.name;
+      btn.disabled = i > acilan;
+      btn.classList.toggle("active", i === chapterIndex);
+      btn.addEventListener("click", () => {
+        if (i > acilan) return;
+        chapterIndex = i;
+        begin(duel, randomSeed(), i);
+        ayarlariKapat();
+      });
+      els.roomPicker.appendChild(btn);
+    });
+  }
+  function ayarlariAc() {
+    els.brightness.value = String(ayarlar.parlaklik);
+    els.reduceMotion.checked = !!ayarlar.azHareket;
+    els.version.textContent = SURUM;
+    bolumListesiKur();
+    els.settings.hidden = false;
+  }
+  const ayarlariKapat = () => { els.settings.hidden = true; };
+  els.settingsBtn.addEventListener("click", ayarlariAc);
+  els.settingsClose.addEventListener("click", ayarlariKapat);
+  els.brightness.addEventListener("input", () => {
+    ayarlar.parlaklik = Number(els.brightness.value);
+    ayarlariKaydet();
+  });
+  els.reduceMotion.addEventListener("change", () => {
+    ayarlar.azHareket = els.reduceMotion.checked;
+    ayarlariKaydet();
+  });
+  els.privacyBtn.addEventListener("click", () => {
+    els.privacyText.innerHTML = I18n.t("privacyBody");
+    els.privacy.hidden = false;
+  });
+  els.privacyClose.addEventListener("click", () => { els.privacy.hidden = true; });
+
   els.soundBtn.addEventListener("click", toggleSound);
   function refreshLanguage() {
     I18n.apply();
@@ -848,6 +1055,7 @@
   els.langBtn.addEventListener("click", () => {
     I18n.toggle();
     refreshLanguage();
+    if (!els.settings.hidden) bolumListesiKur();
   });
   els.hintBtn.addEventListener("click", () => useHint(players[0]));
   els.restart.addEventListener("click", restart);
@@ -964,7 +1172,7 @@
     wallsHash: () => maze.hWalls.flat().concat(maze.vWalls.flat()).reduce((a, v, i) => a + (v ? i % 97 : 0), 0),
     forceShift() { nextShift = performance.now() - 1; },
     state: () => ({
-      chapter: chapter.name, seed, duel, phase, mirrors: mirrorCount,
+      chapter: chapterText().name, seed, duel, phase, mirrors: mirrorCount,
       decoys: decoys.size, seen: players.reduce((n, p) => n + p.seen.size, 0),
       finished: !!finished, winner: finished ? finished.winner.label : null,
     }),
