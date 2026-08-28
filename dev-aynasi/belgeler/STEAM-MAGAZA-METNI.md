@@ -27,20 +27,24 @@ altın renginde, panele sığmayan bir dev olarak gösterir.
 
 Onu bulduğunda içine yürürsün ve bir sonraki oda açılır.
 
-[h2]Altı oda, altı kural[/h2]
+[h2]On altı oda[/h2]
 [list]
 [*][b]I · Aynalı Salon[/b] — Dev aynayı bul ve içine yürü
 [*][b]II · Aynanın İçinde[/b] — Çarpık sahte devler arasından gerçeğini ayır
 [*][b]III · Ters Salon[/b] — Kontroller aynalandı: sola bastığında sağa gidersin
 [*][b]IV · Kayan Aynalar[/b] — Duvarlar yerinde durmuyor
 [*][b]V · Yankı[/b] — Her adımını tersten tekrar eden bir ikiz peşinde
-[*][b]VI · Kibir Odası[/b] — Aynayı bul, sonra sönen ışıkla kapıya dön
+[*][b]VI · Kibir Odası[/b] — Kibrin en parlak odası
+[*][b]VII–XII[/b] — Paris, Venedik, Tokyo, New York, Kahire, İstanbul
+[*][b]XIII–XV[/b] — Londra sisi, Dubai cam kulesi, Rio karnavalı
+[*][b]XVI · Kaçan Ayna[/b] — Dev ayna yerinde durmaz; yaklaşırsan kaçar
 [/list]
 
 [h2]Yalnız ya da karşılıklı[/h2]
 [list]
 [*]Tek klavyede iki kişi, bölünmüş ekran, aynı salonda yarış
 [*]Salon kodu: aynı kodu giren herkes birebir aynı salonu oynar
+[*]Sonsuz salon: rastgele kurallarla bitmeyen seri
 [*]Çevrimiçi yarış yolda: kalabalık arttıkça salon büyür, 26.000 aynaya kadar
 [/list]
 

@@ -1,5 +1,8 @@
 # Yapılacaklar
 
+> **Durum (1.1.1):** oyun tarafı yayına hazır. Kalan iki iş multiplayer'ın
+> istemciye bağlanması ve dağıtım (masaüstü paketi + Steam sayfası).
+
 ## 1. Çevrimiçi yarış (multiplayer) — kod hazır, bağlanacak
 Kod `multiplayer/` klasöründe duruyor; oyuna henüz bağlı değil.
 Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.

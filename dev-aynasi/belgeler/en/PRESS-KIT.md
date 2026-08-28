@@ -9,7 +9,7 @@
 | **Genre** | Search / puzzle, atmospheric |
 | **Platforms** | Browser (PC, Mac, mobile) · Steam release planned |
 | **Languages** | Turkish, English |
-| **Rooms** | 12 (6 hall rooms + 6 cities: Paris, Venice, Tokyo, New York, Cairo, Istanbul) |
+| **Rooms** | 16 (6 hall rooms + 9 cities + the fleeing-mirror finale) |
 | **Players** | 1 · 2 local split-screen · online race (planned) |
 | **Price** | Free |
 | **Status** | Early build playable |
@@ -49,9 +49,10 @@ back.
 - **Real reflections.** Every mirror reflects you across its own plane.
 - **Thousands of mirrors.** Over 1,600 panes in the first room alone; online
   rooms scale up to 26,000.
-- **Six rooms, six rules.** Crooked mirrors, inverted controls, shifting walls,
+- **Sixteen rooms.** Crooked mirrors, inverted controls, shifting walls,
   a mimicking echo, a dying lantern.
 - **Split-screen duel.** Two players, one keyboard, the same hall.
+- **Endless hall.** A never-ending run of randomly combined rules, with a best-run record.
 - **Hall codes.** Anyone entering the same code plays the exact same hall.
 - **Silent by design.** The game has no sound or music; attention stays on the search.
 - **No install.** Runs in a browser; a single-file offline build is included.
@@ -65,7 +66,10 @@ back.
 | III · Inverted Hall | Controls are mirrored: press left, go right |
 | IV · Shifting Mirrors | Walls change places every 11 seconds |
 | V · The Echo | A twin repeats your every move, reversed |
-| VI · Room of Pride | Find the mirror, then reach the door as the light dies |
+| VI · Room of Pride | The brightest room of pride, 24 crooked giants |
+| VII–XII | Paris, Venice, Tokyo, New York, Cairo, Istanbul — each city its own rule |
+| XIII–XV | London (fog), Dubai (glass tower), Rio (carnival) |
+| XVI · The Fleeing Mirror | The giant mirror moves every 20 seconds and flees when you approach |
 
 ## Assets
 

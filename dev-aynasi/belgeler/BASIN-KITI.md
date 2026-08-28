@@ -10,7 +10,7 @@
 | **Tür** | Arama / bulmaca, atmosferik |
 | **Platform** | Tarayıcı (PC, Mac, mobil) · Steam sürümü planlanıyor |
 | **Dil** | Türkçe (İngilizce planlanıyor) |
-| **Oda sayısı** | 12 (6 salon + 6 şehir: Paris, Venedik, Tokyo, New York, Kahire, İstanbul) |
+| **Oda sayısı** | 16 (6 salon + 9 şehir + kaçan ayna finali) |
 | **Oyuncu** | 1 kişi · 2 kişi bölünmüş ekran · çevrimiçi yarış (planlanıyor) |
 | **Fiyat** | Ücretsiz |
 | **Çıkış** | Erken sürüm yayında |
@@ -50,9 +50,10 @@ dönmeniz gerekir.
 - **Gerçek yansımalar.** Her ayna, ayna düzlemine göre simetriğinizi çizer.
 - **Binlerce ayna.** Tek kişilik ilk odada 1.600'den fazla ayna paneli;
   çevrimiçi kalabalık odalarda 26.000'e kadar çıkar.
-- **Altı oda, altı kural.** Çarpık aynalar, ters kontroller, kayan duvarlar,
+- **On altı oda.** Çarpık aynalar, ters kontroller, kayan duvarlar,
   sizi taklit eden yankı, sönen fener.
 - **Bölünmüş ekran düello.** Tek klavyede iki kişi, aynı salonda yarış.
+- **Sonsuz salon.** Rastgele kural karışımıyla bitmeyen seri, rekor takibi.
 - **Salon kodu.** Aynı kodu giren herkes birebir aynı salonu oynar.
 - **Sessiz tasarım.** Oyunda ses ve müzik yoktur; dikkat tamamen aramada kalır.
 - **Kurulum yok.** Tarayıcıda açılır, tek dosyalık çevrimdışı sürümü vardır.
@@ -66,7 +67,10 @@ dönmeniz gerekir.
 | III · Ters Salon | Kontroller aynalandı: sola bastığında sağa gidersin |
 | IV · Kayan Aynalar | Duvarlar 11 saniyede bir yer değiştirir |
 | V · Yankı | Her adımını tersten tekrar eden bir ikiz peşinde |
-| VI · Kibir Odası | Aynayı bul, sonra sönen ışıkla kapıya dön |
+| VI · Kibir Odası | Kibrin en parlak odası, 24 sahte dev |
+| VII–XII | Paris, Venedik, Tokyo, New York, Kahire, İstanbul — her şehrin kendi kuralı |
+| XIII–XV | Londra (sis), Dubai (cam kule), Rio (karnaval) |
+| XVI · Kaçan Ayna | Dev ayna 20 saniyede bir yer değiştirir, yaklaşınca kaçar |
 
 ## Görseller
 

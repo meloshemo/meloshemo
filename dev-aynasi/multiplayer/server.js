@@ -503,6 +503,12 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     if (!room) return;
+    // Ayrılan oyuncu sıralamada kaybolmasın: elenmiş sayılır ve sıraya yazılır.
+    if (me && !me.elendi && room.state === "yaris") {
+      me.elendi = true;
+      room.elenenler.push({ id: me.id, ad: me.ad, renk: me.renk, tur: room.tur + 1, ayrildi: true });
+      broadcast(room, "ayrildi", { id: me.id, ad: me.ad, kalan: hayattakiler(room).length - 1 });
+    }
     room.players.delete(ws);
     if (room.players.size === 0) {
       rooms.delete(room.code);

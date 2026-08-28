@@ -1,5 +1,21 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.1.1 — Yayın öncesi denetim
+Baştan sona denetim yapıldı; bulunan açıklar kapatıldı:
+- **Sonsuz modda seri sessizce kayboluyordu:** `R` artık seriyi bitirip skor
+  ekranını açıyor, "Baştan oyna" aynı modu sürdürüyor, en iyi seri defterde
+  görünüyor
+- **Sürüm numarası** oyun içinde 0.8.0 görünüyordu, 1.1.0 oldu
+- **Ayrılan oyuncu** çok oyuncuda sıralamada kayboluyordu; artık "ayrıldı"
+  olarak sıraya yazılıyor
+- Basın kiti ve Steam metinleri 16 odaya göre güncellendi
+- `LICENSE` dosyası eklendi (telif + yayıncı izni)
+
+Denetimde doğrulananlar: 16 odanın hepsi 63 fps ile açılıyor ve aynaya
+yürüyerek geçiş her odada çalışıyor; iki dilde de boş metin yok; ayarlar,
+oda kilidi, salon kodu, sezgi hakkı, mobil yerleşim, odak kaybında tuş
+takılması, sekiz oyunculu turnuva, süre dolması ve bağlantı kopması sorunsuz.
+
 ## 1.1.0 — Tur süresi ve son düdük
 - **Tur süresi:** salon büyüklüğüne göre 1,5–5 dakika (2 kişi 2,1 dk,
   8 kişi 5 dk). Hiçbir tur sürüncemede kalmaz

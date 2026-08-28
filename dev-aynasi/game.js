@@ -11,7 +11,7 @@
     codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
     overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
     ledger: $("ledger"), overlayTime: $("overlayTime"), overlaySeen: $("overlaySeen"),
-    best: $("best"), next: $("next"), againBtn: $("againBtn"),
+    best: $("best"), ledgerBest: $("ledgerBest"), next: $("next"), againBtn: $("againBtn"),
     duelBadge: $("duelBadge"), p1Time: $("p1Time"), p2Time: $("p2Time"),
     chapterCard: $("chapterCard"), cardTitle: $("cardTitle"), cardText: $("cardText"),
     fsBtn: $("fsBtn"), settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
@@ -36,7 +36,7 @@
   const BEST_KEY = "dev-aynasi:en-iyi";
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
-  const SURUM = "0.8.0";
+  const SURUM = "1.1.1";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -873,6 +873,7 @@
       els.overlayTitle.textContent = I18n.t("endTitle");
       els.overlayText.textContent = I18n.t("endText");
       els.best.parentElement.hidden = false;
+      els.ledgerBest.textContent = I18n.t("ledgerBest");
       let best = Number(localStorage.getItem(`${BEST_KEY}:${chapterIndex}`) || 0);
       if (!best || elapsed < best) {
         best = elapsed;
@@ -886,8 +887,12 @@
     }
 
     if (endless) {
+      kaydetSonsuzRekor();
       els.overlayTitle.textContent = I18n.t("endlessOver");
       els.overlayText.textContent = I18n.t("endlessOverText")(endlessCount, sonsuzRekor());
+      els.best.parentElement.hidden = false;
+      els.best.textContent = String(sonsuzRekor());
+      els.ledgerBest.textContent = I18n.t("bestRun");
     }
     els.overlayTime.textContent = formatTime(elapsed);
     els.overlaySeen.textContent = `${seenTotal.toLocaleString("tr-TR")} / ${mirrorCount.toLocaleString("tr-TR")}`;
@@ -1134,7 +1139,13 @@
   const startEndless = () => begin(false, randomSeed(), 0, true);
   function restart() {
     if (!running && els.intro.hidden === false) return;
-    begin(duel, randomSeed());
+    // Sonsuz modda "yeni salon" seriyi bitirir: skor ekranı çıkar, oyuncu
+    // oradan yeni seriye başlar. Seri sessizce kaybolmaz.
+    if (endless && !finished) {
+      finish(players[0], performance.now());
+      return;
+    }
+    begin(duel, randomSeed(), 0, endless);
   }
 
   els.enterSolo.addEventListener("click", startSolo);
@@ -1227,7 +1238,7 @@
   });
   els.hintBtn.addEventListener("click", () => useHint(players[0]));
   els.restart.addEventListener("click", restart);
-  els.againBtn.addEventListener("click", () => begin(duel, randomSeed()));
+  els.againBtn.addEventListener("click", () => begin(duel, randomSeed(), 0, endless));
   els.codeApply.addEventListener("click", () => {
     const code = parseInt(els.codeInput.value.trim(), 10);
     if (!code || code < 1 || code > 99999) {
@@ -1296,6 +1307,9 @@
       const p = players[index];
       p.vx = 0;
       p.vy = 0;
+      // Ters Salon'da yatay tuşlar aynalanır; testin doğru tuşu basması için
+      // burada da çevrilir.
+      const yatayTus = (t) => (chapter.mirrorControls ? (t === "a" ? "d" : "a") : t);
       if (giant.horizontal) {
         p.x = g.ax + CELL / 2;
         const disarida = giant.y >= size;
@@ -1305,7 +1319,7 @@
       p.y = g.ay + CELL / 2;
       const disarida = giant.x >= size;
       p.x = g.ax + (disarida ? -CELL * 0.45 : CELL * 0.45);
-      return disarida ? "d" : "a";
+      return yatayTus(disarida ? "d" : "a");
     },
     teleportToDecoy(index = 0) {
       const id = [...decoys.keys()][0];

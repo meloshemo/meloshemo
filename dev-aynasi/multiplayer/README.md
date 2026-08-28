@@ -95,6 +95,19 @@ görür. Yarış, III. bölümü bitirenlerin sırasına göre sonuçlanır.
 herkesin konumunu yayınlar. Paket başına oyuncu başına ~30 bayt; 8 kişilik bir
 odada saniyede ~5 KB. Aradaki kareler istemcide yumuşatılır (`net.guncelle`).
 
+## Denetim sonuçları
+
+Sunucu üç senaryoda uçtan uca koşuldu:
+
+- **Sekiz oyunculu turnuva:** 8 → 7 → 6 → 5 → 4 → 3 → 2 → 1 kazanan; her tur
+  yeni salon (26.755 → 5.454 ayna), sıralama doğru
+- **Süre dolması:** sayaç uyarıları, son düdük işareti ve aynaya adım olarak
+  en uzak olanın elenmesi doğrulandı
+- **Bağlantı kopması:** oyuncu ortada ayrılınca tur kilitlenmiyor, ayrılan
+  sıralamaya "ayrıldı" olarak yazılıyor
+- **Geç katılım:** yarış başladıktan sonra katılmak reddediliyor
+- **Hile:** ışınlanma hız sınırıyla engelleniyor
+
 ## Bağlama adımları (bilgisayarında yapılacak)
 
 1. `index.html`'e ekle: `<script src="multiplayer/net.js"></script>`

@@ -26,20 +26,24 @@ Only one shows you in gold, a giant too large for its frame.
 
 Find it, walk into it, and the next room opens.
 
-[h2]Six rooms, six rules[/h2]
+[h2]Sixteen rooms[/h2]
 [list]
 [*][b]I · Hall of Mirrors[/b] — Find the giant mirror and walk into it
 [*][b]II · Inside the Mirror[/b] — Tell the real giant from the crooked ones
 [*][b]III · Inverted Hall[/b] — Controls are mirrored: press left, go right
 [*][b]IV · Shifting Mirrors[/b] — The walls will not hold still
 [*][b]V · The Echo[/b] — A twin repeats your every move, reversed
-[*][b]VI · Room of Pride[/b] — Find the mirror, then reach the door as the light dies
+[*][b]VI · Room of Pride[/b] — The brightest room of pride
+[*][b]VII–XII[/b] — Paris, Venice, Tokyo, New York, Cairo, Istanbul
+[*][b]XIII–XV[/b] — London fog, Dubai glass tower, Rio carnival
+[*][b]XVI · The Fleeing Mirror[/b] — The giant mirror will not stay; approach and it flees
 [/list]
 
 [h2]Alone or head to head[/h2]
 [list]
 [*]Two players on one keyboard, split screen, racing through the same hall
 [*]Hall codes: anyone entering the same code plays the exact same hall
+[*]Endless hall: a never-ending run of randomly combined rules
 [*]Online race in development: the more players, the bigger the hall — up to 26,000 mirrors
 [/list]
 
