@@ -65,14 +65,48 @@ const rooms = new Map(); // kod -> oda
 // Bir bölümün salonunu üretir. Her oyuncu kendi bölümünü ayrı bir salonda
 // oynar: dev aynayı bulan oyuncu aynadan geçip bir sonraki salona girer,
 // geride kalanlar kendi salonlarında aramaya devam eder.
+// Oyuncular salonun farklı köşelerinden başlar; yolları kesişsin diye
+// başlangıçlar çevreye dağıtılır.
+function spawnPoints(size, count) {
+  const k = size - 1;
+  const havuz = [
+    { x: 0, y: 0 }, { x: k, y: k }, { x: k, y: 0 }, { x: 0, y: k },
+    { x: k >> 1, y: 0 }, { x: k >> 1, y: k }, { x: 0, y: k >> 1 }, { x: k, y: k >> 1 },
+  ];
+  return havuz.slice(0, Math.max(1, count));
+}
+
+// Dev ayna, bütün başlangıçlara yaklaşık eşit uzaklıkta olmalı: yarış adil
+// olsun diye kimsenin kapısının önüne düşmez.
+function fairGiant(maze, spawns, seed) {
+  const mesafeler = spawns.map((s) => Maze.distances(maze, s));
+  const adaylar = [];
+  for (let deneme = 0; deneme < 40; deneme++) {
+    const g = Maze.pickGiant(maze, spawns[deneme % spawns.length], seed + deneme * 17);
+    const cx = g.horizontal ? g.x : Math.min(g.x, maze.width - 1);
+    const cy = g.horizontal ? Math.min(g.y, maze.height - 1) : g.y;
+    const d = mesafeler.map((m) => m[cy * maze.width + cx]).filter((v) => v >= 0);
+    if (d.length !== spawns.length) continue;
+    const ort = d.reduce((a, b) => a + b, 0) / d.length;
+    const fark = Math.max(...d) - Math.min(...d);
+    adaylar.push({ g, puan: fark - ort * 0.25 });   // fark küçük, mesafe büyük olsun
+  }
+  if (!adaylar.length) return Maze.pickGiant(maze, spawns[0], seed);
+  adaylar.sort((a, b) => a.puan - b.puan);
+  return adaylar[0].g;
+}
+
 function createHall(playerCount, chapter) {
   const seed = (Math.random() * 99999) | 0 || 1;
   const size = roomSize(playerCount, chapter);
   const maze = Maze.generate(size, size, seed);
-  const giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed);
+  const spawns = spawnPoints(size, playerCount);
+  const giant = playerCount > 1
+    ? fairGiant(maze, spawns, seed)
+    : Maze.pickGiant(maze, spawns[0], seed);
   const mirrors = Maze.mirrors(maze);
   return {
-    chapter, seed, size, maze, giant,
+    chapter, seed, size, maze, giant, spawns,
     mirrorCount: mirrors.length,
     decoys: pickDecoys(mirrors, giant, seed, decoyCount(playerCount, chapter)),
   };
@@ -97,11 +131,14 @@ function hallFor(room, chapter) {
   return room.halls[chapter];
 }
 
-function hallInfo(room, chapter) {
+function hallInfo(room, chapter, oyuncu) {
   const h = hallFor(room, chapter);
+  const sira = oyuncu ? oyuncu.spawnIndex % h.spawns.length : 0;
+  const s = h.spawns[sira];
   return {
     bolum: chapter, bolumAdi: CHAPTERS[chapter].ad,
     tohum: h.seed, boyut: h.size, aynaSayisi: h.mirrorCount, decoys: h.decoys,
+    baslangic: { x: (s.x + 0.5) * CELL, y: (s.y + 0.5) * CELL },
   };
 }
 
@@ -173,6 +210,7 @@ wss.on("connection", (ws) => {
       const renk = COLORS.find((c) => !used.has(c.id));
       me = {
         id: Math.random().toString(36).slice(2, 8),
+        spawnIndex: room.players.size,
         ad: String(msg.ad || "Oyuncu").slice(0, 16),
         renk,
         x: CELL * 0.5, y: CELL * 0.5,
@@ -187,9 +225,15 @@ wss.on("connection", (ws) => {
       room.halls = [createHall(room.players.size, 0)];
 
       send(ws, "hosgeldin", { benim: me.id, renk: me.renk });
-      broadcast(room, "salon", {
-        kod: room.code, ...hallInfo(room, 0), oyuncular: roster(room),
-      });
+      // Her oyuncuya kendi başlangıç noktasıyla salon bilgisi gider.
+      for (const [sock, kisi] of room.players) {
+        send(sock, "salon", {
+          kod: room.code, ...hallInfo(room, 0, kisi), oyuncular: roster(room),
+        });
+        const s = hallFor(room, 0).spawns[kisi.spawnIndex % hallFor(room, 0).spawns.length];
+        kisi.x = (s.x + 0.5) * CELL;
+        kisi.y = (s.y + 0.5) * CELL;
+      }
       return;
     }
 
@@ -245,9 +289,10 @@ wss.on("connection", (ws) => {
             // Aynadan geçer: kendi bir sonraki salonuna girer, diğerleri
             // kendi salonlarında aramaya devam eder.
             me.bolum++;
-            me.x = CELL * 0.5;
-            me.y = CELL * 0.5;
-            send(ws, "bolum", { ...hallInfo(room, me.bolum), sure: gecen });
+            const bilgi = hallInfo(room, me.bolum, me);
+            me.x = bilgi.baslangic.x;
+            me.y = bilgi.baslangic.y;
+            send(ws, "bolum", { ...bilgi, sure: gecen });
             broadcast(room, "oyuncular", { oyuncular: roster(room) });
           } else {
             me.sure = gecen;

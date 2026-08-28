@@ -33,7 +33,13 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [x] Steam kapsül görselleri ve 1920×1080 ekran görüntüleri
 - [x] Değişiklik günlüğü
 
-## 3. Oyun mekaniği
+## 3. Tamamlananlar (0.9.0)
+- [x] Sonsuz salon modu (rastgele kural karışımı, artan zorluk, rekor)
+- [x] Dev aynanın yeri kuşaklara göre değişiyor
+- [x] Tam ekran / sinematik mod
+- [x] Multiplayer'da farklı köşelerden başlangıç ve adil ayna yerleşimi
+
+## 4. Oyun mekaniği
 - [x] Ses tamamen kaldırıldı (oyun sessiz)
 - [ ] Müzik: telifsiz ya da sipariş edilmiş bir parça bulunduğunda eklenecek
 - [ ] Sahte aynada kısa süre cezası
@@ -43,6 +49,6 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [x] Yeni uygulama ikonu (ayna çerçevesi kompozisyonu)
 - [ ] Masaüstü paketi (Electron/Tauri) — Steam için gerekli
 
-## 4. Kapsam kararı
+## 5. Kapsam kararı
 Oyun tek bir deyimin oyunu olarak kalacak: **kendini dev aynasında görmek**.
 Başka deyimler için ayrı oyun yapılmayacak.

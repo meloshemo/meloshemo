@@ -41,6 +41,12 @@ gelir; herkes diğerlerini kendi renginde görür.
 Her bölümde oda ayrıca %15 büyür. Yani kalabalıkta dev aynayı bulma olasılığı
 çok düşer, yarış uzar — istediğin "zorlaştırıp oyunda tutma" etkisi buradan gelir.
 
+**Herkes farklı köşeden başlar.** Oyuncular salonun köşelerine ve kenar
+ortalarına dağıtılır; yollar kesişir, birbirinizi karanlıkta görürsünüz.
+Dev ayna, bütün başlangıçlara yaklaşık eşit uzaklıkta olacak şekilde seçilir
+(40 aday arasından mesafe farkı en küçük olan) — kimsenin kapısının önüne
+düşmez.
+
 **Bulan durmaz, ilerler.** Dev aynayı bulan oyuncu aynadan geçip bir sonraki
 bölümün salonuna girer ve orada aramaya başlar; geride kalanlar kendi
 salonlarında aramaya devam eder. Herkes yalnızca kendi bölümündeki oyuncuları

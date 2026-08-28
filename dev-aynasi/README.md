@@ -43,6 +43,27 @@ getirir. Açtığın odalara ayarlardan geri dönebilirsin.
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).
 
+## Sonsuz salon
+
+Giriş perdesindeki **Sonsuz salon** modu bitmeyen bir seri açar: her salon
+rastgele bir kural (ters kontrol, kayan duvarlar, yankı, neon, su, fırtına,
+ızgara, açık galeri, çarşı — bazen ikisi birden), her salonda biraz daha
+büyük bir labirent ve biraz daha dar ışık. Kaç salon geçtiğin sayılır, en iyi
+serin tarayıcıda saklanır.
+
+## Dev aynanın yeri
+
+Dev ayna artık hep en uzak köşede değil. Her salonda mesafe bir **kuşak** ile
+seçilir: `yakın` (%18–42), `orta` (%40–72), `uzak` (%70–100). Dağılım kabaca
+%25 yakın, %45 orta, %30 uzak — yani bazen bir dakikada bulursun, bazen
+salonu baştan sona tararsın.
+
+## Tam ekran
+
+**Tam ekran** düğmesi (ya da `F`) oyunu sinematik moda alır: sayfa arayüzü
+kaybolur, gösterge üstte ince bir şeride iner, tuval bütün ekranı kaplar.
+`Esc` çıkar. Oyuna girdiğinde otomatik olarak bu moda geçilir.
+
 ## Ayarlar
 
 Sağ üstteki **Ayarlar** düğmesi: parlaklık (0,75–1,35), hareketi azaltma,

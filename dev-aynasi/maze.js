@@ -113,16 +113,46 @@
     return dist;
   }
 
-  // Dev aynası: başlangıçtan yeterince uzak bir karenin duvarlarından biri.
-  function pickGiant(maze, start, seed) {
+  // Dev aynası. Her salonda hep en uzak köşede olmasın diye mesafe bir
+  // "kuşak" ile seçilir: bazen burnunun dibinde, bazen salonun ta öbür ucunda.
+  //   yakin  : ilk üçte bir      (şanslıysan bir dakikada bulursun)
+  //   orta   : ortadaki üçte bir
+  //   uzak   : son üçte bir      (uzun arama)
+  // Kuşak verilmezse tohuma göre rastgele seçilir; dağılım %25 yakın,
+  // %45 orta, %30 uzak.
+  const BANDS = {
+    yakin: [0.18, 0.42],
+    orta: [0.4, 0.72],
+    uzak: [0.7, 1.0],
+  };
+
+  function pickBand(seed) {
+    const next = rng(seed + 104729);
+    next();
+    next();                       // xorshift'in ilk çıktıları tohuma fazla bağlı
+    const r = next();
+    if (r < 0.25) return "yakin";
+    if (r < 0.7) return "orta";
+    return "uzak";
+  }
+
+  function pickGiant(maze, start, seed, band) {
     const rand = rng(seed + 7919);
     const dist = distances(maze, start);
+    const kusak = BANDS[band] || BANDS[pickBand(seed)];
     const far = [];
     let max = 0;
     for (const d of dist) if (d > max) max = d;
     for (let y = 0; y < maze.height; y++) {
       for (let x = 0; x < maze.width; x++) {
-        if (dist[y * maze.width + x] >= max * 0.55) far.push({ x, y });
+        const d = dist[y * maze.width + x];
+        if (d >= max * kusak[0] && d <= max * kusak[1]) far.push({ x, y });
+      }
+    }
+    // Kuşakta uygun kare kalmadıysa (küçük ya da tuhaf salonlar) tümünü kullan.
+    if (!far.length) {
+      for (let y = 0; y < maze.height; y++) {
+        for (let x = 0; x < maze.width; x++) if (dist[y * maze.width + x] > 3) far.push({ x, y });
       }
     }
     for (let tries = 0; tries < 500; tries++) {
@@ -138,5 +168,5 @@
     return mirrors(maze)[0];
   }
 
-  return { generate, mirrors, hasWall, distances, pickGiant };
+  return { generate, mirrors, hasWall, distances, pickGiant, pickBand, BANDS };
 });

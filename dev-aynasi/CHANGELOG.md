@@ -1,5 +1,15 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 0.9.0 — Sonsuz salon, tam ekran, adil yarış
+- **Sonsuz salon modu:** her salon rastgele kural karışımıyla kurulur, büyür
+  ve kararır; geçilen salon sayısı ve en iyi seri saklanır
+- **Dev aynanın yeri çeşitlendi:** yakın / orta / uzak kuşaklar (%25 / %45 / %30)
+- **Tam ekran (sinematik) mod:** oyuna girince tuval ekranı kaplar, `F` ile
+  açılıp kapanır, `Esc` çıkar
+- **Multiplayer:** oyuncular salonun farklı köşelerinden başlar; dev ayna
+  bütün başlangıçlara yaklaşık eşit uzaklıkta seçilir (test edilen salonda
+  mesafe farkı 160'tan 92 adıma indi)
+
 ## 0.8.1 — Sessiz sürüm
 - **Ses tamamen kaldırıldı.** Uğultu, çınlama ve geçiş sesleri; ses düğmesi,
   `M` kısayolu ve `audio.js` dosyası kaldırıldı. Oyun artık AudioContext bile

@@ -7,14 +7,14 @@
     time: $("time"), seen: $("seen"), total: $("total"), hints: $("hints"),
     chapter: $("chapter"), objective: $("objective"),
     hintBtn: $("hintBtn"), restart: $("restart"), langBtn: $("langBtn"),
-    intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"),
+    intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"), enterEndless: $("enterEndless"),
     codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
     overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
     ledger: $("ledger"), overlayTime: $("overlayTime"), overlaySeen: $("overlaySeen"),
     best: $("best"), next: $("next"), againBtn: $("againBtn"),
     duelBadge: $("duelBadge"), p1Time: $("p1Time"), p2Time: $("p2Time"),
     chapterCard: $("chapterCard"), cardTitle: $("cardTitle"), cardText: $("cardText"),
-    settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
+    fsBtn: $("fsBtn"), settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
     brightness: $("brightness"), reduceMotion: $("reduceMotion"), roomPicker: $("roomPicker"),
     privacyBtn: $("privacyBtn"), privacy: $("privacy"), privacyClose: $("privacyClose"),
     privacyText: $("privacyText"), version: $("version"),
@@ -161,6 +161,9 @@
   let carding = 0;          // bölüm kartının ekranda kalacağı ana kadar
   let holdAtMirror = false; // yalnızca ekran görüntüsü almak için: geçişi bekletir
   let echo = null;          // V. bölümdeki yankı
+  let endless = false;      // sonsuz mod
+  let endlessCount = 0;     // sonsuz modda geçilen oda sayısı
+  let bandOfRoom = "orta";  // dev aynanın bu salondaki mesafe kuşağı
   let nextShift = 0;        // IV. bölümde aynaların kayacağı an
   let shiftFlash = 0;       // kayma anındaki parlama
   let fade = 1;             // sönen fener (final)
@@ -240,18 +243,44 @@
 
   // Bölümün metinleri seçili dilden okunur.
   function chapterText() {
-    return I18n.chapters()[chapterIndex];
+    return I18n.chapters()[Math.min(chapterIndex, I18n.chapters().length - 1)];
+  }
+
+  // Sonsuz mod: her oda rastgele kurallarla ve biraz daha büyük kurulur.
+  // Aynı kural iki kez üst üste gelmesin diye seçim tohumdan türetilir.
+  function endlessChapter(n, tohum) {
+    let s = (tohum * 2654435761 + n * 40503) >>> 0;
+    const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const kurallar = [
+      { mirrorControls: true }, { shiftEvery: 9000 }, { echo: true },
+      { neon: true }, { water: true }, { storm: true },
+      { grid: true }, { openHall: 0.5 }, { bazaar: true }, {},
+    ];
+    const secim = Object.assign({}, kurallar[Math.floor(rand() * kurallar.length)]);
+    if (rand() < 0.35) Object.assign(secim, kurallar[Math.floor(rand() * kurallar.length)]);
+    const paletler = CHAPTERS.map((c) => c.palette);
+    return Object.assign(
+      {
+        size: Math.min(90, 42 + n * 3),
+        light: Math.max(150, 230 - n * 6),
+        hints: n < 3 ? 2 : 1,
+        decoys: Math.min(60, 10 + n * 4),
+        palette: paletler[Math.floor(rand() * paletler.length)],
+      },
+      secim
+    );
   }
 
   function newRoom(nextSeed) {
-    chapter = CHAPTERS[chapterIndex];
+    chapter = endless ? endlessChapter(endlessCount, nextSeed) : CHAPTERS[chapterIndex];
     C = { ...chapter.palette };
     size = chapter.size;
     seed = nextSeed;
     maze = Maze.generate(size, size, seed);
     applyCityLayout();
     mirrorCount = Maze.mirrors(maze).length;
-    giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed);
+    bandOfRoom = Maze.pickBand(seed + chapterIndex * 31);
+    giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed, bandOfRoom);
     giantSeg = segCenter(giant);
 
     // Sahte devler: gerçek dev aynadan uzakta, çarpık yansıma gösteren camlar.
@@ -314,8 +343,10 @@
     startedAt = performance.now();
     keys.clear();
     els.total.textContent = mirrorCount.toLocaleString("tr-TR");
-    els.chapter.textContent = chapterText().name;
-    els.objective.textContent = chapterText().objective;
+    els.chapter.textContent = endless
+      ? `${I18n.t("endless")} · ${endlessCount + 1}`
+      : chapterText().name;
+    els.objective.textContent = endless ? I18n.t("endlessGoal") : chapterText().objective;
     els.codeLabel.textContent = String(seed).padStart(5, "0");
     els.duelBadge.hidden = !duel;
     els.overlay.hidden = true;
@@ -770,6 +801,10 @@
       els.best.textContent = formatTime(best);
     }
 
+    if (endless) {
+      els.overlayTitle.textContent = I18n.t("endlessOver");
+      els.overlayText.textContent = I18n.t("endlessOverText")(endlessCount, sonsuzRekor());
+    }
     els.overlayTime.textContent = formatTime(elapsed);
     els.overlaySeen.textContent = `${seenTotal.toLocaleString("tr-TR")} / ${mirrorCount.toLocaleString("tr-TR")}`;
     els.next.hidden = true;
@@ -864,6 +899,19 @@
   // Dev aynayı bulan oyuncu aynanın içinden geçer: bir sonraki bölüm,
   // kendi ışığı ve rengiyle açılır. Süre kaldığı yerden devam eder.
   function enterMirror(now) {
+    if (endless) {
+      endlessCount++;
+      const gecenSure = startedAt;
+      newRoom(randomSeed());
+      startedAt = gecenSure;
+      carding = now + 2000;
+      els.cardTitle.textContent = `${I18n.t("endless")} · ${endlessCount + 1}`;
+      els.cardText.textContent = I18n.t("endlessCard");
+      els.chapterCard.hidden = false;
+      kaydetSonsuzRekor();
+      updateHud();
+      return;
+    }
     chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
     acilaniKaydet(chapterIndex);
     const gecenSure = startedAt;
@@ -944,6 +992,8 @@
     if (k === "h" || k === "q") useHint(players[0]);
     if (k === "m" && duel) useHint(players[1]);
     if (k === "r") restart();
+    if (k === "f") tamEkranDegistir();
+    if (k === "Escape" && document.body.classList.contains("sinema")) tamEkranKapat();
     if (!running && (k === "Enter" || k === " ")) startSolo();
   });
   window.addEventListener("keyup", (e) => {
@@ -963,7 +1013,27 @@
     return 1 + Math.floor(Math.random() * 99998);
   }
 
-  function begin(isDuel, nextSeed, bolum = 0) {
+  const SONSUZ_KEY = "dev-aynasi:sonsuz-rekor";
+  function kaydetSonsuzRekor() {
+    try {
+      const eski = Number(localStorage.getItem(SONSUZ_KEY) || 0);
+      if (endlessCount > eski) localStorage.setItem(SONSUZ_KEY, String(endlessCount));
+    } catch (err) {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }
+  function sonsuzRekor() {
+    try {
+      return Number(localStorage.getItem(SONSUZ_KEY) || 0);
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function begin(isDuel, nextSeed, bolum = 0, sonsuz = false) {
+    tamEkranAc();
+    endless = sonsuz;
+    endlessCount = 0;
     duel = isDuel;
     chapterIndex = Math.min(bolum, CHAPTERS.length - 1);
     carding = 0;
@@ -976,6 +1046,7 @@
   }
   const startSolo = () => begin(false, randomSeed());
   const startDuel = () => begin(true, randomSeed());
+  const startEndless = () => begin(false, randomSeed(), 0, true);
   function restart() {
     if (!running && els.intro.hidden === false) return;
     begin(duel, randomSeed());
@@ -983,6 +1054,7 @@
 
   els.enterSolo.addEventListener("click", startSolo);
   els.enterDuel.addEventListener("click", startDuel);
+  els.enterEndless.addEventListener("click", startEndless);
   // --- ayarlar penceresi ---
   function bolumListesiKur() {
     els.roomPicker.textContent = "";
@@ -1010,6 +1082,34 @@
     els.settings.hidden = false;
   }
   const ayarlariKapat = () => { els.settings.hidden = true; };
+  // Oyun alanına tamamen girme: sayfa arayüzü küçülür, tuval ekranı kaplar
+  // ve tarayıcı tam ekrana geçer (tam ekran isteği reddedilirse sinematik
+  // yerleşim yine de uygulanır).
+  function tamEkranAc() {
+    document.body.classList.add("sinema");
+    const el = document.documentElement;
+    if (!document.fullscreenElement && el.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    }
+    resize();
+  }
+  function tamEkranKapat() {
+    document.body.classList.remove("sinema");
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+    resize();
+  }
+  function tamEkranDegistir() {
+    if (document.body.classList.contains("sinema")) tamEkranKapat();
+    else tamEkranAc();
+  }
+  els.fsBtn.addEventListener("click", tamEkranDegistir);
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) document.body.classList.remove("sinema");
+    resize();
+  });
+
   els.settingsBtn.addEventListener("click", ayarlariAc);
   els.settingsClose.addEventListener("click", ayarlariKapat);
   els.brightness.addEventListener("input", () => {
@@ -1144,6 +1244,8 @@
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
     setLang(l) { I18n.set(l); refreshLanguage(); },
     lang: () => I18n.lang,
+    band: () => bandOfRoom,
+    endlessInfo: () => ({ endless, count: endlessCount }),
     echoPos: () => (echo ? { x: echo.x, y: echo.y } : null),
     placeEchoNear(dx = 90, dy = -30) {
       if (!echo) return false;
@@ -1155,7 +1257,7 @@
     wallsHash: () => maze.hWalls.flat().concat(maze.vWalls.flat()).reduce((a, v, i) => a + (v ? i % 97 : 0), 0),
     forceShift() { nextShift = performance.now() - 1; },
     state: () => ({
-      chapter: chapterText().name, seed, duel, phase, mirrors: mirrorCount,
+      chapter: endless ? `${I18n.t("endless")} · ${endlessCount + 1}` : chapterText().name, seed, duel, phase, mirrors: mirrorCount,
       decoys: decoys.size, seen: players.reduce((n, p) => n + p.seen.size, 0),
       finished: !!finished, winner: finished ? finished.winner.label : null,
     }),

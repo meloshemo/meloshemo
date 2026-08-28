@@ -423,6 +423,32 @@ kbd {
 .metin p { margin: 0 0 8px; }
 .metin ul { margin: 0 0 8px; padding-left: 18px; }
 
+/* --- sinematik mod: oyun alanı ekranı kaplar --- */
+body.sinema { background: #05040a; }
+body.sinema .app { width: 100%; max-width: none; padding: 0; gap: 0; }
+body.sinema .masthead,
+body.sinema .help,
+body.sinema .objective { display: none; }
+body.sinema .hud {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 40;
+  border: none;
+  border-bottom: 1px solid var(--hair-soft);
+  background: rgba(8, 5, 14, 0.72);
+  backdrop-filter: blur(6px);
+  padding: 8px 14px;
+  gap: 10px 20px;
+}
+body.sinema .stage { padding: 0; background: none; border-radius: 0; }
+body.sinema canvas {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+body.sinema .veil { inset: 0; }
+
 </style>
   </head>
   <body>
@@ -449,6 +475,7 @@ kbd {
         </div>
         <span class="spacer"></span>
         <button id="langBtn" class="btn" type="button">EN</button>
+        <button id="fsBtn" class="btn" type="button" data-i18n="fullscreen">Tam ekran</button>
         <button id="settingsBtn" class="btn" type="button" data-i18n="settings">Ayarlar</button>
         <button id="hintBtn" class="btn" type="button" data-i18n="hintBtn">Sezgi · H</button>
         <button id="restart" class="btn" type="button" data-i18n="newRoom">Yeni salon · R</button>
@@ -466,6 +493,7 @@ kbd {
             <div class="modes">
               <button id="enterSolo" class="btn solid" type="button" data-i18n="solo">Tek başına gir</button>
               <button id="enterDuel" class="btn" type="button" data-i18n="duelBtn">Düello · iki kişi</button>
+              <button id="enterEndless" class="btn" type="button" data-i18n="endlessBtn">Sonsuz salon</button>
             </div>
             <p class="keys" data-i18n="keys" data-i18n-html></p>
             <div class="code-row">
@@ -543,6 +571,7 @@ kbd {
         <span><kbd>Shift</kbd> <i data-i18n="helpRun">koş</i></span>
         <span><kbd>H</kbd> <i data-i18n="helpHint">sezgi</i></span>
         <span><kbd>R</kbd> <i data-i18n="helpNew">yeni salon</i></span>
+        <span><kbd>F</kbd> <i data-i18n="helpFs">tam ekran</i></span>
       </footer>
     </main>
 
@@ -579,6 +608,12 @@ kbd {
       duelText: "Dev aynayı önce o buldu.",
       endTitle: "Kendine geldin",
       endText: "Kendini dev aynasında gördün — ve oradan kendine döndün.",
+      fullscreen: "Tam ekran", helpFs: "tam ekran",
+      endlessBtn: "Sonsuz salon", endless: "Sonsuz salon",
+      endlessGoal: "Dev aynayı bul — salonlar bitmiyor",
+      endlessCard: "Yeni salon, yeni kural. Ne kadar ileri gidebilirsin?",
+      endlessOver: "Sonsuz salon",
+      endlessOverText: (n, rekor) => `${n} salon geçtin. En iyi serin: ${Math.max(n, rekor)}.`,
       settings: "Ayarlar", settingsTitle: "Ayarlar",
       brightness: "Parlaklık", reduceMotion: "Hareketi azalt",
       rooms: "Odalar", roomsNote: "Yalnızca açtığın odalara geçebilirsin.",
@@ -645,6 +680,12 @@ kbd {
       duelText: "They found the giant mirror first.",
       endTitle: "You came back to yourself",
       endText: "You saw yourself as a giant — and found your way back.",
+      fullscreen: "Fullscreen", helpFs: "fullscreen",
+      endlessBtn: "Endless hall", endless: "Endless hall",
+      endlessGoal: "Find the giant mirror — the halls never end",
+      endlessCard: "New hall, new rule. How far can you get?",
+      endlessOver: "Endless hall",
+      endlessOverText: (n, best) => `You cleared ${n} halls. Your best run: ${Math.max(n, best)}.`,
       settings: "Settings", settingsTitle: "Settings",
       brightness: "Brightness", reduceMotion: "Reduce motion",
       rooms: "Rooms", roomsNote: "You can only enter rooms you have unlocked.",
@@ -856,16 +897,46 @@ kbd {
     return dist;
   }
 
-  // Dev aynası: başlangıçtan yeterince uzak bir karenin duvarlarından biri.
-  function pickGiant(maze, start, seed) {
+  // Dev aynası. Her salonda hep en uzak köşede olmasın diye mesafe bir
+  // "kuşak" ile seçilir: bazen burnunun dibinde, bazen salonun ta öbür ucunda.
+  //   yakin  : ilk üçte bir      (şanslıysan bir dakikada bulursun)
+  //   orta   : ortadaki üçte bir
+  //   uzak   : son üçte bir      (uzun arama)
+  // Kuşak verilmezse tohuma göre rastgele seçilir; dağılım %25 yakın,
+  // %45 orta, %30 uzak.
+  const BANDS = {
+    yakin: [0.18, 0.42],
+    orta: [0.4, 0.72],
+    uzak: [0.7, 1.0],
+  };
+
+  function pickBand(seed) {
+    const next = rng(seed + 104729);
+    next();
+    next();                       // xorshift'in ilk çıktıları tohuma fazla bağlı
+    const r = next();
+    if (r < 0.25) return "yakin";
+    if (r < 0.7) return "orta";
+    return "uzak";
+  }
+
+  function pickGiant(maze, start, seed, band) {
     const rand = rng(seed + 7919);
     const dist = distances(maze, start);
+    const kusak = BANDS[band] || BANDS[pickBand(seed)];
     const far = [];
     let max = 0;
     for (const d of dist) if (d > max) max = d;
     for (let y = 0; y < maze.height; y++) {
       for (let x = 0; x < maze.width; x++) {
-        if (dist[y * maze.width + x] >= max * 0.55) far.push({ x, y });
+        const d = dist[y * maze.width + x];
+        if (d >= max * kusak[0] && d <= max * kusak[1]) far.push({ x, y });
+      }
+    }
+    // Kuşakta uygun kare kalmadıysa (küçük ya da tuhaf salonlar) tümünü kullan.
+    if (!far.length) {
+      for (let y = 0; y < maze.height; y++) {
+        for (let x = 0; x < maze.width; x++) if (dist[y * maze.width + x] > 3) far.push({ x, y });
       }
     }
     for (let tries = 0; tries < 500; tries++) {
@@ -881,7 +952,7 @@ kbd {
     return mirrors(maze)[0];
   }
 
-  return { generate, mirrors, hasWall, distances, pickGiant };
+  return { generate, mirrors, hasWall, distances, pickGiant, pickBand, BANDS };
 });
 
 </script>
@@ -895,14 +966,14 @@ kbd {
     time: $("time"), seen: $("seen"), total: $("total"), hints: $("hints"),
     chapter: $("chapter"), objective: $("objective"),
     hintBtn: $("hintBtn"), restart: $("restart"), langBtn: $("langBtn"),
-    intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"),
+    intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"), enterEndless: $("enterEndless"),
     codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
     overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
     ledger: $("ledger"), overlayTime: $("overlayTime"), overlaySeen: $("overlaySeen"),
     best: $("best"), next: $("next"), againBtn: $("againBtn"),
     duelBadge: $("duelBadge"), p1Time: $("p1Time"), p2Time: $("p2Time"),
     chapterCard: $("chapterCard"), cardTitle: $("cardTitle"), cardText: $("cardText"),
-    settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
+    fsBtn: $("fsBtn"), settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
     brightness: $("brightness"), reduceMotion: $("reduceMotion"), roomPicker: $("roomPicker"),
     privacyBtn: $("privacyBtn"), privacy: $("privacy"), privacyClose: $("privacyClose"),
     privacyText: $("privacyText"), version: $("version"),
@@ -1049,6 +1120,9 @@ kbd {
   let carding = 0;          // bölüm kartının ekranda kalacağı ana kadar
   let holdAtMirror = false; // yalnızca ekran görüntüsü almak için: geçişi bekletir
   let echo = null;          // V. bölümdeki yankı
+  let endless = false;      // sonsuz mod
+  let endlessCount = 0;     // sonsuz modda geçilen oda sayısı
+  let bandOfRoom = "orta";  // dev aynanın bu salondaki mesafe kuşağı
   let nextShift = 0;        // IV. bölümde aynaların kayacağı an
   let shiftFlash = 0;       // kayma anındaki parlama
   let fade = 1;             // sönen fener (final)
@@ -1128,18 +1202,44 @@ kbd {
 
   // Bölümün metinleri seçili dilden okunur.
   function chapterText() {
-    return I18n.chapters()[chapterIndex];
+    return I18n.chapters()[Math.min(chapterIndex, I18n.chapters().length - 1)];
+  }
+
+  // Sonsuz mod: her oda rastgele kurallarla ve biraz daha büyük kurulur.
+  // Aynı kural iki kez üst üste gelmesin diye seçim tohumdan türetilir.
+  function endlessChapter(n, tohum) {
+    let s = (tohum * 2654435761 + n * 40503) >>> 0;
+    const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const kurallar = [
+      { mirrorControls: true }, { shiftEvery: 9000 }, { echo: true },
+      { neon: true }, { water: true }, { storm: true },
+      { grid: true }, { openHall: 0.5 }, { bazaar: true }, {},
+    ];
+    const secim = Object.assign({}, kurallar[Math.floor(rand() * kurallar.length)]);
+    if (rand() < 0.35) Object.assign(secim, kurallar[Math.floor(rand() * kurallar.length)]);
+    const paletler = CHAPTERS.map((c) => c.palette);
+    return Object.assign(
+      {
+        size: Math.min(90, 42 + n * 3),
+        light: Math.max(150, 230 - n * 6),
+        hints: n < 3 ? 2 : 1,
+        decoys: Math.min(60, 10 + n * 4),
+        palette: paletler[Math.floor(rand() * paletler.length)],
+      },
+      secim
+    );
   }
 
   function newRoom(nextSeed) {
-    chapter = CHAPTERS[chapterIndex];
+    chapter = endless ? endlessChapter(endlessCount, nextSeed) : CHAPTERS[chapterIndex];
     C = { ...chapter.palette };
     size = chapter.size;
     seed = nextSeed;
     maze = Maze.generate(size, size, seed);
     applyCityLayout();
     mirrorCount = Maze.mirrors(maze).length;
-    giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed);
+    bandOfRoom = Maze.pickBand(seed + chapterIndex * 31);
+    giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed, bandOfRoom);
     giantSeg = segCenter(giant);
 
     // Sahte devler: gerçek dev aynadan uzakta, çarpık yansıma gösteren camlar.
@@ -1202,8 +1302,10 @@ kbd {
     startedAt = performance.now();
     keys.clear();
     els.total.textContent = mirrorCount.toLocaleString("tr-TR");
-    els.chapter.textContent = chapterText().name;
-    els.objective.textContent = chapterText().objective;
+    els.chapter.textContent = endless
+      ? `${I18n.t("endless")} · ${endlessCount + 1}`
+      : chapterText().name;
+    els.objective.textContent = endless ? I18n.t("endlessGoal") : chapterText().objective;
     els.codeLabel.textContent = String(seed).padStart(5, "0");
     els.duelBadge.hidden = !duel;
     els.overlay.hidden = true;
@@ -1658,6 +1760,10 @@ kbd {
       els.best.textContent = formatTime(best);
     }
 
+    if (endless) {
+      els.overlayTitle.textContent = I18n.t("endlessOver");
+      els.overlayText.textContent = I18n.t("endlessOverText")(endlessCount, sonsuzRekor());
+    }
     els.overlayTime.textContent = formatTime(elapsed);
     els.overlaySeen.textContent = `${seenTotal.toLocaleString("tr-TR")} / ${mirrorCount.toLocaleString("tr-TR")}`;
     els.next.hidden = true;
@@ -1752,6 +1858,19 @@ kbd {
   // Dev aynayı bulan oyuncu aynanın içinden geçer: bir sonraki bölüm,
   // kendi ışığı ve rengiyle açılır. Süre kaldığı yerden devam eder.
   function enterMirror(now) {
+    if (endless) {
+      endlessCount++;
+      const gecenSure = startedAt;
+      newRoom(randomSeed());
+      startedAt = gecenSure;
+      carding = now + 2000;
+      els.cardTitle.textContent = `${I18n.t("endless")} · ${endlessCount + 1}`;
+      els.cardText.textContent = I18n.t("endlessCard");
+      els.chapterCard.hidden = false;
+      kaydetSonsuzRekor();
+      updateHud();
+      return;
+    }
     chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
     acilaniKaydet(chapterIndex);
     const gecenSure = startedAt;
@@ -1832,6 +1951,8 @@ kbd {
     if (k === "h" || k === "q") useHint(players[0]);
     if (k === "m" && duel) useHint(players[1]);
     if (k === "r") restart();
+    if (k === "f") tamEkranDegistir();
+    if (k === "Escape" && document.body.classList.contains("sinema")) tamEkranKapat();
     if (!running && (k === "Enter" || k === " ")) startSolo();
   });
   window.addEventListener("keyup", (e) => {
@@ -1851,7 +1972,27 @@ kbd {
     return 1 + Math.floor(Math.random() * 99998);
   }
 
-  function begin(isDuel, nextSeed, bolum = 0) {
+  const SONSUZ_KEY = "dev-aynasi:sonsuz-rekor";
+  function kaydetSonsuzRekor() {
+    try {
+      const eski = Number(localStorage.getItem(SONSUZ_KEY) || 0);
+      if (endlessCount > eski) localStorage.setItem(SONSUZ_KEY, String(endlessCount));
+    } catch (err) {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }
+  function sonsuzRekor() {
+    try {
+      return Number(localStorage.getItem(SONSUZ_KEY) || 0);
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function begin(isDuel, nextSeed, bolum = 0, sonsuz = false) {
+    tamEkranAc();
+    endless = sonsuz;
+    endlessCount = 0;
     duel = isDuel;
     chapterIndex = Math.min(bolum, CHAPTERS.length - 1);
     carding = 0;
@@ -1864,6 +2005,7 @@ kbd {
   }
   const startSolo = () => begin(false, randomSeed());
   const startDuel = () => begin(true, randomSeed());
+  const startEndless = () => begin(false, randomSeed(), 0, true);
   function restart() {
     if (!running && els.intro.hidden === false) return;
     begin(duel, randomSeed());
@@ -1871,6 +2013,7 @@ kbd {
 
   els.enterSolo.addEventListener("click", startSolo);
   els.enterDuel.addEventListener("click", startDuel);
+  els.enterEndless.addEventListener("click", startEndless);
   // --- ayarlar penceresi ---
   function bolumListesiKur() {
     els.roomPicker.textContent = "";
@@ -1898,6 +2041,34 @@ kbd {
     els.settings.hidden = false;
   }
   const ayarlariKapat = () => { els.settings.hidden = true; };
+  // Oyun alanına tamamen girme: sayfa arayüzü küçülür, tuval ekranı kaplar
+  // ve tarayıcı tam ekrana geçer (tam ekran isteği reddedilirse sinematik
+  // yerleşim yine de uygulanır).
+  function tamEkranAc() {
+    document.body.classList.add("sinema");
+    const el = document.documentElement;
+    if (!document.fullscreenElement && el.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    }
+    resize();
+  }
+  function tamEkranKapat() {
+    document.body.classList.remove("sinema");
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+    resize();
+  }
+  function tamEkranDegistir() {
+    if (document.body.classList.contains("sinema")) tamEkranKapat();
+    else tamEkranAc();
+  }
+  els.fsBtn.addEventListener("click", tamEkranDegistir);
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) document.body.classList.remove("sinema");
+    resize();
+  });
+
   els.settingsBtn.addEventListener("click", ayarlariAc);
   els.settingsClose.addEventListener("click", ayarlariKapat);
   els.brightness.addEventListener("input", () => {
@@ -2032,6 +2203,8 @@ kbd {
     speed: (i = 0) => Math.hypot(players[i].vx, players[i].vy),
     setLang(l) { I18n.set(l); refreshLanguage(); },
     lang: () => I18n.lang,
+    band: () => bandOfRoom,
+    endlessInfo: () => ({ endless, count: endlessCount }),
     echoPos: () => (echo ? { x: echo.x, y: echo.y } : null),
     placeEchoNear(dx = 90, dy = -30) {
       if (!echo) return false;
@@ -2043,7 +2216,7 @@ kbd {
     wallsHash: () => maze.hWalls.flat().concat(maze.vWalls.flat()).reduce((a, v, i) => a + (v ? i % 97 : 0), 0),
     forceShift() { nextShift = performance.now() - 1; },
     state: () => ({
-      chapter: chapterText().name, seed, duel, phase, mirrors: mirrorCount,
+      chapter: endless ? `${I18n.t("endless")} · ${endlessCount + 1}` : chapterText().name, seed, duel, phase, mirrors: mirrorCount,
       decoys: decoys.size, seen: players.reduce((n, p) => n + p.seen.size, 0),
       finished: !!finished, winner: finished ? finished.winner.label : null,
     }),

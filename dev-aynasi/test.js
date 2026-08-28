@@ -59,6 +59,32 @@ test("dev aynası gerçek bir duvar parçası ve başlangıçtan uzak", () => {
   }
 });
 
+test("dev aynasının yeri kuşaklara göre değişir", () => {
+  // Aynı salonda üç kuşak da farklı mesafelerde ayna vermeli: oyuncu her
+  // seferinde salonun aynı ucuna gitmesin.
+  const maze = Maze.generate(40, 40, 909);
+  const dist = Maze.distances(maze, { x: 0, y: 0 });
+  const max = Math.max(...dist);
+  const mesafe = (band) => {
+    const g = Maze.pickGiant(maze, { x: 0, y: 0 }, 909, band);
+    const cx = g.horizontal ? g.x : Math.min(g.x, maze.width - 1);
+    const cy = g.horizontal ? Math.min(g.y, maze.height - 1) : g.y;
+    return dist[cy * maze.width + cx] / max;
+  };
+  const yakin = mesafe("yakin");
+  const uzak = mesafe("uzak");
+  assert.ok(yakin < 0.5, `yakın kuşak çok uzak: ${yakin.toFixed(2)}`);
+  assert.ok(uzak > 0.6, `uzak kuşak çok yakın: ${uzak.toFixed(2)}`);
+  assert.ok(uzak > yakin, "uzak kuşak yakından uzakta olmalı");
+});
+
+test("kuşak dağılımı üç seçeneği de üretir", () => {
+  const sayac = { yakin: 0, orta: 0, uzak: 0 };
+  for (let seed = 1; seed <= 300; seed++) sayac[Maze.pickBand(seed)]++;
+  assert.ok(sayac.yakin > 30 && sayac.orta > 60 && sayac.uzak > 40,
+    `dağılım dengesiz: ${JSON.stringify(sayac)}`);
+});
+
 test("dev aynası tek: kimliği listede bir kez geçer", () => {
   const maze = Maze.generate(40, 40, 555);
   const giant = Maze.pickGiant(maze, { x: 0, y: 0 }, 555);
