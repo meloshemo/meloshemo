@@ -65,6 +65,24 @@ düşmez.
 yeni salon üretilir (kalan oyuncu sayısına göre boyutlanır), herkes yeni bir
 köşeden başlar. Sunucu mesajları: `gecti`, `elendi`, `tur`, `bitti`.
 
+**Tur süresi.** Her turun bir sınırı var; süre salonun büyüklüğüne göre
+hesaplanır (`75 sn + her 110 ayna için 1 sn`, en az 1,5 en çok 5 dakika):
+
+| Oyuncu | Ayna | Tur süresi |
+| --- | --- | --- |
+| 2 | 5.451 | 2,1 dk |
+| 4 | 12.629 | 3,2 dk |
+| 6 | 19.601 | 4,2 dk |
+| 8 | 26.755 | 5,0 dk |
+
+Oyunculara 60, 30 ve 10 saniye kala `sayac` uyarısı gider. **Son 45 saniyede**
+aynayı hâlâ bulamayanlara `isaret` mesajıyla aynanın bulunduğu **5 karelik
+kaba bölge** bildirilir — tur kilitlenmez ama ayna doğrudan verilmez.
+
+Süre dolduğunda aynayı bulamayanlar arasından **ona en uzak olan** elenir.
+"En uzak" kuş uçuşu değil, duvarlardan geçmeden kaç adım kaldığıdır: gerçekten
+en geride kalan gider, dar bir köşede şanssız duran değil.
+
 **Zalim yerleşim.** Turların %30'unda dev ayna adil değil: birine yakın,
 ötekine salonun ta öbür ucunda. Kimse rahat etmesin.
 

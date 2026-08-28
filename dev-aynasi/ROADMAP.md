@@ -19,6 +19,7 @@ Bilgisayara geçilince `multiplayer/README.md` içindeki 5 adım uygulanacak.
 - [x] Hile koruması: "buldum" kararını sunucu verir, ışınlanma hız sınırıyla
       engellenir
 - [ ] `game.js`'e bağlama (5 adım, README'de)
+- [x] Tur süresi, sayaç uyarıları, son düdük işareti ve adil zaman aşımı elemesi
 - [ ] Lobi ekranı: oda kodu, katılanların renkleri, "hazırım" düğmesi
 - [ ] Yarış içi bildirim: "Kırmızı dev aynayı buldu — 1. sıra"
 - [ ] Bitiş tablosu: renk + ad + süre sıralaması

@@ -19,6 +19,12 @@ const TICK = 1000 / 20;          // sunucu saniyede 20 kez durum yayınlar
 const LOOK = 132;                // aynada yansımanın belirdiği mesafe
 const FOUND_MS = 1600;           // dev aynanın önünde durulması gereken süre
 const LOBBY_WAIT = 5000;         // ilk oyuncudan sonra başlama sayacı
+const TUR_TABAN = 75000;         // tur süresi: taban 75 sn
+const TUR_AYNA_BASI = 1000 / 110; // her 110 ayna için +1 sn
+const TUR_EN_AZ = 90000;         // en kısa tur 1.5 dakika
+const TUR_EN_COK = 300000;       // en uzun tur 5 dakika
+const ISARET_ONCE = 45000;       // son 45 sn: bulamayanlara bölge işareti
+const UYARILAR = [60000, 30000, 10000];
 const MAX_SPEED = 260;           // birim/saniye - hız hilesi eşiği
 
 // Oyuncu renkleri: 1. giren beyaz (sen), sonrakiler sırayla.
@@ -170,6 +176,14 @@ function createRoom(code, playerCount) {
 }
 
 // Bir bölümün salonunu getirir, yoksa üretir.
+// Tur süresi salonun büyüklüğüne göre belirlenir: küçük salonda kısa,
+// 26 bin aynalık salonda beş dakika. Böylece hiçbir tur sürüncemede kalmaz
+// ama kalabalık odada da acele ettirmez.
+function turSuresi(mirrorCount) {
+  const ms = TUR_TABAN + mirrorCount * TUR_AYNA_BASI * 1000 / 1000;
+  return Math.round(Math.min(TUR_EN_COK, Math.max(TUR_EN_AZ, ms)));
+}
+
 function hallFor(room, chapter) {
   while (room.halls.length <= chapter) {
     room.halls.push(createHall(hayattakiler(room).length || room.players.size, room.halls.length));
@@ -261,7 +275,11 @@ function turKontrol(room) {
     return;
   }
 
-  // Yeni tur: kalan oyuncu sayısına göre yeni salon, herkes yeni köşesinde.
+  yeniTur(room, kalanlar);
+}
+
+// Kalan oyuncularla yeni tur kurar: yeni salon, yeni köşeler, yeni süre.
+function yeniTur(room, kalanlar) {
   room.tur++;
   room.finishers = [];
   room.halls[room.tur] = createHall(kalanlar.length, Math.min(room.tur, CHAPTERS.length - 1));
@@ -276,14 +294,79 @@ function turKontrol(room) {
     p.y = (s.y + 0.5) * CELL;
   });
   room.startAt = Date.now() + 3000;
+  room.limitMs = turSuresi(salon.mirrorCount);
+  room.deadline = room.startAt + room.limitMs;
+  room.uyarildi = [];
+  room.isaretVerildi = false;
   for (const [sock, p] of room.players) {
     if (p.elendi) continue;
     send(sock, "tur", {
       tur: room.tur + 1, kalan: kalanlar.length, baslarAt: room.startAt,
-      ...hallInfo(room, room.tur, p),
+      sure: room.limitMs, ...hallInfo(room, room.tur, p),
     });
   }
   broadcast(room, "oyuncular", { oyuncular: roster(room) });
+}
+
+// Süre dolduğunda: aynayı bulamayanlar arasından ona en uzak olan elenir.
+// "En uzak" kuş uçuşu değil, duvarlardan geçmeden kaç adım kaldığıdır —
+// yani gerçekten en geride kalan gider, şanssız yerde duran değil.
+function sureDoldu(room) {
+  const canli = hayattakiler(room);
+  if (canli.length <= 1) return;
+  const bulanlar = new Set(room.finishers.map((f) => f.id));
+  const bulamayanlar = canli.filter((p) => !bulanlar.has(p.id));
+  if (!bulamayanlar.length) return;
+
+  const salon = hallFor(room, room.tur);
+  const g = salon.giant;
+  const gx = g.horizontal ? g.x : Math.min(g.x, salon.size - 1);
+  const gy = g.horizontal ? Math.min(g.y, salon.size - 1) : g.y;
+  const uzaklik = Maze.distances(salon.maze, { x: gx, y: gy });
+  const adim = (p) => {
+    const cx = Math.max(0, Math.min(salon.size - 1, Math.floor(p.x / CELL)));
+    const cy = Math.max(0, Math.min(salon.size - 1, Math.floor(p.y / CELL)));
+    const d = uzaklik[cy * salon.size + cx];
+    return d < 0 ? Infinity : d;
+  };
+
+  bulamayanlar.sort((a, b) => adim(b) - adim(a));
+  const giden = bulamayanlar[0];
+  giden.elendi = true;
+  room.elenenler.push({ id: giden.id, ad: giden.ad, renk: giden.renk, tur: room.tur + 1 });
+  broadcast(room, "sureBitti", {
+    id: giden.id, ad: giden.ad, renk: giden.renk,
+    uzaklik: adim(giden), tur: room.tur + 1, kalan: hayattakiler(room).length,
+  });
+
+  const kalanlar = hayattakiler(room);
+  if (kalanlar.length <= 1) {
+    room.state = "bitti";
+    const kazanan = kalanlar[0];
+    broadcast(room, "bitti", {
+      kazanan: kazanan ? { id: kazanan.id, ad: kazanan.ad, renk: kazanan.renk } : null,
+      siralama: [
+        ...(kazanan ? [{ id: kazanan.id, ad: kazanan.ad, renk: kazanan.renk, tur: room.tur + 1 }] : []),
+        ...room.elenenler.slice().reverse(),
+      ],
+    });
+    return;
+  }
+  yeniTur(room, kalanlar);
+}
+
+// Son düdük: sürenin son 45 saniyesinde aynayı bulamayanlara aynanın
+// bulunduğu bölge (5 karelik kaba bir kutu) bildirilir. Turun kilitlenmesini
+// engeller ama aynayı doğrudan vermez.
+function isaretVer(room) {
+  const salon = hallFor(room, room.tur);
+  const g = salon.giant;
+  const bolge = { x: Math.floor(g.x / 5) * 5, y: Math.floor(g.y / 5) * 5, kare: 5 };
+  const bulanlar = new Set(room.finishers.map((f) => f.id));
+  for (const [sock, p] of room.players) {
+    if (p.elendi || bulanlar.has(p.id)) continue;
+    send(sock, "isaret", { bolge });
+  }
 }
 
 function roster(room) {
@@ -363,7 +446,11 @@ wss.on("connection", (ws) => {
       if (hepsiHazir && room.state === "lobi") {
         room.state = "yaris";
         room.startAt = Date.now() + LOBBY_WAIT;
-        broadcast(room, "baslangic", { baslarAt: room.startAt });
+        room.limitMs = turSuresi(hallFor(room, 0).mirrorCount);
+        room.deadline = room.startAt + room.limitMs;
+        room.uyarildi = [];
+        room.isaretVerildi = false;
+        broadcast(room, "baslangic", { baslarAt: room.startAt, sure: room.limitMs });
       }
       return;
     }
@@ -427,6 +514,29 @@ wss.on("connection", (ws) => {
   });
 });
 
+// Saniyede bir: kalan süre uyarıları, son düdük işareti ve süre bitişi.
+setInterval(() => {
+  const now = Date.now();
+  for (const room of rooms.values()) {
+    if (room.state !== "yaris" || !room.deadline) continue;
+    const kalan = room.deadline - now;
+    if (kalan <= 0) {
+      sureDoldu(room);
+      continue;
+    }
+    for (const esik of UYARILAR) {
+      if (kalan <= esik && !room.uyarildi.includes(esik)) {
+        room.uyarildi.push(esik);
+        broadcast(room, "sayac", { kalan: Math.round(kalan / 1000) });
+      }
+    }
+    if (kalan <= ISARET_ONCE && !room.isaretVerildi) {
+      room.isaretVerildi = true;
+      isaretVer(room);
+    }
+  }
+}, 1000);
+
 // Durum yayını: herkesin konumu, saniyede 20 kez.
 setInterval(() => {
   for (const room of rooms.values()) {
@@ -436,7 +546,10 @@ setInterval(() => {
       const kisiler = [...room.players.values()]
         .filter((p) => p.bolum === me.bolum)
         .map((p) => ({ id: p.id, x: Math.round(p.x), y: Math.round(p.y), renk: p.renk.hex, bolum: p.bolum }));
-      send(ws, "durum", { t: Date.now(), kisiler });
+      send(ws, "durum", {
+        t: Date.now(), kisiler,
+        kalanSure: room.deadline ? Math.max(0, Math.round((room.deadline - Date.now()) / 1000)) : null,
+      });
     }
   }
 }, TICK);

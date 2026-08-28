@@ -1,5 +1,14 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.1.0 — Tur süresi ve son düdük
+- **Tur süresi:** salon büyüklüğüne göre 1,5–5 dakika (2 kişi 2,1 dk,
+  8 kişi 5 dk). Hiçbir tur sürüncemede kalmaz
+- **Sayaç uyarıları:** 60, 30 ve 10 saniye kala herkese bildirim
+- **Son düdük:** son 45 saniyede aynayı bulamayanlara aynanın bulunduğu
+  5 karelik kaba bölge bildirilir — tur kilitlenmez, ayna da verilmez
+- **Adil zaman aşımı elemesi:** süre dolunca aynaya adım olarak en uzak olan
+  elenir (kuş uçuşu değil, labirentte gerçekten en geride kalan)
+
 ## 1.0.1 — Ölçek düzeltmesi
 - Çevrimiçi salon boyutu artık her bölümün tek kişilik boyutunu taban alıyor:
   çevrimiçi tek kişi oyunun kendi odasıyla birebir aynı salonu görüyor

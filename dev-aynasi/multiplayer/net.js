@@ -4,7 +4,12 @@
 //   const net = Net.connect("ws://localhost:8787", { kod: "1234", ad: "Melih" });
 //   net.on("salon", (s) => { /* s.tohum, s.boyut, s.decoys ile odayı kur */ });
 //   net.on("durum", (d) => { /* d.kisiler: diğer oyuncuların konumu ve rengi */ });
-//   net.on("buldu", (b) => { /* b.ad dev aynayı buldu, b.sira kaçıncı */ });
+//   net.on("gecti", (b) => { /* b.ad aynayı buldu, b.sira kaçıncı */ });
+//   net.on("sayac", (s) => { /* s.kalan saniye: 60 / 30 / 10 uyarıları */ });
+//   net.on("isaret", (i) => { /* son 45 sn: i.bolge = aynanın kaba bölgesi */ });
+//   net.on("sureBitti", (e) => { /* süre doldu, e.ad elendi */ });
+//   net.on("elendi", (e) => { /* e.ad bu turda elendi */ });
+//   net.on("tur", (t) => { /* yeni tur: t.tur, t.kalan, t.sure, t.tohum ... */ });
 //   oyun döngüsünde: net.konum(player.x, player.y);
 //
 // Diğer oyuncular ekranda kendi renkleriyle çizilir; sunucudan saniyede 20
