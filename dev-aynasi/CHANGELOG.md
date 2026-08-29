@@ -1,5 +1,14 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.2.1 — Sade yansımalar
+Ekran kaydında aynı anda çizilen çok sayıda yansıma sahneyi kalabalık ve
+karmaşık gösteriyordu, aynadan aynaya geçerken görüntüler üst üste biniyordu:
+- **Yalnızca yaklaşılan aynalar görüntü verir.** Her karede en fazla üç
+  yansıma: en yakın yatay ayna, en yakın dikey ayna ve menzildeyse dev ayna
+- Yansıma menzili bir kareye indi (74 birim); dev ayna 0,8 kare
+- Menzil kenarında yansıma **yumuşakça söner**, aniden yanıp sönmez
+- Sahne eski zarifliğine döndü; kare hızı 61
+
 ## 1.2.0 — Yansıma kuralları yeniden yazıldı
 Telefonda çekilen bir kare, yansımaların panel bandından taşıp yarım
 kaldığını ve oyuncunun üstüne bindiğini gösterdi. Kurallar baştan yazıldı:

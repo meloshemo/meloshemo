@@ -77,14 +77,20 @@ kaybolur, gösterge üstte ince bir şeride iner, tuval bütün ekranı kaplar.
 Her ayna aynı beş kurala uyar; hiçbir yansıma yarım görünmez ya da panelden
 taşıp kesilmez:
 
-1. **Ancak aynanın önündeysen görünürsün.** Panelin yanından geçerken o ayna
-   yansıma göstermez (eskiden gösterip kırpıyordu, yarım görüntü kalıyordu).
-2. **Yansıma panel boyunca senin hizandadır**, ama panelin kenarından
+1. **Yalnızca yaklaştığın ayna görüntü verir.** Her karede en fazla üç yansıma
+   çizilir: önündeki en yakın yatay ayna, en yakın dikey ayna ve menzildeyse
+   dev ayna. Uzaktaki aynalar boş kalır — salon kalabalık görünmez, yansımalar
+   üst üste binmez.
+2. **Ancak aynanın önündeysen görünürsün.** Panelin yanından geçerken o ayna
+   yansıma göstermez.
+3. **Yansıma panel boyunca senin hizandadır**, ama panelin kenarından
    taşmayacak şekilde sınırlanır.
-3. **Camın arkasındadır ve sana binmez:** derinlik en az figür boyu +
+4. **Camın arkasındadır ve sana binmez:** derinlik en az figür boyu +
    oyuncu yarıçapı kadardır.
-4. **Uzaklık ölçeği:** yaklaştıkça büyür, uzaklaştıkça küçülür (0,62–1,00).
-5. **Kırpma bandı figürü tamamen içine alır**, yani görüntü asla kesilmez.
+5. **Menzil ve sönüm:** normal aynalar bir kare (74 birim), dev ayna 0,8 kare
+   (58 birim) mesafede görüntü verir; menzil kenarında yansıma aniden
+   kaybolmaz, yumuşakça söner.
+6. **Kırpma bandı figürü tamamen içine alır**, yani görüntü asla kesilmez.
    Camın koyuluğu panelden içeri doğru solar, böylece bant kutu gibi görünmez.
    Dev aynanın panelden geniş olması kasıtlıdır; o taşma kesilme değildir.
 

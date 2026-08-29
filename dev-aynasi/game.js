@@ -31,12 +31,13 @@
   const SEEN_RANGE = 118;
   const GIANT_SCALE = 3.6;
   const GIANT_REVEAL = 58;   // dev yansıma ancak bu kadar yakında belirir (~0,8 kare)
+  const YANSIMA_MENZIL = 74; // yansıma yalnızca bir kare mesafedeki aynada belirir
   const ENTER_REACH = RADIUS + 12;  // aynaya değip içine girme mesafesi
   const WARM_CELLS = 5;      // dev aynasının çevresindeki "sıcak" camlar
   const BEST_KEY = "dev-aynasi:en-iyi";
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
-  const SURUM = "1.2.0";
+  const SURUM = "1.2.1";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -591,11 +592,12 @@
     const dik = yatay ? p.y - g.ay : p.x - g.ax;
     const uzak = Math.abs(dik);
     const taraf = dik >= 0 ? 1 : -1;          // oyuncu panelin hangi yanında
-    if (t < -0.2 || t > 1.2) return false;    // aynanın önünde değilsin
-    if (uzak > LOOK) return false;
+    if (t < -0.15 || t > 1.15) return false;  // aynanın önünde değilsin
+    const menzil = isGiant ? GIANT_REVEAL : YANSIMA_MENZIL;
+    if (uzak > menzil) return false;
 
     // Ölçek: yaklaştıkça büyür. Çarpık aynalar bunu ayrıca bozar.
-    const yakinlik = Math.max(0, Math.min(1, 1 - uzak / (LOOK * 1.05)));
+    const yakinlik = Math.max(0, Math.min(1, 1 - uzak / menzil));
     const temel = (isGiant ? GIANT_SCALE : 1) * (0.62 + 0.38 * yakinlik);
     const sx = temel * (distortion ? distortion.sx : 1);
     const sy = temel * (distortion ? distortion.sy : 1);
@@ -652,7 +654,9 @@
     ctx.fillStyle = cam;
     ctx.fillRect(band.x, band.y, band.w, band.h);
 
-    const alpha = Math.max(0.25, 0.9 - (uzak / LOOK) * 0.45);
+    // Menzilin kenarında yumuşakça sönsün: ayna aniden yanıp sönmesin.
+    const sonum = Math.min(1, yakinlik * 2.2);
+    const alpha = (0.5 + 0.45 * yakinlik) * sonum;
     if (isGiant) {
       drawFigure(rx, ry, sx, sy, 1, "#ffd98a", "rgba(216, 178, 106, 0.9)");
     } else {
@@ -766,17 +770,34 @@
 
     if (chapter.returnTrip) drawDoor();
 
+    // Salon kalabalık görünmesin diye her karede en fazla üç yansıma çizilir:
+    // önündeki en yakın yatay ayna, en yakın dikey ayna ve (menzildeyse) dev
+    // ayna. Uzaktaki aynalar görüntü vermez; böylece yansımalar üst üste
+    // binmez ve sahne sade kalır.
     let giantVisible = false;
-    forEachNearSegment(p, LOOK, (horizontal, x, y, d) => {
+    let enYakinYatay = null;
+    let enYakinDikey = null;
+    let devAday = null;
+    forEachNearSegment(p, YANSIMA_MENZIL + CELL, (horizontal, x, y) => {
+      const gg = segGeometry({ horizontal, x, y });
+      const t = horizontal ? (p.x - gg.ax) / CELL : (p.y - gg.ay) / CELL;
+      if (t < -0.15 || t > 1.15) return;              // aynanın önünde değilsin
+      const uzak = Math.abs(horizontal ? p.y - gg.ay : p.x - gg.ax);
       const id = idOf(horizontal, x, y);
-      const seg = { horizontal, x, y };
-      // Dev ayna yalnızca dibinden geçerken parlar; uzaktan ışığı görünmez.
-      const isGiant = id === giant.id && phase === "arayis" && d < GIANT_REVEAL;
-      const cizildi = drawReflection(p, seg, isGiant ? "giant" : "normal", decoys.get(id));
-      if (d < SEEN_RANGE) p.seen.add(id);
-      // Dev ayna ancak gerçekten karşısındaysan ve yansıma çizildiyse sayılır.
-      if (isGiant && cizildi) giantVisible = true;
+      if (uzak < SEEN_RANGE) p.seen.add(id);
+      const aday = { seg: { horizontal, x, y }, id, uzak };
+      if (id === giant.id && phase === "arayis" && uzak <= GIANT_REVEAL) devAday = aday;
+      if (uzak > YANSIMA_MENZIL) return;
+      if (horizontal) {
+        if (!enYakinYatay || uzak < enYakinYatay.uzak) enYakinYatay = aday;
+      } else if (!enYakinDikey || uzak < enYakinDikey.uzak) enYakinDikey = aday;
     });
+
+    for (const aday of [enYakinYatay, enYakinDikey]) {
+      if (!aday || (devAday && aday.id === devAday.id)) continue;
+      drawReflection(p, aday.seg, "normal", decoys.get(aday.id));
+    }
+    if (devAday && drawReflection(p, devAday.seg, "giant", null)) giantVisible = true;
 
     ctx.lineCap = "round";
     const panelMenzil = ripple > 0 ? light * 3.4 : light * 1.25;
@@ -1416,9 +1437,9 @@
         const t = yatay ? (p.x - g.ax) / CELL : (p.y - g.ay) / CELL;
         const dik = yatay ? p.y - g.ay : p.x - g.ax;
         const uzak = Math.abs(dik);
-        const onunde = t >= -0.2 && t <= 1.2 && uzak <= LOOK;
+        const onunde = t >= -0.15 && t <= 1.15 && uzak <= GIANT_REVEAL;
         if (!onunde) return { onunde: false };
-        const yakinlik = Math.max(0, Math.min(1, 1 - uzak / (LOOK * 1.05)));
+        const yakinlik = Math.max(0, Math.min(1, 1 - uzak / GIANT_REVEAL));
         const temel = GIANT_SCALE * (0.62 + 0.38 * yakinlik);
         const figurYari = RADIUS * temel * 1.6;
         const derinlik = figurYari + RADIUS + 4 + Math.min(uzak * 0.2, CELL * 0.2);
