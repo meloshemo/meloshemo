@@ -8,6 +8,7 @@
     chapter: $("chapter"), objective: $("objective"),
     hintBtn: $("hintBtn"), restart: $("restart"), langBtn: $("langBtn"),
     intro: $("intro"), enterSolo: $("enterSolo"), enterDuel: $("enterDuel"), enterEndless: $("enterEndless"),
+    resumeBtn: $("resumeBtn"), resumeInfo: $("resumeInfo"),
     codeInput: $("codeInput"), codeApply: $("codeApply"), codeLabel: $("codeLabel"),
     overlay: $("overlay"), overlayTitle: $("overlayTitle"), overlayText: $("overlayText"),
     ledger: $("ledger"), overlayTime: $("overlayTime"), overlaySeen: $("overlaySeen"),
@@ -18,6 +19,8 @@
     brightness: $("brightness"), reduceMotion: $("reduceMotion"), roomPicker: $("roomPicker"),
     privacyBtn: $("privacyBtn"), privacy: $("privacy"), privacyClose: $("privacyClose"),
     privacyText: $("privacyText"), version: $("version"),
+    progressCode: $("progressCode"), copyProgress: $("copyProgress"),
+    progressPaste: $("progressPaste"), applyProgress: $("applyProgress"),
   };
 
   const CELL = 72;
@@ -37,7 +40,8 @@
   const BEST_KEY = "dev-aynasi:en-iyi";
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
-  const SURUM = "1.2.2";
+  const DEVAM_KEY = "dev-aynasi:devam";
+  const SURUM = "1.3.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -63,6 +67,41 @@
   } catch (err) {
     acilan = 0;
   }
+  // Oyuncu oyunu kapatsa da kaldığı yeri bulabilsin diye bölüm, tohum ve
+  // o ana kadar geçen süre saklanır. Aynı cihaz/tarayıcıda "Devam et"
+  // düğmesi bu kayıttan doğar.
+  function devamKaydet() {
+    if (!running || finished || duel) return;
+    try {
+      localStorage.setItem(DEVAM_KEY, JSON.stringify({
+        bolum: chapterIndex,
+        tohum: seed,
+        sure: Math.round((performance.now() - startedAt) / 1000),
+        sonsuz: endless,
+        seri: endlessCount,
+        zaman: Date.now(),
+      }));
+    } catch (err) {
+      /* depolama kapalıysa sessizce geç */
+    }
+  }
+  function devamOku() {
+    try {
+      const v = JSON.parse(localStorage.getItem(DEVAM_KEY) || "null");
+      if (!v || typeof v.bolum !== "number") return null;
+      return v;
+    } catch (err) {
+      return null;
+    }
+  }
+  function devamSil() {
+    try {
+      localStorage.removeItem(DEVAM_KEY);
+    } catch (err) {
+      /* yoksay */
+    }
+  }
+
   function acilaniKaydet(i) {
     acilan = Math.max(acilan, i);
     try {
@@ -193,6 +232,7 @@
   let nextFlee = 0;         // aynanın kaçacağı an
   let fleeTrail = null;     // kaçtıktan sonra eski yerde kalan iz
   let nearSince = 0;        // oyuncunun aynaya yaklaştığı an (kaçış gecikmesi)
+  let sonKayit = 0;         // son devam kaydının anı
   let nextShift = 0;        // IV. bölümde aynaların kayacağı an
   let shiftFlash = 0;       // kayma anındaki parlama
   let fade = 1;             // sönen fener (final)
@@ -1084,6 +1124,11 @@
       }
     }
     if (shiftFlash > 0) shiftFlash = Math.max(0, shiftFlash - dt * 1.6);
+    // Beş saniyede bir ilerlemeyi yaz: sekme kapanırsa da kayıt güncel kalır.
+    if (running && !finished && now - sonKayit > 5000) {
+      sonKayit = now;
+      devamKaydet();
+    }
     const visible = finished ? [] : draw(now, dt);
 
     if (running && !finished) {
@@ -1186,7 +1231,21 @@
     startedAt = performance.now();
     updateHud();
   }
-  const startSolo = () => begin(false, randomSeed());
+  const startSolo = () => { devamSil(); begin(false, randomSeed()); };
+
+  // Kayıtlı oyunu kaldığı yerden sürdürür: aynı bölüm, aynı salon, süre
+  // kaldığı saniyeden devam eder.
+  function devamEt() {
+    const v = devamOku();
+    if (!v) return startSolo();
+    begin(false, v.tohum || randomSeed(), v.bolum, !!v.sonsuz);
+    endlessCount = v.sonsuz ? v.seri || 0 : 0;
+    startedAt = performance.now() - (v.sure || 0) * 1000;
+    if (v.sonsuz) {
+      els.chapter.textContent = `${I18n.t("endless")} · ${endlessCount + 1}`;
+    }
+    updateHud();
+  }
   const startDuel = () => begin(true, randomSeed());
   const startEndless = () => begin(false, randomSeed(), 0, true);
   function restart() {
@@ -1201,6 +1260,7 @@
   }
 
   els.enterSolo.addEventListener("click", startSolo);
+  els.resumeBtn.addEventListener("click", devamEt);
   els.enterDuel.addEventListener("click", startDuel);
   els.enterEndless.addEventListener("click", startEndless);
   // --- ayarlar penceresi ---
@@ -1222,11 +1282,47 @@
       els.roomPicker.appendChild(btn);
     });
   }
+  // İlerleme kodu: açılan odalar, en iyi süreler ve sonsuz rekoru tek bir
+  // metne çevirir. Sunucu yok; oyuncu kodu kendi taşır (telefon -> bilgisayar).
+  function ilerlemeKodu() {
+    const veri = { a: acilan, s: sonsuzRekor(), b: {} };
+    for (let i = 0; i < CHAPTERS.length; i++) {
+      try {
+        const v = localStorage.getItem(`${BEST_KEY}:${i}`);
+        if (v) veri.b[i] = Math.round(Number(v));
+      } catch (err) {
+        /* yoksay */
+      }
+    }
+    try {
+      return "DA1-" + btoa(JSON.stringify(veri)).replace(/=+$/, "");
+    } catch (err) {
+      return "";
+    }
+  }
+  function ilerlemeYukle(kod) {
+    try {
+      const ham = String(kod || "").trim().replace(/^DA1-/, "");
+      const veri = JSON.parse(atob(ham));
+      if (typeof veri.a !== "number") return false;
+      acilaniKaydet(Math.min(CHAPTERS.length - 1, Math.max(0, veri.a)));
+      if (veri.s) localStorage.setItem(SONSUZ_KEY, String(veri.s));
+      for (const [i, v] of Object.entries(veri.b || {})) {
+        localStorage.setItem(`${BEST_KEY}:${i}`, String(v));
+      }
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
   function ayarlariAc() {
     els.brightness.value = String(ayarlar.parlaklik);
     els.reduceMotion.checked = !!ayarlar.azHareket;
     els.version.textContent = SURUM;
     bolumListesiKur();
+    els.progressCode.value = ilerlemeKodu();
+    els.progressPaste.value = "";
     els.settings.hidden = false;
   }
   const ayarlariKapat = () => { els.settings.hidden = true; };
@@ -1260,6 +1356,25 @@
 
   els.settingsBtn.addEventListener("click", ayarlariAc);
   els.settingsClose.addEventListener("click", ayarlariKapat);
+  els.copyProgress.addEventListener("click", () => {
+    els.progressCode.select();
+    try {
+      navigator.clipboard.writeText(els.progressCode.value);
+    } catch (err) {
+      document.execCommand("copy");
+    }
+    els.copyProgress.textContent = I18n.t("copied");
+    setTimeout(() => { els.copyProgress.textContent = I18n.t("copyCode"); }, 1600);
+  });
+  els.applyProgress.addEventListener("click", () => {
+    const oldu = ilerlemeYukle(els.progressPaste.value);
+    els.applyProgress.textContent = I18n.t(oldu ? "loaded" : "badCode");
+    if (oldu) {
+      bolumListesiKur();
+      els.progressCode.value = ilerlemeKodu();
+    }
+    setTimeout(() => { els.applyProgress.textContent = I18n.t("applyCode"); }, 1800);
+  });
   els.brightness.addEventListener("input", () => {
     ayarlar.parlaklik = Number(els.brightness.value);
     ayarlariKaydet();
@@ -1274,6 +1389,23 @@
   });
   els.privacyClose.addEventListener("click", () => { els.privacy.hidden = true; });
 
+  // Kayıt varsa giriş perdesinde "Devam et" görünür ve nerede kalındığını yazar.
+  function devamDugmesiniKur() {
+    const v = devamOku();
+    if (!v) {
+      els.resumeBtn.hidden = true;
+      els.resumeInfo.hidden = true;
+      return;
+    }
+    const ad = v.sonsuz
+      ? `${I18n.t("endless")} · ${(v.seri || 0) + 1}`
+      : I18n.chapters()[Math.min(v.bolum, I18n.chapters().length - 1)].name;
+    els.resumeBtn.hidden = false;
+    els.resumeInfo.hidden = false;
+    els.resumeBtn.textContent = I18n.t("resume");
+    els.resumeInfo.textContent = `${ad} · ${formatTime(v.sure || 0)}`;
+  }
+
   function refreshLanguage() {
     I18n.apply();
     els.langBtn.textContent = I18n.lang === "tr" ? "EN" : "TR";
@@ -1282,6 +1414,7 @@
     els.cardTitle.textContent = chapterText().name;
     els.cardText.textContent = chapterText().card;
     document.title = I18n.t("title");
+    if (!els.intro.hidden) devamDugmesiniKur();
   }
   els.langBtn.addEventListener("click", () => {
     I18n.toggle();
@@ -1319,11 +1452,17 @@
   canvas.addEventListener("touchend", endTouch);
   canvas.addEventListener("touchcancel", endTouch);
 
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") devamKaydet();
+  });
+  window.addEventListener("pagehide", devamKaydet);
+
   window.addEventListener("resize", resize);
   resize();
   chapter = CHAPTERS[0];
   newRoom(randomSeed());
   refreshLanguage();
+  devamDugmesiniKur();
   requestAnimationFrame((t) => {
     lastFrame = t;
     loop(t);
@@ -1396,6 +1535,8 @@
     setLang(l) { I18n.set(l); refreshLanguage(); },
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
+    saveNow: () => devamKaydet(),
+    savedRun: () => devamOku(),
     // Yansıma kurallarını sayısal olarak denetler: oyuncu aynanın önündeyken
     // yansıma tam görünmeli, panel kenarından taşmamalı, oyuncuyla
     // çakışmamalı; aynanın yanından geçerken hiç çizilmemeli.

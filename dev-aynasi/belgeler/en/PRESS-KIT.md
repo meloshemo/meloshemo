@@ -53,6 +53,8 @@ back.
   a mimicking echo, a dying lantern.
 - **Split-screen duel.** Two players, one keyboard, the same hall.
 - **Endless hall.** A never-ending run of randomly combined rules, with a best-run record.
+- **Continue where you left off.** Room, hall and time survive closing the game.
+- **Progress code.** Move your progress from phone to desktop with one code.
 - **Hall codes.** Anyone entering the same code plays the exact same hall.
 - **Silent by design.** The game has no sound or music; attention stays on the search.
 - **No install.** Runs in a browser; a single-file offline build is included.

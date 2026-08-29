@@ -43,6 +43,8 @@ Find it, walk into it, and the next room opens.
 [list]
 [*]Two players on one keyboard, split screen, racing through the same hall
 [*]Hall codes: anyone entering the same code plays the exact same hall
+[*]Continue where you left off: room, hall and time are kept even if you close the game
+[*]Progress code: move your progress from phone to desktop with a single code
 [*]Endless hall: a never-ending run of randomly combined rules
 [*]Online race in development: the more players, the bigger the hall — up to 26,000 mirrors
 [/list]

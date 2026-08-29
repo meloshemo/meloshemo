@@ -1,5 +1,14 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.3.0 — Kaldığın yerden devam
+- **Devam et:** oyun kapatılsa da bölüm, salon tohumu ve süre saklanıyor;
+  giriş perdesinde "Devam et" düğmesi nerede kalındığını yazıyor
+- Kayıt beş saniyede bir ve sekme kapanırken yazılıyor
+- **İlerleme kodu:** açılan odalar, en iyi süreler ve sonsuz rekoru tek bir
+  metne çevrilip başka cihaza taşınabiliyor (Ayarlar → İlerlemeyi taşı)
+- Mağaza görselleri yeni yansıma görünümüyle ve 16 odaya göre yenilendi
+  (Tokyo, İstanbul, Kaçan Ayna dahil; Türkçe ve İngilizce)
+
 ## 1.2.2 — Gerçek ayna simetrisi geri geldi
 Ekran kaydında yansımalar "eşit değil" ve hareket "takılıyormuş gibi"
 görünüyordu. Sebebi 1.2.x'te getirilen iki kısıtlamaydı: yansıma panel içine

@@ -54,6 +54,8 @@ dönmeniz gerekir.
   sizi taklit eden yankı, sönen fener.
 - **Bölünmüş ekran düello.** Tek klavyede iki kişi, aynı salonda yarış.
 - **Sonsuz salon.** Rastgele kural karışımıyla bitmeyen seri, rekor takibi.
+- **Kaldığın yerden devam.** Oyunu kapatsan da bölüm, salon ve süre saklanır.
+- **İlerleme kodu.** Telefondaki ilerlemeyi tek kodla bilgisayara taşı.
 - **Salon kodu.** Aynı kodu giren herkes birebir aynı salonu oynar.
 - **Sessiz tasarım.** Oyunda ses ve müzik yoktur; dikkat tamamen aramada kalır.
 - **Kurulum yok.** Tarayıcıda açılır, tek dosyalık çevrimdışı sürümü vardır.
@@ -74,19 +76,26 @@ dönmeniz gerekir.
 
 ## Görseller
 
-`basin/` klasöründe:
+`basin/` klasöründe, Türkçe ve İngilizce (`-en`) arayüzle:
 
-- `01-dev-aynasi.png` — dev aynayı bulma anı
-- `02-sahte-devler.png` — çarpık sahte dev ayna
-- `03-ters-salon.png` — ters kontrol odası
-- `04-kayan-aynalar.png` — duvarların kaydığı an
-- `05-yanki.png` — yankı oyuncunun yanında
-- `06-kibir-odasi.png` — altın oda
-- `07-duello.png` — bölünmüş ekran düello
-- `08-arayuz.png` — tam arayüz
-- `steam-header-460x215.png`, `steam-kapsul-616x353.png`,
-  `steam-kutuphane-600x900.png`, `steam-arkaplan-1438x810.png` — mağaza görselleri
-- `../ikon/` — uygulama ikonu (SVG + 64/128/256/512/1024 PNG)
+| Dosya | İçerik |
+| --- | --- |
+| `01-dev-aynasi` | Dev aynayı bulma anı |
+| `02-sahte-devler` | Çarpık sahte dev ayna |
+| `03-ters-salon` | Kontrollerin aynalandığı oda |
+| `04-kayan-aynalar` | Duvarların kaydığı an |
+| `05-yanki` | Yankı oyuncunun peşinde |
+| `06-kibir-odasi` | Altın oda |
+| `07-tokyo` | Neon salonu |
+| `08-istanbul` | Kapalıçarşı |
+| `09-kacan-ayna` | Final: kaçan ayna |
+| `10-duello` | Bölünmüş ekran düello |
+| `11-arayuz` | Tam ekran arayüz |
+
+Mağaza görselleri: `steam-header-460x215`, `steam-kapsul-616x353`,
+`steam-kucuk-231x87`, `steam-kutuphane-600x900`, `steam-arkaplan-1438x810`
+(Türkçe ve İngilizce), `sosyal-1200x630`. Uygulama ikonu `ikon/` klasöründe
+(SVG + 64/128/256/512/1024 PNG). Fragmanlar `fragman/` klasöründe (TR + EN).
 
 Tüm görseller haber, inceleme ve video içeriklerinde serbestçe kullanılabilir.
 

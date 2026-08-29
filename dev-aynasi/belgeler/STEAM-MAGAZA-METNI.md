@@ -44,6 +44,8 @@ Onu bulduğunda içine yürürsün ve bir sonraki oda açılır.
 [list]
 [*]Tek klavyede iki kişi, bölünmüş ekran, aynı salonda yarış
 [*]Salon kodu: aynı kodu giren herkes birebir aynı salonu oynar
+[*]Kaldığın yerden devam: oyunu kapatsan da bölüm, salon ve süren saklanır
+[*]İlerleme kodu: telefondaki ilerlemeni tek kodla bilgisayarına taşı
 [*]Sonsuz salon: rastgele kurallarla bitmeyen seri
 [*]Çevrimiçi yarış yolda: kalabalık arttıkça salon büyür, 26.000 aynaya kadar
 [/list]

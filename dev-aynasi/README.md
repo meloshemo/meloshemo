@@ -92,6 +92,22 @@ Yansımalar **gerçek ayna simetrisiyle** çizilir; kural sade ve tutarlıdır:
 6. Camın koyuluğu panelden içeri doğru solar, böylece kırpma bandı kutu gibi
    görünmez. Dev aynanın panelden geniş olması kasıtlıdır.
 
+## Kayıt ve devam
+
+Oyun her beş saniyede ve sekme kapanırken ilerlemeyi tarayıcıya yazar. Oyunu
+tamamen kapatıp geri açtığında giriş perdesinde **Devam et** düğmesi çıkar ve
+altında nerede kaldığın yazar (ör. "III · Ters Salon · 02:14"). Devam edince
+aynı bölüm, **aynı salon** (tohum saklanıyor) ve süre kaldığı saniyeden açılır.
+
+Saklananlar: açtığın odalar, her odadaki en iyi süren, sonsuz salon rekorun,
+dil/parlaklık/hareket tercihlerin ve devam kaydın.
+
+**Cihazlar arası:** kayıt tarayıcıda tutulduğu için telefon ve bilgisayar
+kendiliğinden eşitlenmez (bunun için hesap sistemi gerekir). Bunun yerine
+Ayarlar'da **İlerlemeyi taşı** bölümü var: telefonda kodu kopyalarsın,
+bilgisayarda yapıştırıp yüklersin. Kod açtığın odaları, en iyi süreleri ve
+sonsuz rekorunu taşır.
+
 ## Ayarlar
 
 Sağ üstteki **Ayarlar** düğmesi: parlaklık (0,75–1,35), hareketi azaltma,
