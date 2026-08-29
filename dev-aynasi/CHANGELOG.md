@@ -1,5 +1,16 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.2.0 — Yansıma kuralları yeniden yazıldı
+Telefonda çekilen bir kare, yansımaların panel bandından taşıp yarım
+kaldığını ve oyuncunun üstüne bindiğini gösterdi. Kurallar baştan yazıldı:
+- Aynanın **önünde değilsen** o ayna artık yansıma göstermiyor
+- Yansıma panel boyunca oyuncunun hizasında durur ama **kenardan taşmaz**
+- Derinlik en az figür boyu + oyuncu yarıçapı: yansıma **oyuncuya binmez**
+- Kırpma bandı figürün tamamını içine alacak kadar büyük: **kesilme yok**
+- Cam koyuluğu panelden içeri doğru solar; bant artık kutu gibi görünmüyor
+- Dev ayna ancak gerçekten karşısındayken "görüldü" sayılıyor
+- Yansıma kurallarını sayısal ölçen `reflectionCheck` denetim kancası
+
 ## 1.1.1 — Yayın öncesi denetim
 Baştan sona denetim yapıldı; bulunan açıklar kapatıldı:
 - **Sonsuz modda seri sessizce kayboluyordu:** `R` artık seriyi bitirip skor

@@ -72,6 +72,22 @@ salonu baştan sona tararsın.
 kaybolur, gösterge üstte ince bir şeride iner, tuval bütün ekranı kaplar.
 `Esc` çıkar. Oyuna girdiğinde otomatik olarak bu moda geçilir.
 
+## Yansıma kuralları
+
+Her ayna aynı beş kurala uyar; hiçbir yansıma yarım görünmez ya da panelden
+taşıp kesilmez:
+
+1. **Ancak aynanın önündeysen görünürsün.** Panelin yanından geçerken o ayna
+   yansıma göstermez (eskiden gösterip kırpıyordu, yarım görüntü kalıyordu).
+2. **Yansıma panel boyunca senin hizandadır**, ama panelin kenarından
+   taşmayacak şekilde sınırlanır.
+3. **Camın arkasındadır ve sana binmez:** derinlik en az figür boyu +
+   oyuncu yarıçapı kadardır.
+4. **Uzaklık ölçeği:** yaklaştıkça büyür, uzaklaştıkça küçülür (0,62–1,00).
+5. **Kırpma bandı figürü tamamen içine alır**, yani görüntü asla kesilmez.
+   Camın koyuluğu panelden içeri doğru solar, böylece bant kutu gibi görünmez.
+   Dev aynanın panelden geniş olması kasıtlıdır; o taşma kesilme değildir.
+
 ## Ayarlar
 
 Sağ üstteki **Ayarlar** düğmesi: parlaklık (0,75–1,35), hareketi azaltma,

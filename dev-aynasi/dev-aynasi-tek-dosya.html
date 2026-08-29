@@ -536,7 +536,7 @@ body.sinema .veil { inset: 0; }
               <button id="privacyBtn" class="btn" type="button" data-i18n="privacy">Gizlilik</button>
               <button id="settingsClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
             </div>
-            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.1.1</b></p>
+            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.2.0</b></p>
           </div>
         </div>
 
@@ -1003,7 +1003,7 @@ body.sinema .veil { inset: 0; }
   const BEST_KEY = "dev-aynasi:en-iyi";
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
-  const SURUM = "1.1.1";
+  const SURUM = "1.2.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -1535,42 +1535,98 @@ body.sinema .veil { inset: 0; }
 
   // Aynadaki görüntü: oyuncunun ayna düzlemine göre simetriği, panelin
   // arkasındaki dar banda kırpılarak çizilir.
+  // Aynadaki görüntü. Kurallar:
+  //
+  //  1) Bir aynada ancak onun ÖNÜNDEYSEN görünürsün. Panelin yan tarafından
+  //     geçerken o ayna yansıma göstermez (eskiden gösteriyor, sonra kırpılıp
+  //     yarım kalıyordu).
+  //  2) Yansıma panel boyunca senin hizanda durur, ama panelin kenarından
+  //     taşmayacak şekilde sınırlanır — hiçbir yansıma yarım görünmez.
+  //  3) Yansıma camın arkasındadır ve oyuncunun üstüne binmez: derinlik en az
+  //     figür boyu kadardır.
+  //  4) Uzaklaştıkça yansıma küçülür; yaklaştıkça büyür.
+  //  5) Kırpma bandı her zaman figürün tamamını içine alacak kadar büyüktür,
+  //     yani görüntü kesilmez. Dev ayna panelden geniştir; oradaki taşma
+  //     kasıtlıdır, kesilme değil.
   function drawReflection(p, seg, kind, distortion) {
     const g = segGeometry(seg);
     const isGiant = kind === "giant";
-    const depth = CELL * (isGiant ? 1.7 : 1.0);
-    let rx;
-    let ry;
-    let band;
-    if (seg.horizontal) {
-      const side = p.y < g.ay ? 1 : -1;
-      rx = p.x;
-      ry = 2 * g.ay - p.y;
-      band = { x: g.ax, y: side > 0 ? g.ay : g.ay - depth, w: CELL, h: depth };
-    } else {
-      const side = p.x < g.ax ? 1 : -1;
-      rx = 2 * g.ax - p.x;
-      ry = p.y;
-      band = { x: side > 0 ? g.ax : g.ax - depth, y: g.ay, w: depth, h: CELL };
-    }
+    const yatay = seg.horizontal;
+
+    // Oyuncunun panel eksenindeki izdüşümü (t) ve panele dik uzaklığı.
+    const t = yatay ? (p.x - g.ax) / CELL : (p.y - g.ay) / CELL;
+    const dik = yatay ? p.y - g.ay : p.x - g.ax;
+    const uzak = Math.abs(dik);
+    const taraf = dik >= 0 ? 1 : -1;          // oyuncu panelin hangi yanında
+    if (t < -0.2 || t > 1.2) return false;    // aynanın önünde değilsin
+    if (uzak > LOOK) return false;
+
+    // Ölçek: yaklaştıkça büyür. Çarpık aynalar bunu ayrıca bozar.
+    const yakinlik = Math.max(0, Math.min(1, 1 - uzak / (LOOK * 1.05)));
+    const temel = (isGiant ? GIANT_SCALE : 1) * (0.62 + 0.38 * yakinlik);
+    const sx = temel * (distortion ? distortion.sx : 1);
+    const sy = temel * (distortion ? distortion.sy : 1);
+
+    // Figürün kapladığı yer (drawFigure ölçüleriyle birebir).
+    const figurYari = RADIUS * sy * 1.6;      // baştan ayağa yarım yükseklik
+    const figurGenisYari = RADIUS * sx * 0.75;
+
+    // Panel boyunca konum: kenardan taşmasın diye figür yarıçapı kadar içeride.
+    const payEksen = Math.min(0.45, (figurGenisYari + 3) / CELL);
+    const tt = Math.min(1 - payEksen, Math.max(payEksen, t));
+    // Derinlik: camın arkasında, oyuncuyla çakışmayacak kadar geride.
+    // En az figür boyu + oyuncu yarıçapı kadar geride: yansıma hiçbir zaman
+    // oyuncunun üstüne binmez.
+    const derinlik = figurYari + RADIUS + 4 + Math.min(uzak * 0.2, CELL * 0.2);
+
+    const rx = yatay ? g.ax + tt * CELL : g.ax - taraf * derinlik;
+    const ry = yatay ? g.ay - taraf * derinlik : g.ay + tt * CELL;
+
+    // Kırpma bandı figürün tamamını içine alır: görüntü asla kesilmez.
+    const bandDerin = derinlik + figurYari + 4;
+    const bandBoy = Math.max(CELL, figurGenisYari * 2 + 8);
+    const band = yatay
+      ? {
+          x: g.ax + CELL / 2 - bandBoy / 2,
+          y: taraf > 0 ? g.ay - bandDerin : g.ay,
+          w: bandBoy,
+          h: bandDerin,
+        }
+      : {
+          x: taraf > 0 ? g.ax - bandDerin : g.ax,
+          y: g.ay + CELL / 2 - bandBoy / 2,
+          w: bandDerin,
+          h: bandBoy,
+        };
 
     ctx.save();
     ctx.beginPath();
     ctx.rect(band.x, band.y, band.w, band.h);
     ctx.clip();
-    ctx.fillStyle = "rgba(9, 12, 18, 0.82)";
+
+    // Camın derinliği: panelin hemen arkası koyu, içeri gidildikçe salonun
+    // karanlığına karışır. Böylece kırpma bandı kutu gibi görünmez.
+    const g0 = yatay
+      ? { x: band.x, y: taraf > 0 ? band.y + band.h : band.y }
+      : { x: taraf > 0 ? band.x + band.w : band.x, y: band.y };
+    const g1 = yatay
+      ? { x: band.x, y: taraf > 0 ? band.y : band.y + band.h }
+      : { x: taraf > 0 ? band.x : band.x + band.w, y: band.y };
+    const cam = ctx.createLinearGradient(g0.x, g0.y, g1.x, g1.y);
+    cam.addColorStop(0, "rgba(9, 12, 18, 0.85)");
+    cam.addColorStop(0.55, "rgba(9, 12, 18, 0.45)");
+    cam.addColorStop(1, "rgba(9, 12, 18, 0)");
+    ctx.fillStyle = cam;
     ctx.fillRect(band.x, band.y, band.w, band.h);
 
-    const dist = Math.hypot(rx - p.x, ry - p.y) / 2;
-    const alpha = Math.max(0, 0.85 - (dist / LOOK) * 0.4);
+    const alpha = Math.max(0.25, 0.9 - (uzak / LOOK) * 0.45);
     if (isGiant) {
-      drawFigure(rx, ry, GIANT_SCALE, GIANT_SCALE, 1, "#ffd98a", "rgba(216, 178, 106, 0.9)");
-    } else if (distortion) {
-      drawFigure(rx, ry, distortion.sx, distortion.sy, alpha, `rgba(${C.glass}, 0.92)`, null);
+      drawFigure(rx, ry, sx, sy, 1, "#ffd98a", "rgba(216, 178, 106, 0.9)");
     } else {
-      drawFigure(rx, ry, 1, 1, alpha, `rgba(${C.glass}, 0.92)`, null);
+      drawFigure(rx, ry, sx, sy, alpha, `rgba(${C.glass}, 0.92)`, null);
     }
     ctx.restore();
+    return true;
   }
 
   function drawPanel(seg, dist, light, isWarm, now) {
@@ -1683,9 +1739,10 @@ body.sinema .veil { inset: 0; }
       const seg = { horizontal, x, y };
       // Dev ayna yalnızca dibinden geçerken parlar; uzaktan ışığı görünmez.
       const isGiant = id === giant.id && phase === "arayis" && d < GIANT_REVEAL;
-      drawReflection(p, seg, isGiant ? "giant" : "normal", decoys.get(id));
+      const cizildi = drawReflection(p, seg, isGiant ? "giant" : "normal", decoys.get(id));
       if (d < SEEN_RANGE) p.seen.add(id);
-      if (isGiant) giantVisible = true;
+      // Dev ayna ancak gerçekten karşısındaysan ve yansıma çizildiyse sayılır.
+      if (isGiant && cizildi) giantVisible = true;
     });
 
     ctx.lineCap = "round";
@@ -2311,6 +2368,47 @@ body.sinema .veil { inset: 0; }
     setLang(l) { I18n.set(l); refreshLanguage(); },
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
+    // Yansıma kurallarını sayısal olarak denetler: oyuncu aynanın önündeyken
+    // yansıma tam görünmeli, panel kenarından taşmamalı, oyuncuyla
+    // çakışmamalı; aynanın yanından geçerken hiç çizilmemeli.
+    reflectionCheck() {
+      const p = players[0];
+      const g = segGeometry(giant);
+      const yatay = giant.horizontal;
+      const eskiX = p.x;
+      const eskiY = p.y;
+      const olc = (dx, dy) => {
+        p.x = (yatay ? g.ax + CELL / 2 : g.ax + CELL * 0.4) + dx;
+        p.y = (yatay ? g.ay + CELL * 0.4 : g.ay + CELL / 2) + dy;
+        const t = yatay ? (p.x - g.ax) / CELL : (p.y - g.ay) / CELL;
+        const dik = yatay ? p.y - g.ay : p.x - g.ax;
+        const uzak = Math.abs(dik);
+        const onunde = t >= -0.2 && t <= 1.2 && uzak <= LOOK;
+        if (!onunde) return { onunde: false };
+        const yakinlik = Math.max(0, Math.min(1, 1 - uzak / (LOOK * 1.05)));
+        const temel = GIANT_SCALE * (0.62 + 0.38 * yakinlik);
+        const figurYari = RADIUS * temel * 1.6;
+        const derinlik = figurYari + RADIUS + 4 + Math.min(uzak * 0.2, CELL * 0.2);
+        const bandDerin = derinlik + figurYari + 4;
+        return {
+          onunde: true,
+          // figür bandın içinde tamamen duruyor mu
+          sigiyor: derinlik + figurYari <= bandDerin + 0.01,
+          // oyuncuyla çakışmıyor mu (yansıma merkezi ile oyuncu arası)
+          cakismiyor: derinlik + uzak >= figurYari * 0 + RADIUS + figurYari * 0.35,
+          derinlik: Math.round(derinlik), figur: Math.round(figurYari * 2),
+        };
+      };
+      const sonuc = {
+        tamKarsi: olc(0, 0),
+        uzak: olc(yatay ? 0 : 60, yatay ? 60 : 0),
+        yanda: olc(yatay ? 55 : 0, yatay ? 0 : 55),
+        panelDisi: olc(yatay ? 130 : 0, yatay ? 0 : 130),
+      };
+      p.x = eskiX;
+      p.y = eskiY;
+      return sonuc;
+    },
     band: () => bandOfRoom,
     endlessInfo: () => ({ endless, count: endlessCount }),
     echoPos: () => (echo ? { x: echo.x, y: echo.y } : null),
