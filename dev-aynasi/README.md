@@ -74,25 +74,23 @@ kaybolur, gösterge üstte ince bir şeride iner, tuval bütün ekranı kaplar.
 
 ## Yansıma kuralları
 
-Her ayna aynı beş kurala uyar; hiçbir yansıma yarım görünmez ya da panelden
-taşıp kesilmez:
+Yansımalar **gerçek ayna simetrisiyle** çizilir; kural sade ve tutarlıdır:
 
-1. **Yalnızca yaklaştığın ayna görüntü verir.** Her karede en fazla üç yansıma
-   çizilir: önündeki en yakın yatay ayna, en yakın dikey ayna ve menzildeyse
-   dev ayna. Uzaktaki aynalar boş kalır — salon kalabalık görünmez, yansımalar
-   üst üste binmez.
-2. **Ancak aynanın önündeysen görünürsün.** Panelin yanından geçerken o ayna
-   yansıma göstermez.
-3. **Yansıma panel boyunca senin hizandadır**, ama panelin kenarından
-   taşmayacak şekilde sınırlanır.
-4. **Camın arkasındadır ve sana binmez:** derinlik en az figür boyu +
-   oyuncu yarıçapı kadardır.
-5. **Menzil ve sönüm:** normal aynalar bir kare (74 birim), dev ayna 0,8 kare
-   (58 birim) mesafede görüntü verir; menzil kenarında yansıma aniden
-   kaybolmaz, yumuşakça söner.
-6. **Kırpma bandı figürü tamamen içine alır**, yani görüntü asla kesilmez.
-   Camın koyuluğu panelden içeri doğru solar, böylece bant kutu gibi görünmez.
-   Dev aynanın panelden geniş olması kasıtlıdır; o taşma kesilme değildir.
+1. **Tam simetri.** Yansıma, oyuncunun ayna düzlemine göre birebir
+   simetriğidir: panel boyunca oyuncuyla aynı hizada, camın arkasında aynı
+   uzaklıkta. Konum sıkıştırılmaz, kaydırılmaz — yürürken yansıma da aynı
+   hızda kayar, takılma ya da atlama olmaz.
+2. **Boy sabittir.** Gerçek aynada da yansıman senin boyundadır; uzaklaştıkça
+   yalnızca soluklaşır (1,3 kare menzilin kenarında yumuşakça söner).
+3. **Ancak aynanın önündeysen görünürsün.** Yansıman panelin kenarından büyük
+   ölçüde taşacaksa (yarıdan fazlası dışarıda kalıyorsa) o ayna hiç görüntü
+   vermez — yarım figür çizilmez.
+4. **Derinlikte kesme yok.** Kırpma yalnızca panelin genişliği ve camın arkası
+   ile yapılır; figür hiçbir zaman ortadan bölünmez.
+5. **Oyuncunun üstüne binmez.** Cama çok yaklaşıldığında görüntü yumuşakça
+   geriye itilir.
+6. Camın koyuluğu panelden içeri doğru solar, böylece kırpma bandı kutu gibi
+   görünmez. Dev aynanın panelden geniş olması kasıtlıdır.
 
 ## Ayarlar
 

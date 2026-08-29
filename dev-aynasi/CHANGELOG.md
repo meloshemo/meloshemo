@@ -1,5 +1,18 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.2.2 — Gerçek ayna simetrisi geri geldi
+Ekran kaydında yansımalar "eşit değil" ve hareket "takılıyormuş gibi"
+görünüyordu. Sebebi 1.2.x'te getirilen iki kısıtlamaydı: yansıma panel içine
+sıkıştırılıyor (oyuncuyla hizası kayıyor) ve uzaklığa göre ölçekleniyordu
+(boy sürekli değişiyordu). Ayrıca "en yakın aynayı seç" kuralı yürürken
+yansımanın bir panelden ötekine atlamasına yol açıyordu.
+- **Tam simetri geri geldi:** yansıma oyuncuyla birebir aynı hizada ve aynı
+  uzaklıkta; yürürken aynı hızda kayıyor
+- **Boy sabit:** yansıma artık büyüyüp küçülmüyor, yalnızca soluklaşıyor
+- **Seçim kalktı:** önünde olduğun bütün yakın aynalar görüntü veriyor,
+  atlama yok. Yarım figür çıkmaması panel taşma kuralıyla sağlanıyor
+- Menzil 1,3 kareye (96 birim) ayarlandı: sade ama boş değil
+
 ## 1.2.1 — Sade yansımalar
 Ekran kaydında aynı anda çizilen çok sayıda yansıma sahneyi kalabalık ve
 karmaşık gösteriyordu, aynadan aynaya geçerken görüntüler üst üste biniyordu:
