@@ -1,5 +1,25 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.4.1 — Baştan sona denetim
+- **Kritik:** dönüşlü odalar (XII, XVI, XX) kapıya varınca oyunu bitiriyordu;
+  bu yüzden **XIII–XX odalarına normal oyunla hiç ulaşılamıyordu**. Artık son
+  oda değilse süre yazılır, sıradaki oda açılır ve perdede "Sıradaki oda"
+  düğmesi çıkar. Final metni yalnızca XX'te görünür
+- **Kritik:** `R` (yeni salon) oyuncuyu I. bölüme atıyordu; artık bulunduğun
+  odayı yeni bir tohumla açar
+- XVII · Durgun Su geçilemez durumdaydı: yansımanın belirmesi için gereken
+  durgunluk, aynaya yürümeyi de engelliyordu. Artık görüntü toplandıktan
+  sonra 2,2 saniye açık kalıyor — durup sonra içine yürüyebiliyorsun
+- Düelloda kaçan ayna yalnızca 1. oyuncudan kaçıyordu; ikinci oyuncu aynanın
+  dibinde bekleyip bedava kazanabiliyordu. Artık iki oyuncuyu da sayıyor
+- Sönen fener düelloda yalnızca 1. oyuncunun keşfiyle besleniyordu
+- Sonsuz modda etkiler çarpılınca (fener + sis + fırtına) salon
+  oynanamayacak kadar kararabiliyordu: ışığa taban kondu
+- Sonsuz mod bölüm kartı artık o odada yürürlükte olan kuralların adını yazıyor
+- Dokunmatik cihazda "bas ve sürükle" yönergesi görünüyor, klavye kısayol
+  şeridi gizleniyor — telefonda oyuncu nasıl yürüyeceğini görüyor
+- Salon kodu uyarısı ("1–99999 arası") İngilizceye çevrildi
+
 ## 1.4.0 — İmkansıza yakın dört salon
 - **XVII · Kyoto — Durgun Su:** cam su gibi davranıyor. Yürürken dev yansıma
   dağılıyor; hız 46'nın altına inip yarım saniye beklersen toplanıyor

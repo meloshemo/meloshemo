@@ -435,3 +435,12 @@ body.sinema canvas {
   border-radius: 0;
 }
 body.sinema .veil { inset: 0; }
+
+/* Dokunmatik cihazda klavye satırı yerine parmak yönergesi görünür. */
+.keys-touch { display: none; }
+@media (pointer: coarse) {
+  .keys-kb { display: none; }
+  .keys-touch { display: block; }
+  /* Klavyesi olmayan cihazda kısayol şeridi yer kaplamasın. */
+  .help { display: none; }
+}

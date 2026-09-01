@@ -41,7 +41,7 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.4.0";
+  const SURUM = "1.4.1";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -212,7 +212,7 @@
       // XVII · Kyoto — Durgun Su: salonun zemini su gibi. Yürüdükçe cam
       // titrer, dev yansıma dağılır. Ancak durup beklersen belirir.
       size: 66, light: 200, hints: 3, decoys: 30,
-      stillness: { speed: 46, settle: 520 },
+      stillness: { speed: 46, settle: 520, hold: 2200 },
       palette: { ground: "#04090a", floorA: "#0b1618", floorB: "#081113", glass: "170, 226, 216", lamp: "206, 244, 236" },
     },
     {
@@ -304,7 +304,7 @@
       vx: 0, vy: 0,
       hints: chapter.hints, hintUntil: 0,
       seen: new Set(), foundAt: 0, bloom: 0, done: 0, reachedDoor: false,
-      durgunSince: 0,
+      durgunSince: 0, durgunPencere: 0,
     };
   }
 
@@ -332,7 +332,9 @@
     for (let deneme = 0; deneme < 30; deneme++) {
       const aday = Maze.pickGiant(maze, { x: 0, y: 0 }, (seed + now + deneme * 7919) | 0, "uzak");
       const m = segCenter(aday);
-      if (Math.hypot(m.x - players[0].x, m.y - players[0].y) > CELL * 8) {
+      // Düelloda ayna iki oyuncudan da uzağa kaçar; yoksa ikinci oyuncu
+      // aynanın dibinde bekleyip bedava kazanırdı.
+      if (players.every((pl) => Math.hypot(m.x - pl.x, m.y - pl.y) > CELL * 8)) {
         yeni = aday;
         break;
       }
@@ -348,8 +350,8 @@
 
   function maybeFlee(now) {
     if (!chapter.fleeing || phase !== "arayis") return;
-    const p = players[0];
-    const d = Math.hypot(p.x - giantSeg.x, p.y - giantSeg.y);
+    // Hangi oyuncu yaklaşırsa yaklaşsın ayna kaçar: en yakın olan sayılır.
+    const d = Math.min(...players.map((pl) => Math.hypot(pl.x - giantSeg.x, pl.y - giantSeg.y)));
     if (d < chapter.fleeing.range) {
       if (!nearSince) nearSince = now;
       if (now - nearSince > chapter.fleeing.grace) fleeGiant(now);
@@ -411,13 +413,18 @@
       { mirrorControls: true }, { shiftEvery: 9000 }, { echo: true },
       { neon: true }, { water: true }, { storm: true },
       { grid: true }, { openHall: 0.5 }, { bazaar: true }, {},
-      { stillness: { speed: 46, settle: 520 } },
+      { stillness: { speed: 46, settle: 520, hold: 2200 } },
       { ice: { friction: 0.1, accel: 0.42 } },
       { lantern: { decay: 0.05, gain: 0.013, floor: 0.3 } },
       { liars: 4 },
     ];
     const secim = Object.assign({}, kurallar[Math.floor(rand() * kurallar.length)]);
     if (rand() < 0.35) Object.assign(secim, kurallar[Math.floor(rand() * kurallar.length)]);
+    // Sonsuz modda oyuncu odaya kör girmesin: yürürlükteki kuralların adı
+    // bölüm kartında yazar.
+    secim.kuralAdlari = Object.keys(secim)
+      .map((k) => I18n.t("ruleNames")[k])
+      .filter(Boolean);
     const paletler = CHAPTERS.map((c) => c.palette);
     return Object.assign(
       {
@@ -581,18 +588,25 @@
   // XVII · Durgun Su: yürürken cam titrer. Oyuncu bu hızın altına inip
   // "settle" kadar beklerse dev yansıma toplanır.
   function durgunlukIzle(p) {
-    if (!chapter.stillness) { p.durgunSince = 0; return; }
+    if (!chapter.stillness) { p.durgunSince = 0; p.durgunPencere = 0; return; }
+    const now = performance.now();
     const hiz = Math.hypot(p.vx, p.vy);
     if (hiz < chapter.stillness.speed) {
-      if (!p.durgunSince) p.durgunSince = performance.now();
+      if (!p.durgunSince) p.durgunSince = now;
+      // Yeterince beklediyse görüntü toplanır ve bir süre açık kalır:
+      // durunca beliren yansımaya yürüyerek girebilmen gerekir.
+      if (now - p.durgunSince > chapter.stillness.settle) {
+        p.durgunPencere = now + chapter.stillness.hold;
+      }
     } else {
       p.durgunSince = 0;
     }
   }
 
+  // Görüntü ya şu an durgunsun diye ya da az önce durduğun için açıktır.
   function durgunMu(p, now) {
     if (!chapter.stillness) return true;
-    return p.durgunSince > 0 && now - p.durgunSince > chapter.stillness.settle;
+    return now < (p.durgunPencere || 0);
   }
 
   // Kapı ağzına birkaç piksel kala takılmak sinir bozucu: yönün önü açıksa
@@ -870,7 +884,13 @@
     const sis = chapter.fog
       ? 0.6 + 0.5 * (0.5 + 0.5 * Math.sin(now / 4100) * Math.sin(now / 1700))
       : 1;
-    const light = chapter.light * (phase === "donus" ? 0.78 : 1) * fade * firtina * sis * ayarlar.parlaklik;
+    // Etkiler çarpım halinde birikince (sönen fener + sis + fırtına) salon
+    // oynanamayacak kadar kararabiliyordu; görüş için bir taban var.
+    const ISIK_TABAN = 96;
+    const light = Math.max(
+      ISIK_TABAN * ayarlar.parlaklik,
+      chapter.light * (phase === "donus" ? 0.78 : 1) * fade * firtina * sis * ayarlar.parlaklik
+    );
     ctx.save();
     ctx.beginPath();
     ctx.rect(rect.x, rect.y, rect.w, rect.h);
@@ -1070,14 +1090,23 @@
     const elapsed = elapsedNow();
     const seenTotal = players.reduce((n, p) => n + p.seen.size, 0);
 
+    els.next.hidden = true;
     if (duel) {
       els.overlayTitle.textContent = I18n.t("duelWin")(winner.label);
       els.overlayText.textContent = I18n.t("duelText");
       els.best.parentElement.hidden = true;
     } else {
+      // Dönüşlü odalar (XII, XVI, XX) kapıya varınca biter. Bu son oda
+      // değilse oyun bitmez: süre yazılır, sıradaki oda açılır ve perdede
+      // "Sıradaki oda" düğmesi çıkar. Yalnızca son odada final metni görünür.
       const last = chapterIndex === CHAPTERS.length - 1;
-      els.overlayTitle.textContent = I18n.t("endTitle");
-      els.overlayText.textContent = I18n.t("endText");
+      els.overlayTitle.textContent = I18n.t(last ? "endTitle" : "roomDone");
+      els.overlayText.textContent = I18n.t(last ? "endText" : "roomDoneText");
+      if (!last) {
+        acilaniKaydet(chapterIndex + 1);
+        els.next.textContent = I18n.t("nextRoom");
+        els.next.hidden = false;
+      }
       els.best.parentElement.hidden = false;
       els.ledgerBest.textContent = I18n.t("ledgerBest");
       let best = Number(localStorage.getItem(`${BEST_KEY}:${chapterIndex}`) || 0);
@@ -1102,7 +1131,6 @@
     }
     els.overlayTime.textContent = formatTime(elapsed);
     els.overlaySeen.textContent = `${seenTotal.toLocaleString("tr-TR")} / ${mirrorCount.toLocaleString("tr-TR")}`;
-    els.next.hidden = true;
     els.overlay.hidden = false;
     updateHud();
   }
@@ -1201,7 +1229,10 @@
       startedAt = gecenSure;
       carding = now + 2000;
       els.cardTitle.textContent = `${I18n.t("endless")} · ${endlessCount + 1}`;
-      els.cardText.textContent = I18n.t("endlessCard");
+      const adlar = chapter.kuralAdlari || [];
+      els.cardText.textContent = adlar.length
+        ? `${I18n.t("endlessCard")} — ${adlar.join(" · ")}`
+        : I18n.t("endlessCard");
       els.chapterCard.hidden = false;
       kaydetSonsuzRekor();
       updateHud();
@@ -1235,7 +1266,8 @@
       if (chapter.lantern) {
         // Fener yağı: yalnızca yeni cam gördükçe doluyor. Aynı koridorda
         // dönüp durursan karanlığa gömülürsün.
-        const yeni = players[0].seen.size;
+        // Düelloda iki oyuncunun keşfi de feneri besler.
+        const yeni = players.reduce((n, pl) => Math.max(n, pl.seen.size), 0);
         if (yeni > gorulenSayac) {
           fade = Math.min(1, fade + (yeni - gorulenSayac) * chapter.lantern.gain);
           gorulenSayac = yeni;
@@ -1380,7 +1412,9 @@
       finish(players[0], performance.now());
       return;
     }
-    begin(duel, randomSeed(), 0, endless);
+    // "Yeni salon" bulunduğun odayı yeni bir tohumla açar; oyuncuyu
+    // I. bölüme geri atmaz.
+    begin(duel, randomSeed(), endless ? 0 : chapterIndex, endless);
   }
 
   els.enterSolo.addEventListener("click", startSolo);
@@ -1548,11 +1582,15 @@
   els.hintBtn.addEventListener("click", () => useHint(players[0]));
   els.restart.addEventListener("click", restart);
   els.againBtn.addEventListener("click", () => begin(duel, randomSeed(), 0, endless));
+  // Dönüşlü odayı bitirdikten sonra sıradaki odaya geçiş.
+  els.next.addEventListener("click", () => {
+    begin(false, randomSeed(), Math.min(chapterIndex + 1, CHAPTERS.length - 1), false);
+  });
   els.codeApply.addEventListener("click", () => {
     const code = parseInt(els.codeInput.value.trim(), 10);
     if (!code || code < 1 || code > 99999) {
       els.codeInput.value = "";
-      els.codeInput.placeholder = "1–99999 arası";
+      els.codeInput.placeholder = I18n.t("codeRange");
       return;
     }
     begin(duel, code);
@@ -1748,7 +1786,8 @@
     wallsHash: () => maze.hWalls.flat().concat(maze.vWalls.flat()).reduce((a, v, i) => a + (v ? i % 97 : 0), 0),
     forceShift() { nextShift = performance.now() - 1; },
     state: () => ({
-      chapter: endless ? `${I18n.t("endless")} · ${endlessCount + 1}` : chapterText().name, seed, duel, phase, mirrors: mirrorCount,
+      chapter: endless ? `${I18n.t("endless")} · ${endlessCount + 1}` : chapterText().name,
+      index: chapterIndex, seed, duel, phase, mirrors: mirrorCount,
       decoys: decoys.size, seen: players.reduce((n, p) => n + p.seen.size, 0),
       finished: !!finished, winner: finished ? finished.winner.label : null,
     }),
