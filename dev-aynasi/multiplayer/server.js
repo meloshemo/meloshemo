@@ -59,6 +59,10 @@ const CHAPTERS = [
   { ad: "XIV · Dubai", decoyPay: 32 },
   { ad: "XV · Rio", decoyPay: 30 },
   { ad: "XVI · Kaçan Ayna", decoyPay: 36 },
+  { ad: "XVII · Kyoto", decoyPay: 30 },
+  { ad: "XVIII · Reykjavík", decoyPay: 32 },
+  { ad: "XIX · Marrakeş", decoyPay: 34 },
+  { ad: "XX · Sonsuzluk", decoyPay: 38 },
 ];
 
 // Salon boyutu iki kurala göre belirlenir:
@@ -76,7 +80,7 @@ const CHAPTERS = [
 //   3 kişi  95×95   ~8.900      7 kişi 153×153 ~22.000
 //   4 kişi 112×112 ~12.400      8 kişi 164×164 ~26.400
 // Bölüm ilerledikçe boyut ayrıca %8 artar; taban oda büyüdükçe hepsi büyür.
-const CHAPTER_SIZES = [40, 46, 48, 50, 52, 54, 56, 54, 58, 60, 58, 62, 60, 66, 64, 70];
+const CHAPTER_SIZES = [40, 46, 48, 50, 52, 54, 56, 54, 58, 60, 58, 62, 60, 66, 64, 70, 66, 68, 68, 74];
 
 function roomSize(playerCount, chapter = 0) {
   const taban = CHAPTER_SIZES[Math.min(chapter, CHAPTER_SIZES.length - 1)];
@@ -89,7 +93,7 @@ function roomSize(playerCount, chapter = 0) {
   return Math.min(200, Math.max(taban, kalabalik));
 }
 function decoyCount(playerCount, chapter = 0) {
-  return CHAPTERS[chapter].decoyPay + playerCount * 6;
+  return CHAPTERS[Math.min(chapter, CHAPTERS.length - 1)].decoyPay + playerCount * 6;
 }
 
 const rooms = new Map(); // kod -> oda

@@ -449,7 +449,7 @@ body.sinema canvas {
 }
 body.sinema .veil { inset: 0; }
 
-</style>
+    </style>
   </head>
   <body>
     <main class="app">
@@ -591,7 +591,7 @@ body.sinema .veil { inset: 0; }
       </footer>
     </main>
 
-    <script>
+<script>
 // Dev Aynası - dil desteği (Türkçe / English)
 // Tarayıcı dili Türkçe ise TR, değilse EN ile açılır; seçim saklanır.
 (function (root, factory) {
@@ -680,6 +680,10 @@ body.sinema .veil { inset: 0; }
         { name: "XIV · Dubai — Cam Kule", objective: "Dev katı tara, mesafeler uzun", card: "Tek bir dev kat. Işık geniş ama salon daha da geniş." },
         { name: "XV · Rio — Karnaval", objective: "Renkler dönüyor, duvarlar geçiyor", card: "Renkler dönüyor, geçit yürüyor. Duvarlar bile yerinde durmuyor." },
         { name: "XVI · Kaçan Ayna", objective: "Dev ayna yerinde durmuyor — yaklaş ve yakala", card: "Son oda. Dev ayna her yirmi saniyede bir başka duvara geçiyor; yaklaşırsan kaçıyor. Kaçtığı yerde bir an altın bir iz kalıyor." },
+        { name: "XVII · Kyoto — Durgun Su", objective: "Dur ve bekle: dev yansıma ancak durgunlukta toplanır", card: "Salonun camı su gibi. Yürüdükçe titriyor, görüntü dağılıyor. Durursan bir soluk sonra toplanıyor — sonra usulca içine yürü." },
+        { name: "XVIII · Reykjavík — Buz Salonu", objective: "Zemin kaygan — durmayı öğren", card: "Buzdan bir zemin. İtiyorsun, kayıyorsun; durmak istediğinde çoktan geçmiş oluyorsun. Aynanın önünde durabilmek başlı başına iş." },
+        { name: "XIX · Marrakeş — Sönen Fener", objective: "Yeni cam gördükçe fener yanar — geri dönersen sönersin", card: "Fenerin yağı bitiyor. Yalnızca ilk kez gördüğün camlar onu besliyor. Aynı koridorda dönüp durursan karanlıkta kalırsın." },
+        { name: "XX · Sonsuzluk — Yalancı Aynalar", objective: "Yana yürü: gerçek yansıma seninle kayar, yalancı yerinde kalır", card: "Birkaç cam dev görüntü veriyor ama yalan söylüyor. Gerçek ayna simetriktir: yana adım attığında yansıman da seninle kayar. Yalancının görüntüsü panelin ortasında çakılı durur. Üstelik gerçeği hâlâ kaçıyor." },
       ],
     },
     en: {
@@ -761,6 +765,10 @@ body.sinema .veil { inset: 0; }
         { name: "XIV · Dubai — Glass Tower", objective: "Sweep one vast floor; the distances are long", card: "A single enormous floor. The light is wide, but the hall is wider." },
         { name: "XV · Rio — Carnival", objective: "Colours turn, the walls parade past", card: "Colours turn, the parade walks. Even the walls will not stay put." },
         { name: "XVI · The Fleeing Mirror", objective: "The giant mirror will not stay — get close and catch it", card: "The last room. The giant mirror moves to another wall every twenty seconds, and flees if you come near. Where it fled from, a golden trace lingers for a moment." },
+        { name: "XVII · Kyoto — Still Water", objective: "Stop and wait: the giant only gathers in stillness", card: "The glass here behaves like water. Walking makes it tremble and the image scatters. Stand still and it gathers within a breath — then step gently into it." },
+        { name: "XVIII · Reykjavík — Hall of Ice", objective: "The floor is slick — learn how to stop", card: "A floor of ice. You push, you glide; by the time you want to stop you have already gone past. Simply holding still in front of a mirror is the whole task." },
+        { name: "XIX · Marrakesh — The Dying Lantern", objective: "New glass feeds the lantern — backtrack and it dies", card: "Your lantern is running out of oil. Only panes you see for the first time feed it. Circle the same corridor and the dark will take you." },
+        { name: "XX · Infinity — The Lying Mirrors", objective: "Step sideways: the true reflection moves with you, the liar does not", card: "Several panes show a giant, and several panes lie. A true mirror is symmetric: step sideways and your reflection steps with you. The liar's image stays nailed to the middle of the pane. And the true one is still fleeing." },
       ],
     },
   };
@@ -815,7 +823,7 @@ body.sinema .veil { inset: 0; }
 });
 
 </script>
-    <script>
+<script>
 // Dev Aynası - labirent üretimi (tarayıcı ve Node için ortak)
 // Duvarların tamamı aynadır; oyun bu duvar parçalarını "ayna" olarak sayar.
 (function (root, factory) {
@@ -990,7 +998,7 @@ body.sinema .veil { inset: 0; }
 });
 
 </script>
-    <script>
+<script>
 // Dev Aynası - bölümler, düello, sahne çizimi ve girdi
 (function () {
   const canvas = document.getElementById("scene");
@@ -1034,7 +1042,7 @@ body.sinema .veil { inset: 0; }
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.3.0";
+  const SURUM = "1.4.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -1199,6 +1207,39 @@ body.sinema .veil { inset: 0; }
       returnTrip: true, fading: true,
       palette: { ground: "#050308", floorA: "#0f0a16", floorB: "#0a0710", glass: "214, 196, 255", lamp: "236, 224, 255" },
     },
+
+    // --- Dördüncü perde: imkansıza yakın dört salon ---
+    {
+      // XVII · Kyoto — Durgun Su: salonun zemini su gibi. Yürüdükçe cam
+      // titrer, dev yansıma dağılır. Ancak durup beklersen belirir.
+      size: 66, light: 200, hints: 3, decoys: 30,
+      stillness: { speed: 46, settle: 520 },
+      palette: { ground: "#04090a", floorA: "#0b1618", floorB: "#081113", glass: "170, 226, 216", lamp: "206, 244, 236" },
+    },
+    {
+      // XVIII · Reykjavík — Buz Salonu: zemin kaygan. Durmak da dönmek de
+      // zor; aynanın önünde durabilmek başlı başına iş.
+      size: 68, light: 225, hints: 3, decoys: 32,
+      ice: { friction: 0.1, accel: 0.42 },
+      palette: { ground: "#050a10", floorA: "#0e1a26", floorB: "#0a141e", glass: "186, 226, 255", lamp: "214, 240, 255" },
+    },
+    {
+      // XIX · Marrakeş — Sönen Fener: fener sürekli sönüyor. Yalnızca yeni
+      // cam gördükçe yağ alıyor; aynı yerde dönersen karanlıkta kalırsın.
+      size: 68, light: 245, hints: 3, decoys: 34,
+      lantern: { decay: 0.05, gain: 0.013, floor: 0.3 },
+      palette: { ground: "#0d0705", floorA: "#1c120a", floorB: "#150d07", glass: "244, 196, 132", lamp: "255, 214, 156" },
+    },
+    {
+      // XX · Sonsuzluk — Yalancı Aynalar: birkaç cam dev görüntü verir ama
+      // yalan söyler. Gerçek ayna simetriktir: yana yürüdüğünde yansıma da
+      // seninle kayar. Yalancının görüntüsü panelin ortasında çakılı kalır.
+      // Üstelik gerçek ayna hâlâ kaçıyor.
+      size: 74, light: 212, hints: 4, decoys: 38, liars: 5,
+      fleeing: { every: 26000, range: CELL * 3.0, grace: 1400 },
+      returnTrip: true, fading: true,
+      palette: { ground: "#06060c", floorA: "#171724", floorB: "#10101a", glass: "228, 228, 248", lamp: "236, 236, 255" },
+    },
   ];
 
   const BRASS = "216, 178, 106";
@@ -1229,6 +1270,8 @@ body.sinema .veil { inset: 0; }
   let nextShift = 0;        // IV. bölümde aynaların kayacağı an
   let shiftFlash = 0;       // kayma anındaki parlama
   let fade = 1;             // sönen fener (final)
+  let liars = new Set();    // XX. bölümde yalan söyleyen camlar
+  let gorulenSayac = 0;     // fener için: kaç yeni cam görüldü
   let ripple = 0;           // Venedik dalgası: 0..1
   let nextRipple = 0;
   let sand = [];            // Kahire kum taneleri
@@ -1262,6 +1305,7 @@ body.sinema .veil { inset: 0; }
       vx: 0, vy: 0,
       hints: chapter.hints, hintUntil: 0,
       seen: new Set(), foundAt: 0, bloom: 0, done: 0, reachedDoor: false,
+      durgunSince: 0,
     };
   }
 
@@ -1368,6 +1412,10 @@ body.sinema .veil { inset: 0; }
       { mirrorControls: true }, { shiftEvery: 9000 }, { echo: true },
       { neon: true }, { water: true }, { storm: true },
       { grid: true }, { openHall: 0.5 }, { bazaar: true }, {},
+      { stillness: { speed: 46, settle: 520 } },
+      { ice: { friction: 0.1, accel: 0.42 } },
+      { lantern: { decay: 0.05, gain: 0.013, floor: 0.3 } },
+      { liars: 4 },
     ];
     const secim = Object.assign({}, kurallar[Math.floor(rand() * kurallar.length)]);
     if (rand() < 0.35) Object.assign(secim, kurallar[Math.floor(rand() * kurallar.length)]);
@@ -1411,6 +1459,23 @@ body.sinema .veil { inset: 0; }
         decoys.set(seg.id, DISTORTIONS[Math.floor(rand() * DISTORTIONS.length)]);
       }
     }
+
+    // Yalancı aynalar: dev görüntü verirler ama simetriye uymazlar.
+    liars = new Set();
+    if (chapter.liars) {
+      const all = Maze.mirrors(maze);
+      let ls = (seed * 40503 + 7919) >>> 0;
+      const lrand = () => ((ls = (ls * 1664525 + 1013904223) >>> 0) / 4294967296);
+      let guard = 0;
+      while (liars.size < chapter.liars && guard++ < 6000) {
+        const seg = all[Math.floor(lrand() * all.length)];
+        if (seg.id === giant.id) continue;
+        const c = segCenter(seg);
+        if (Math.hypot(c.x - giantSeg.x, c.y - giantSeg.y) < CELL * 6) continue;
+        liars.add(seg.id);
+      }
+    }
+    gorulenSayac = 0;
 
     hesaplaSicakIz();
 
@@ -1479,10 +1544,14 @@ body.sinema .veil { inset: 0; }
 
       const len = Math.hypot(ix, iy);
       const suKatsayi = chapter.water ? 0.72 : 1;
+      // Buz salonu: ivme de sürtünme de düşer, oyuncu kayar.
+      const buz = chapter.ice;
+      const ivme = ACCEL * (buz ? buz.accel : 1);
+      const surtunme = FRICTION * (buz ? buz.friction : 1);
       const hedefHiz = (kosu ? SPRINT : SPEED) * suKatsayi;
       if (len) {
-        p.vx += (ix / len) * ACCEL * dt;
-        p.vy += (iy / len) * ACCEL * dt;
+        p.vx += (ix / len) * ivme * dt;
+        p.vy += (iy / len) * ivme * dt;
         const hiz = Math.hypot(p.vx, p.vy);
         if (hiz > hedefHiz) {
           p.vx = (p.vx / hiz) * hedefHiz;
@@ -1490,7 +1559,7 @@ body.sinema .veil { inset: 0; }
         }
       } else {
         const hiz = Math.hypot(p.vx, p.vy);
-        const yeni = Math.max(0, hiz - FRICTION * dt);
+        const yeni = Math.max(0, hiz - surtunme * dt);
         if (hiz > 0) {
           p.vx = (p.vx / hiz) * yeni;
           p.vy = (p.vy / hiz) * yeni;
@@ -1507,6 +1576,24 @@ body.sinema .veil { inset: 0; }
       if (Math.abs(p.y - oncekiY) < 0.01 && Math.abs(p.vy) > 1) p.vy = 0;
       cornerAssist(p, ix, iy);
     }
+    for (const p of players) durgunlukIzle(p);
+  }
+
+  // XVII · Durgun Su: yürürken cam titrer. Oyuncu bu hızın altına inip
+  // "settle" kadar beklerse dev yansıma toplanır.
+  function durgunlukIzle(p) {
+    if (!chapter.stillness) { p.durgunSince = 0; return; }
+    const hiz = Math.hypot(p.vx, p.vy);
+    if (hiz < chapter.stillness.speed) {
+      if (!p.durgunSince) p.durgunSince = performance.now();
+    } else {
+      p.durgunSince = 0;
+    }
+  }
+
+  function durgunMu(p, now) {
+    if (!chapter.stillness) return true;
+    return p.durgunSince > 0 && now - p.durgunSince > chapter.stillness.settle;
   }
 
   // Kapı ağzına birkaç piksel kala takılmak sinir bozucu: yönün önü açıksa
@@ -1617,9 +1704,13 @@ body.sinema .veil { inset: 0; }
   //     derinlikte kesme yoktur, yani figür hiçbir zaman ortadan bölünmez.
   //  5) Yansıma oyuncunun üstüne binmez: cama çok yaklaşıldığında görüntü
   //     yumuşakça geriye itilir.
-  function drawReflection(p, seg, kind, distortion) {
+  // Yansımanın geometrisi tek yerde hesaplanır: hem çizim hem de fizik
+  // denetimi (reflectionCheck) aynı sayıları kullansın diye.
+  function yansimaGeometrisi(p, seg, kind, distortion) {
     const g = segGeometry(seg);
     const isGiant = kind === "giant";
+    const isLiar = kind === "liar";
+    const buyuk = isGiant || isLiar;
     const yatay = seg.horizontal;
 
     const duzlem = yatay ? g.ay : g.ax;          // ayna düzlemi
@@ -1627,13 +1718,15 @@ body.sinema .veil { inset: 0; }
     const dik = (yatay ? p.y : p.x) - duzlem;    // düzleme işaretli uzaklık
     const uzak = Math.abs(dik);
     const taraf = dik >= 0 ? 1 : -1;
-    const menzil = isGiant ? GIANT_REVEAL : YANSIMA_MENZIL;
-    if (uzak > menzil) return false;
+    const menzil = buyuk ? GIANT_REVEAL : YANSIMA_MENZIL;
+    if (uzak > menzil) return { cizilir: false, sebep: "menzil" };
 
     // Panel boyunca konum: gerçek simetride oyuncuyla aynı hizadadır.
-    const eksen = yatay ? p.x : p.y;
-    const sx = (isGiant ? GIANT_SCALE : 1) * (distortion ? distortion.sx : 1);
-    const sy = (isGiant ? GIANT_SCALE : 1) * (distortion ? distortion.sy : 1);
+    // Yalancı ayna simetriye uymaz: görüntüsü panelin ortasına çakılıdır,
+    // yana yürüdüğünde seninle birlikte kaymaz. Tek ve adil ipucu budur.
+    const eksen = isLiar ? eksenBas + CELL / 2 : (yatay ? p.x : p.y);
+    const sx = (buyuk ? GIANT_SCALE : 1) * (distortion ? distortion.sx : 1);
+    const sy = (buyuk ? GIANT_SCALE : 1) * (distortion ? distortion.sy : 1);
     const yariGenis = RADIUS * sx * 0.75;
     const yariBoy = RADIUS * sy * 1.6;
 
@@ -1641,7 +1734,7 @@ body.sinema .veil { inset: 0; }
     const solTasma = Math.max(0, eksenBas - (eksen - yariGenis));
     const sagTasma = Math.max(0, eksen + yariGenis - (eksenBas + CELL));
     const gorunen = 1 - (solTasma + sagTasma) / (yariGenis * 2);
-    if (gorunen < (isGiant ? 0.35 : 0.55)) return false;
+    if (gorunen < (buyuk ? 0.35 : 0.55)) return { cizilir: false, sebep: "tasma", gorunen };
 
     // Camın arkasında, oyuncuyla aynı uzaklıkta. Çok yakınsa yumuşakça itilir
     // ki yansıma oyuncunun üstüne binmesin.
@@ -1656,6 +1749,32 @@ body.sinema .veil { inset: 0; }
       ? { x: eksenBas, y: taraf > 0 ? duzlem - camDerin : duzlem, w: CELL, h: camDerin }
       : { x: taraf > 0 ? duzlem - camDerin : duzlem, y: eksenBas, w: camDerin, h: CELL };
 
+    const yakinlik = Math.max(0, Math.min(1, 1 - uzak / menzil));
+    const alpha = (0.45 + 0.45 * yakinlik) * Math.min(1, yakinlik * 3);
+    return {
+      cizilir: true, isGiant, isLiar, yatay, taraf, duzlem, eksenBas, eksen,
+      uzak, derinlik, rx, ry, sx, sy, yariGenis, yariBoy, gorunen, band, alpha,
+    };
+  }
+
+  // Aynadaki görüntü — gerçek ayna simetrisi.
+  //
+  //  1) Yansıma, oyuncunun ayna düzlemine göre TAM SİMETRİĞİDİR. Panel boyunca
+  //     oyuncuyla aynı hizada, camın arkasında aynı uzaklıkta durur.
+  //  2) Yansımanın boyu değişmez; yalnızca uzaklaştıkça soluklaşır.
+  //  3) Bir aynada ancak onun önündeysen görünürsün: figür panelden büyük
+  //     ölçüde taşacaksa o ayna hiç görüntü vermez — yarım figür çizilmez.
+  //  4) Kırpma yalnızca panelin genişliği ve camın arkası ile yapılır;
+  //     derinlikte kesme yoktur, yani figür ortadan bölünmez.
+  //  5) Yansıma oyuncunun üstüne binmez: cama çok yaklaşıldığında görüntü
+  //     yumuşakça geriye itilir.
+  //  6) Tek istisna XX. bölümün yalancı aynasıdır; kural (1)'i bilerek çiğner
+  //     ve oyuncunun onu ayırt etmesi beklenir.
+  function drawReflection(p, seg, kind, distortion) {
+    const y = yansimaGeometrisi(p, seg, kind, distortion);
+    if (!y.cizilir) return false;
+    const band = y.band;
+
     ctx.save();
     ctx.beginPath();
     ctx.rect(band.x, band.y, band.w, band.h);
@@ -1663,12 +1782,12 @@ body.sinema .veil { inset: 0; }
 
     // Cam derinliği: panelin hemen arkası koyu, içerisi salonun karanlığına
     // karışır. Bant kutu gibi görünmez.
-    const g0 = yatay
-      ? { x: band.x, y: taraf > 0 ? band.y + band.h : band.y }
-      : { x: taraf > 0 ? band.x + band.w : band.x, y: band.y };
-    const g1 = yatay
-      ? { x: band.x, y: taraf > 0 ? band.y : band.y + band.h }
-      : { x: taraf > 0 ? band.x : band.x + band.w, y: band.y };
+    const g0 = y.yatay
+      ? { x: band.x, y: y.taraf > 0 ? band.y + band.h : band.y }
+      : { x: y.taraf > 0 ? band.x + band.w : band.x, y: band.y };
+    const g1 = y.yatay
+      ? { x: band.x, y: y.taraf > 0 ? band.y : band.y + band.h }
+      : { x: y.taraf > 0 ? band.x : band.x + band.w, y: band.y };
     const cam = ctx.createLinearGradient(g0.x, g0.y, g1.x, g1.y);
     cam.addColorStop(0, "rgba(9, 12, 18, 0.8)");
     cam.addColorStop(0.5, "rgba(9, 12, 18, 0.4)");
@@ -1676,13 +1795,12 @@ body.sinema .veil { inset: 0; }
     ctx.fillStyle = cam;
     ctx.fillRect(band.x, band.y, band.w, band.h);
 
-    // Boy sabit; yalnızca uzaklıkla soluklaşır ve menzil kenarında söner.
-    const yakinlik = Math.max(0, Math.min(1, 1 - uzak / menzil));
-    const alpha = (0.45 + 0.45 * yakinlik) * Math.min(1, yakinlik * 3);
-    if (isGiant) {
-      drawFigure(rx, ry, sx, sy, 1, "#ffd98a", "rgba(216, 178, 106, 0.9)");
+    if (y.isGiant) {
+      drawFigure(y.rx, y.ry, y.sx, y.sy, 1, "#ffd98a", "rgba(216, 178, 106, 0.9)");
+    } else if (y.isLiar) {
+      drawFigure(y.rx, y.ry, y.sx, y.sy, 1, "#e8d9a6", "rgba(216, 178, 106, 0.55)");
     } else {
-      drawFigure(rx, ry, sx, sy, alpha, `rgba(${C.glass}, 0.92)`, null);
+      drawFigure(y.rx, y.ry, y.sx, y.sy, y.alpha, `rgba(${C.glass}, 0.92)`, null);
     }
     ctx.restore();
     return true;
@@ -1800,8 +1918,12 @@ body.sinema .veil { inset: 0; }
     forEachNearSegment(p, YANSIMA_MENZIL + 4, (horizontal, x, y, d) => {
       const id = idOf(horizontal, x, y);
       const seg = { horizontal, x, y };
-      const isGiant = id === giant.id && phase === "arayis";
-      const cizildi = drawReflection(p, seg, isGiant ? "giant" : "normal", decoys.get(id));
+      const gercekDev = id === giant.id && phase === "arayis";
+      // Durgun Su: yürürken dev yansıma dağılır, sıradan bir cam gibi görünür.
+      const isGiant = gercekDev && durgunMu(p, now);
+      const isLiar = liars.has(id) && phase === "arayis";
+      const tur = isGiant ? "giant" : isLiar ? "liar" : "normal";
+      const cizildi = drawReflection(p, seg, tur, tur === "normal" ? decoys.get(id) : null);
       if (d < SEEN_RANGE) p.seen.add(id);
       if (isGiant && cizildi) giantVisible = true;
     });
@@ -2111,6 +2233,16 @@ body.sinema .veil { inset: 0; }
       maybeShift(now);
       maybeFlee(now);
       if (chapter.fading && phase === "donus") fade = Math.max(0.42, fade - dt * 0.012);
+      if (chapter.lantern) {
+        // Fener yağı: yalnızca yeni cam gördükçe doluyor. Aynı koridorda
+        // dönüp durursan karanlığa gömülürsün.
+        const yeni = players[0].seen.size;
+        if (yeni > gorulenSayac) {
+          fade = Math.min(1, fade + (yeni - gorulenSayac) * chapter.lantern.gain);
+          gorulenSayac = yeni;
+        }
+        fade = Math.max(chapter.lantern.floor, fade - dt * chapter.lantern.decay);
+      }
       if (chapter.water) {
         if (now > nextRipple) { nextRipple = now + 5000; ripple = 0.001; }
         if (ripple > 0) ripple = ripple > 1 ? 0 : ripple + dt * 0.55;
@@ -2528,48 +2660,81 @@ body.sinema .veil { inset: 0; }
     setLang(l) { I18n.set(l); refreshLanguage(); },
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
+    fener: () => fade,
+    durgun: (i = 0) => durgunMu(players[i], performance.now()),
+    liarCount: () => liars.size,
+    // Yalancı aynanın önüne koyar; simetri testi için panelin ortasını da verir.
+    teleportToLiar(index = 0) {
+      const id = [...liars][0];
+      if (!id) return null;
+      const horizontal = id[0] === "h";
+      const [x, y] = id.slice(1).split(",").map(Number);
+      const g = segGeometry({ horizontal, x, y });
+      const inside = (v, max) => (v >= max ? -CELL * 0.4 : CELL * 0.4);
+      const p = players[index];
+      p.x = horizontal ? g.ax + CELL / 2 : g.ax + inside(x, size);
+      p.y = horizontal ? g.ay + inside(y, size) : g.ay + CELL / 2;
+      p.vx = 0; p.vy = 0;
+      return { horizontal, ax: g.ax, ay: g.ay };
+    },
+    forceFlee() { fleeGiant(performance.now()); },
     saveNow: () => devamKaydet(),
     savedRun: () => devamOku(),
     // Yansıma kurallarını sayısal olarak denetler: oyuncu aynanın önündeyken
     // yansıma tam görünmeli, panel kenarından taşmamalı, oyuncuyla
     // çakışmamalı; aynanın yanından geçerken hiç çizilmemeli.
-    reflectionCheck() {
+    // Yansıma fiziğini gerçek çizim geometrisi üzerinden denetler.
+    // Her bölüm için: taşma yok, yarım figür yok, oyuncuyla çakışma yok,
+    // simetri birebir (yalancı ayna hariç), bant dışına taşan çizim yok.
+    reflectionCheck(kind = "giant") {
       const p = players[0];
-      const g = segGeometry(giant);
-      const yatay = giant.horizontal;
-      const eskiX = p.x;
-      const eskiY = p.y;
-      const olc = (dx, dy) => {
-        p.x = (yatay ? g.ax + CELL / 2 : g.ax + CELL * 0.4) + dx;
-        p.y = (yatay ? g.ay + CELL * 0.4 : g.ay + CELL / 2) + dy;
-        const t = yatay ? (p.x - g.ax) / CELL : (p.y - g.ay) / CELL;
-        const dik = yatay ? p.y - g.ay : p.x - g.ax;
-        const uzak = Math.abs(dik);
-        const onunde = t >= -0.15 && t <= 1.15 && uzak <= GIANT_REVEAL;
-        if (!onunde) return { onunde: false };
-        const yakinlik = Math.max(0, Math.min(1, 1 - uzak / GIANT_REVEAL));
-        const temel = GIANT_SCALE * (0.62 + 0.38 * yakinlik);
-        const figurYari = RADIUS * temel * 1.6;
-        const derinlik = figurYari + RADIUS + 4 + Math.min(uzak * 0.2, CELL * 0.2);
-        const bandDerin = derinlik + figurYari + 4;
-        return {
-          onunde: true,
-          // figür bandın içinde tamamen duruyor mu
-          sigiyor: derinlik + figurYari <= bandDerin + 0.01,
-          // oyuncuyla çakışmıyor mu (yansıma merkezi ile oyuncu arası)
-          cakismiyor: derinlik + uzak >= figurYari * 0 + RADIUS + figurYari * 0.35,
-          derinlik: Math.round(derinlik), figur: Math.round(figurYari * 2),
-        };
-      };
-      const sonuc = {
-        tamKarsi: olc(0, 0),
-        uzak: olc(yatay ? 0 : 60, yatay ? 60 : 0),
-        yanda: olc(yatay ? 55 : 0, yatay ? 0 : 55),
-        panelDisi: olc(yatay ? 130 : 0, yatay ? 0 : 130),
-      };
-      p.x = eskiX;
-      p.y = eskiY;
-      return sonuc;
+      const hedef = kind === "liar" ? (() => {
+        const id = [...liars][0];
+        if (!id) return null;
+        return { horizontal: id[0] === "h", x: +id.slice(1).split(",")[0], y: +id.slice(1).split(",")[1] };
+      })() : giant;
+      if (!hedef) return null;
+      const g = segGeometry(hedef);
+      const yatay = hedef.horizontal;
+      const eskiX = p.x, eskiY = p.y;
+      const sorunlar = [];
+      let cizilen = 0;
+      // Panel boyunca ve dik eksende tarama: 11 x 9 nokta.
+      for (let i = 0; i <= 10; i++) {
+        for (let j = 1; j <= 9; j++) {
+          const t = -0.3 + i * 0.16;             // panel boyu (0..1 içi panel)
+          const d = (j / 9) * (GIANT_REVEAL + 20); // düzleme uzaklık
+          const yon = hedef.horizontal ? (hedef.y >= size ? -1 : 1) : (hedef.x >= size ? -1 : 1);
+          p.x = yatay ? g.ax + t * CELL : g.ax + yon * d;
+          p.y = yatay ? g.ay + yon * d : g.ay + t * CELL;
+          const y = yansimaGeometrisi(p, hedef, kind, null);
+          if (!y.cizilir) continue;
+          cizilen++;
+          // 1) simetri: panel boyunca oyuncuyla aynı hizada (yalancı hariç)
+          const oyuncuEksen = yatay ? p.x : p.y;
+          if (kind !== "liar" && Math.abs(y.eksen - oyuncuEksen) > 0.001) {
+            sorunlar.push("simetri kaymis");
+          }
+          // 2) yarım figür yok: en az %35'i panelde
+          if (y.gorunen < 0.349) sorunlar.push("yarim figur");
+          // 3) figür bandın (cam derinliğinin) içinde tamamen duruyor
+          const merkez = yatay ? y.ry : y.rx;
+          const bandBas = yatay ? y.band.y : y.band.x;
+          const bandBoy = yatay ? y.band.h : y.band.w;
+          if (merkez - y.yariBoy < bandBas - 0.01 || merkez + y.yariBoy > bandBas + bandBoy + 0.01) {
+            sorunlar.push("derinlikte kesilme");
+          }
+          // 4) oyuncuyla çakışma yok: yansıma gövdesi ile oyuncu yarıçapı ayrık
+          const oyuncuDik = yatay ? p.y : p.x;
+          if (Math.abs(merkez - oyuncuDik) < y.yariBoy + RADIUS * 0.85 - 0.01) {
+            sorunlar.push("oyuncuyla cakisma");
+          }
+          // 5) yansıma camın arkasında (oyuncunun tarafında değil)
+          if ((merkez - y.duzlem) * y.taraf > -0.01) sorunlar.push("cam onunde");
+        }
+      }
+      p.x = eskiX; p.y = eskiY;
+      return { cizilen, sorunlar: [...new Set(sorunlar)] };
     },
     band: () => bandOfRoom,
     endlessInfo: () => ({ endless, count: endlessCount }),

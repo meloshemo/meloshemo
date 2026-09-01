@@ -47,6 +47,14 @@ getirir. Açtığın odalara ayarlardan geri dönebilirsin.
 | XV | **Rio** — Karnaval | Renkler döner, duvarlar geçit gibi kayar |
 | XVI | **Kaçan Ayna** | Dev ayna 20 saniyede bir başka duvara geçer, yaklaşınca kaçar. Kaçtığı yerde üç saniyelik altın bir iz kalır. Yakalarsan kapıya dön |
 
+### IV. Perde — İmkansıza yakın dört salon
+| Oda | Salon | Kural |
+| --- | --- | --- |
+| XVII | **Kyoto** — Durgun Su | Cam su gibi: yürürken titrer, dev yansıma dağılır. Yalnızca hız 46'nın altına inip yarım saniye beklersen toplanır — sonra usulca içine yürürsün |
+| XVIII | **Reykjavík** — Buz Salonu | Sürtünme onda bire, ivme %42'ye düşer: itersin, kayarsın. Aynanın önünde durabilmek başlı başına iş |
+| XIX | **Marrakeş** — Sönen Fener | Fener saniyede %5 sönüyor; yalnızca **ilk kez** gördüğün camlar onu besliyor. Geri dönersen karanlıkta kalırsın (taban %30) |
+| XX | **Sonsuzluk** — Yalancı Aynalar | Beş cam dev görüntü verir ama yalan söyler: gerçek yansıma simetriktir, yana adım attığında seninle kayar; yalancınınki panelin ortasında çakılı durur. Üstelik gerçek ayna hâlâ kaçıyor (26 sn) ve dönüşte fener sönüyor |
+
 **Çarpık aynalar** seni bir tık büyük, yayvan, uzun ya da küçük gösterir; gerçek dev
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).

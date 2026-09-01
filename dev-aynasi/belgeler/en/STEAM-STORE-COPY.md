@@ -8,7 +8,7 @@ Dev Aynası: Hall of Giants
 ## Short description (max 300 characters)
 ```
 A dark hall of a thousand identical mirrors. Every one shows you as you are;
-only one makes you a giant. Find it, walk into it. Six rooms, six rules — and
+only one makes you a giant. Find it, walk into it. Twenty rooms, twenty rules — and
 at the end you still have to find your way back to yourself.
 ```
 
@@ -37,6 +37,10 @@ Find it, walk into it, and the next room opens.
 [*][b]VII–XII[/b] — Paris, Venice, Tokyo, New York, Cairo, Istanbul
 [*][b]XIII–XV[/b] — London fog, Dubai glass tower, Rio carnival
 [*][b]XVI · The Fleeing Mirror[/b] — The giant mirror will not stay; approach and it flees
+[*][b]XVII · Kyoto — Still Water[/b] — Walking scatters the image; only stillness gathers it
+[*][b]XVIII · Reykjavík — Hall of Ice[/b] — The floor is slick; stopping is the whole task
+[*][b]XIX · Marrakesh — The Dying Lantern[/b] — Your lantern dies; only new glass feeds it
+[*][b]XX · Infinity — The Lying Mirrors[/b] — Some panes show a giant and lie about it
 [/list]
 
 [h2]Alone or head to head[/h2]

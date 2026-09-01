@@ -39,7 +39,7 @@ Aynaların hepsi sizi olduğunuz gibi gösterir. Yalnızca biri sizi altın
 renginde, panele sığmayan bir dev olarak gösterir. Onu bulduğunuzda içine
 yürürsünüz ve bir sonraki oda açılır.
 
-Altı oda, altı farklı kural: çarpık aynaların yanılttığı bir oda, kontrollerin
+Yirmi oda, yirmi farklı kural: çarpık aynaların yanılttığı bir oda, kontrollerin
 aynalandığı bir oda, duvarların yerinde durmadığı bir oda, her adımınızı
 tersten tekrar eden bir yankının peşinizde olduğu bir oda, ve sonunda fenerin
 yavaşça söndüğü Kibir Odası — orada aynayı bulmak yetmez, kendinize de
@@ -73,6 +73,10 @@ dönmeniz gerekir.
 | VII–XII | Paris, Venedik, Tokyo, New York, Kahire, İstanbul — her şehrin kendi kuralı |
 | XIII–XV | Londra (sis), Dubai (cam kule), Rio (karnaval) |
 | XVI · Kaçan Ayna | Dev ayna 20 saniyede bir yer değiştirir, yaklaşınca kaçar |
+| XVII · Kyoto | Durgun Su: yürürken yansıma dağılır, durursan toplanır |
+| XVIII · Reykjavík | Buz Salonu: sürtünme onda bire düşer, kayarsın |
+| XIX · Marrakeş | Sönen Fener: yalnızca ilk kez görülen camlar feneri besler |
+| XX · Sonsuzluk | Yalancı Aynalar: bazı camlar dev gösterir ama simetriye uymaz |
 
 ## Görseller
 

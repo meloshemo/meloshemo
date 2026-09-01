@@ -1,5 +1,24 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.4.0 — İmkansıza yakın dört salon
+- **XVII · Kyoto — Durgun Su:** cam su gibi davranıyor. Yürürken dev yansıma
+  dağılıyor; hız 46'nın altına inip yarım saniye beklersen toplanıyor
+- **XVIII · Reykjavík — Buz Salonu:** sürtünme onda bire, ivme %42'ye düştü.
+  Aynanın önünde durabilmek başlı başına bir iş
+- **XIX · Marrakeş — Sönen Fener:** fener saniyede %5 sönüyor, yalnızca ilk kez
+  görülen camlar besliyor. Aynı koridorda dönersen karanlıkta kalıyorsun
+- **XX · Sonsuzluk — Yalancı Aynalar:** beş cam dev görüntü verip yalan
+  söylüyor. Gerçek yansıma simetriktir ve seninle kayar; yalancınınki panelin
+  ortasında çakılı durur. Üstelik gerçek ayna hâlâ kaçıyor, dönüşte fener sönüyor
+- Yansıma geometrisi tek bir saf fonksiyona (`yansimaGeometrisi`) çıkarıldı;
+  `reflectionCheck` artık gerçekten çizilen sayıları denetliyor
+- **Fizik denetimi:** 20 odanın her birinde 99 nokta taranıyor — simetri,
+  taşmama, yarım figür olmaması, derinlikte kesilmeme, oyuncuyla çakışmama
+  ve yansımanın camın arkasında kalması. 20/20 temiz
+- Sonsuz salon dört yeni kuralı da havuzuna aldı; çevrimiçi sunucu 20 odaya
+  göre büyüdü (XX: 74×74 taban)
+- Tek dosyalık sürüm artık `paketle.js` ile üretiliyor
+
 ## 1.3.0 — Kaldığın yerden devam
 - **Devam et:** oyun kapatılsa da bölüm, salon tohumu ve süre saklanıyor;
   giriş perdesinde "Devam et" düğmesi nerede kalındığını yazıyor

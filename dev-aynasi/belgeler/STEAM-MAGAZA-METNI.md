@@ -11,7 +11,7 @@ Dev Aynası: Hall of Giants
 ```
 Binlerce özdeş aynanın olduğu karanlık bir salondasın. Hepsi seni olduğun gibi
 gösteriyor; yalnızca biri seni devasa gösteriyor. Onu bul, içine yürü. Altı
-oda, altı kural — ve sonunda kendine dönmen gerekiyor.
+oda, yirmi kural — ve sonunda kendine dönmen gerekiyor.
 ```
 
 ## Uzun açıklama (About This Game)
@@ -38,6 +38,10 @@ Onu bulduğunda içine yürürsün ve bir sonraki oda açılır.
 [*][b]VII–XII[/b] — Paris, Venedik, Tokyo, New York, Kahire, İstanbul
 [*][b]XIII–XV[/b] — Londra sisi, Dubai cam kulesi, Rio karnavalı
 [*][b]XVI · Kaçan Ayna[/b] — Dev ayna yerinde durmaz; yaklaşırsan kaçar
+[*][b]XVII · Kyoto — Durgun Su[/b] — Yürürken görüntü dağılır; ancak durursan toplanır
+[*][b]XVIII · Reykjavík — Buz Salonu[/b] — Zemin kaygan; durmak başlı başına bir iş
+[*][b]XIX · Marrakeş — Sönen Fener[/b] — Fener sönüyor; yalnızca yeni gördüğün camlar besliyor
+[*][b]XX · Sonsuzluk — Yalancı Aynalar[/b] — Bazı camlar dev gösterip yalan söyler
 [/list]
 
 [h2]Yalnız ya da karşılıklı[/h2]

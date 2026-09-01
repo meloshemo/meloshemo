@@ -38,7 +38,7 @@ reflecting you across the plane of the mirror. Every pane shows you as you are.
 One shows you in gold, a giant too large for its frame. Find it, walk into it,
 and the next room opens.
 
-Six rooms, six rules: crooked mirrors that mislead you, a room where the
+Twenty rooms, twenty rules: crooked mirrors that mislead you, a room where the
 controls are mirrored, a room where the walls will not hold still, a room where
 an echo repeats your every move in reverse, and finally the Room of Pride —
 where finding the mirror is not enough, because you still have to find your way
@@ -72,6 +72,10 @@ back.
 | VII–XII | Paris, Venice, Tokyo, New York, Cairo, Istanbul — each city its own rule |
 | XIII–XV | London (fog), Dubai (glass tower), Rio (carnival) |
 | XVI · The Fleeing Mirror | The giant mirror moves every 20 seconds and flees when you approach |
+| XVII · Kyoto | Still Water: walking scatters the reflection, stillness gathers it |
+| XVIII · Reykjavík | Hall of Ice: friction drops to a tenth — you slide |
+| XIX · Marrakesh | The Dying Lantern: only first-seen glass feeds the flame |
+| XX · Infinity | The Lying Mirrors: some panes show a giant but break symmetry |
 
 ## Assets
 

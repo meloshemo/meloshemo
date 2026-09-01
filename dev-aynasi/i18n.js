@@ -86,6 +86,10 @@
         { name: "XIV · Dubai — Cam Kule", objective: "Dev katı tara, mesafeler uzun", card: "Tek bir dev kat. Işık geniş ama salon daha da geniş." },
         { name: "XV · Rio — Karnaval", objective: "Renkler dönüyor, duvarlar geçiyor", card: "Renkler dönüyor, geçit yürüyor. Duvarlar bile yerinde durmuyor." },
         { name: "XVI · Kaçan Ayna", objective: "Dev ayna yerinde durmuyor — yaklaş ve yakala", card: "Son oda. Dev ayna her yirmi saniyede bir başka duvara geçiyor; yaklaşırsan kaçıyor. Kaçtığı yerde bir an altın bir iz kalıyor." },
+        { name: "XVII · Kyoto — Durgun Su", objective: "Dur ve bekle: dev yansıma ancak durgunlukta toplanır", card: "Salonun camı su gibi. Yürüdükçe titriyor, görüntü dağılıyor. Durursan bir soluk sonra toplanıyor — sonra usulca içine yürü." },
+        { name: "XVIII · Reykjavík — Buz Salonu", objective: "Zemin kaygan — durmayı öğren", card: "Buzdan bir zemin. İtiyorsun, kayıyorsun; durmak istediğinde çoktan geçmiş oluyorsun. Aynanın önünde durabilmek başlı başına iş." },
+        { name: "XIX · Marrakeş — Sönen Fener", objective: "Yeni cam gördükçe fener yanar — geri dönersen sönersin", card: "Fenerin yağı bitiyor. Yalnızca ilk kez gördüğün camlar onu besliyor. Aynı koridorda dönüp durursan karanlıkta kalırsın." },
+        { name: "XX · Sonsuzluk — Yalancı Aynalar", objective: "Yana yürü: gerçek yansıma seninle kayar, yalancı yerinde kalır", card: "Birkaç cam dev görüntü veriyor ama yalan söylüyor. Gerçek ayna simetriktir: yana adım attığında yansıman da seninle kayar. Yalancının görüntüsü panelin ortasında çakılı durur. Üstelik gerçeği hâlâ kaçıyor." },
       ],
     },
     en: {
@@ -167,6 +171,10 @@
         { name: "XIV · Dubai — Glass Tower", objective: "Sweep one vast floor; the distances are long", card: "A single enormous floor. The light is wide, but the hall is wider." },
         { name: "XV · Rio — Carnival", objective: "Colours turn, the walls parade past", card: "Colours turn, the parade walks. Even the walls will not stay put." },
         { name: "XVI · The Fleeing Mirror", objective: "The giant mirror will not stay — get close and catch it", card: "The last room. The giant mirror moves to another wall every twenty seconds, and flees if you come near. Where it fled from, a golden trace lingers for a moment." },
+        { name: "XVII · Kyoto — Still Water", objective: "Stop and wait: the giant only gathers in stillness", card: "The glass here behaves like water. Walking makes it tremble and the image scatters. Stand still and it gathers within a breath — then step gently into it." },
+        { name: "XVIII · Reykjavík — Hall of Ice", objective: "The floor is slick — learn how to stop", card: "A floor of ice. You push, you glide; by the time you want to stop you have already gone past. Simply holding still in front of a mirror is the whole task." },
+        { name: "XIX · Marrakesh — The Dying Lantern", objective: "New glass feeds the lantern — backtrack and it dies", card: "Your lantern is running out of oil. Only panes you see for the first time feed it. Circle the same corridor and the dark will take you." },
+        { name: "XX · Infinity — The Lying Mirrors", objective: "Step sideways: the true reflection moves with you, the liar does not", card: "Several panes show a giant, and several panes lie. A true mirror is symmetric: step sideways and your reflection steps with you. The liar's image stays nailed to the middle of the pane. And the true one is still fleeing." },
       ],
     },
   };
