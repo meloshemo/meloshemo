@@ -1,5 +1,28 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.5.0 — Beş binden yirmi bine
+- **Salonlar ayna sayısına göre kuruluyor:** I. oda 5.000, XX. oda 20.000 ayna.
+  Elle yazılmış kenar uzunlukları kalktı; salon kurulup ölçülüyor ve hedeften
+  %6'dan fazla saparsa (duvar sökücü düzenlerde) kenar düzeltilip yeniden
+  kuruluyor
+- **Çok oyunculuda her ek oyuncu +5.000 ayna:** iki kişi birinci tura girerse
+  salon 5.000 değil 10.000 ayna; sekiz kişi 40.000, XX. turda 55.000. Oyuncu
+  elendikçe salon aynı kuralla küçülüyor
+- Oda büyüdükçe **sahte devler, yalancı aynalar ve sezgi hakkı** orantılı
+  artıyor; **sıcak iz** kuşağı salonla genişliyor ve artık dereceli: kenarda
+  belli belirsiz, merkeze doğru açık altın
+- **Beraberlik hesabı:** 0,3 saniyeden yakın bitirişler "aynı anda" sayılıyor,
+  aynı sırayı paylaşıyor (1, 1, 3). Son sırayı paylaşanlar kurayla elenmiyor;
+  aralarında bir **beraberlik turu** oynanıyor, ötekiler bir üst tura geçiyor.
+  Beraberlik turu turnuvada basamak saymıyor
+- Tur süresi büyüyen salonlara göre yeniden ölçüldü: taban 90 sn + her 90 ayna
+  için 1 sn, en az 2,5 en çok 15 dakika
+- Turnuva kuralları `multiplayer/kural.js` dosyasına ayrıldı: testler artık
+  formülü kopyalamıyor, sunucunun kullandığı kodun aynısını sınıyor (15 test)
+- **Düzeltme:** sıralama toleransı milisaniye sanılıyordu ama süreler saniye
+  cinsinden tutuluyor; bu yüzden 7 sn ile 14 sn arasındaki fark bile
+  "beraberlik" sayılıyor ve herkes 1. oluyordu
+
 ## 1.4.1 — Baştan sona denetim
 - **Kritik:** dönüşlü odalar (XII, XVI, XX) kapıya varınca oyunu bitiriyordu;
   bu yüzden **XIII–XX odalarına normal oyunla hiç ulaşılamıyordu**. Artık son

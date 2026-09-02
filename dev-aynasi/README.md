@@ -55,6 +55,34 @@ getirir. Açtığın odalara ayarlardan geri dönebilirsin.
 | XIX | **Marrakeş** — Sönen Fener | Fener saniyede %5 sönüyor; yalnızca **ilk kez** gördüğün camlar onu besliyor. Geri dönersen karanlıkta kalırsın (taban %30) |
 | XX | **Sonsuzluk** — Yalancı Aynalar | Beş cam dev görüntü verir ama yalan söyler: gerçek yansıma simetriktir, yana adım attığında seninle kayar; yalancınınki panelin ortasında çakılı durur. Üstelik gerçek ayna hâlâ kaçıyor (26 sn) ve dönüşte fener sönüyor |
 
+### Salon ölçeği
+
+Odalar elle yazılmış bir kenar uzunluğuyla değil, **hedeflenen ayna sayısıyla**
+kuruluyor: I. oda 5.000 ayna, XX. oda 20.000. Aradaki odalar düzgün artar.
+
+| Oda | Ayna | Kenar | Sıcak iz | Sezgi |
+| --- | --- | --- | --- | --- |
+| I | 5.000 | 71×71 | 14 kare | 5 |
+| V | 8.158 | 91×91 | 18 kare | 6 |
+| X | 12.105 | 111×111 | 22 kare | 7 |
+| XV | 16.053 | 128×128 | 26 kare | 7 |
+| XX | 20.000 | 143×143 | 29 kare | 8 |
+
+Salon kurulduktan sonra **ölçülür**: açık galeri, ızgara ve çarşı düzenleri
+duvar söktüğü için kenar tek başına hedefi tutturmaz; sapma %6'yı geçerse
+kenar düzeltilip salon yeniden kurulur.
+
+Büyüyen tek şey ayna sayısı değil: sahte devler ve yalancı aynalar aynı
+yoğunlukta kalsın diye orantılı artar, **sıcak iz** kuşağı (dev aynanın
+çevresinde çerçeveleri altın vuran camlar) salonla birlikte genişler ve
+**sezgi hakkı** oda büyüdükçe çoğalır. Ölçülen sonuç:
+
+- Hiç sezgi kullanmadan koridor koridor tarayan bir oyuncu: **6–20 dakika**
+- Bir sezgi yakıp oku takip eden oyuncu: **1–2,5 dakika** yürüyüş
+
+Yani oda imkânsız *görünür* (20.000 ayna, sen 300'üne baktın) ama çıkışı
+vardır; sezgiyi ne zaman yakacağın senin kararın.
+
 **Çarpık aynalar** seni bir tık büyük, yayvan, uzun ya da küçük gösterir; gerçek dev
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).

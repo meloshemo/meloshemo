@@ -31,28 +31,42 @@ gelir; herkes diğerlerini kendi renginde görür.
 
 **Kalabalık salonu büyütür.** Oyuncu sayısı arttıkça salon genişler:
 
-| Oyuncu | Salon (I. oda) | Ayna | Fark |
-| --- | --- | --- | --- |
-| 1 | 40×40 | 1.630 | tek kişilik odayla aynı |
-| 2 | 74×74 | 5.451 | +3.821 |
-| 3 | 95×95 | 8.954 | +3.503 |
-| 4 | 113×113 | 12.629 | +3.675 |
-| 5 | 128×128 | 16.161 | +3.532 |
-| 6 | 141×141 | 19.601 | +3.440 |
-| 7 | 153×153 | 23.044 | +3.443 |
-| 8 | 165×165 | 26.755 | +3.711 |
+| Oyuncu | Salon (I. tur) | Ayna |
+| --- | --- | --- |
+| 1 | 71×71 | 5.000 |
+| 2 | 101×101 | 10.000 |
+| 3 | 123×123 | 15.000 |
+| 4 | 142×142 | 20.000 |
+| 5 | 159×159 | 25.000 |
+| 6 | 175×175 | 30.000 |
+| 7 | 189×189 | 35.000 |
+| 8 | 202×202 | 40.000 |
 
-**Kural:** tek kişilik boyut tabandır (çevrimiçi tek kişi, oyunun kendi
-odasıyla birebir aynı salonu görür), her ek oyuncu salona **+3.400 ayna**
-ekler. Ayna sayısı ≈ 0,94 × kare sayısı olduğundan gereken kenar uzunluğu
-buradan geri hesaplanır.
+**Kural iki basamaklıdır:**
+
+1. **Bölüm merdiveni** — I. tur 5.000 ayna, XX. tur 20.000 ayna; aradaki
+   turlar düzgün artar.
+2. **Kalabalık payı** — her ek oyuncu salona **+5.000 ayna** ekler. İki kişi
+   birinci tura girerse salon 5.000 değil 10.000 aynadır; sekiz kişi girerse
+   40.000. XX. turda sekiz kişi 55.000 aynaya kadar çıkar.
+
+Ayna sayısı ≈ hücre sayısı olduğundan kenar uzunluğu kökten bulunur; salon
+kurulduktan sonra ölçülür ve hedeften %6'dan fazla saparsa kenar düzeltilip
+yeniden kurulur (açık galeri, ızgara ve çarşı düzenleri duvar söktüğü için).
 
 **Eleme sırasında da orantılı:** oyuncu elendikçe yeni tur aynı formülle
-kurulur, yani salon küçülür — 8 kişi 26.755 ayna, 4 kişi 12.629, 2 kişi 5.451.
-Salon hep kalan kalabalığa göre ölçülür, sabit kalmaz.
+kurulur, salon küçülür. Ölçek iki yönde de aynıdır.
 
-Son oda (XVI · Kaçan Ayna) tabanı 70×70 olduğu için tek kişide bile 4.905
-ayna vardır; sekiz kişide 26.755'e çıkar ve ayna ayrıca yer değiştirir.
+**Beraberlik.** Bitiriş süreleri 0,3 saniyeden yakınsa "aynı anda" sayılır:
+iki oyuncu aynı sırayı paylaşır ve sonraki sıra atlanır (1, 1, 3). Son sırayı
+paylaşan birden fazla oyuncu varsa kimse kurayla elenmez — aralarında bir
+**beraberlik turu** oynanır, ötekiler doğrudan bir üst tura geçer ve `bekle`
+mesajı alır. Beraberlik turu turnuvada basamak saymaz: aynı bölümün yeni bir
+salonu kurulur. Herkes aynı anda bitirirse tur olduğu gibi tekrarlanır.
+
+**Tur süresi** salonun büyüklüğüne göre: taban 90 sn + her 90 ayna için 1 sn,
+en az 2,5 dakika, en çok 15 dakika. 10.000 aynalı salon ≈ 3,4 dakika;
+40.000 aynalı salon ≈ 8,9 dakika.
 
 **Herkes farklı köşeden başlar.** Oyuncular salonun köşelerine ve kenar
 ortalarına dağıtılır; yollar kesişir, birbirinizi karanlıkta görürsünüz.

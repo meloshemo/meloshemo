@@ -36,12 +36,25 @@
   const GIANT_REVEAL = 58;   // dev yansıma ancak bu kadar yakında belirir (~0,8 kare)
   const YANSIMA_MENZIL = 96; // yansımanın belirdiği en uzak mesafe (~1,3 kare)
   const ENTER_REACH = RADIUS + 12;  // aynaya değip içine girme mesafesi
-  const WARM_CELLS = 5;      // dev aynasının çevresindeki "sıcak" camlar
+  // --- Salon ölçeği ---------------------------------------------------
+  // Oyunun sözü "beş bin samanın içinde bir iğne". Bu yüzden salonlar
+  // hedeflenen AYNA SAYISINA göre kuruluyor: I. oda 5.000, XX. oda 20.000.
+  // Ayna sayısı ≈ hücre sayısı olduğundan kenar uzunluğu kökten bulunur.
+  const AYNA_BAS = 5000;     // I. odanın ayna hedefi
+  const AYNA_SON = 20000;    // XX. odanın ayna hedefi
+  const kenarIcin = (ayna) => Math.round(Math.sqrt(ayna / 0.985));
+  const bolumAynasi = (i, toplam) =>
+    Math.round(AYNA_BAS + ((AYNA_SON - AYNA_BAS) * i) / Math.max(1, toplam - 1));
+
+  // Sıcak iz salonla birlikte büyür: 20.000 aynalı bir salonu 5 karelik bir
+  // ipucu kuşağıyla taramak saatler sürerdi. Kuşak, altın tonu merkeze doğru
+  // koyulaşacak şekilde derecelendirilmiştir.
+  const sicakYaricap = (kenar) => Math.max(5, Math.round(kenar / 5));
   const BEST_KEY = "dev-aynasi:en-iyi";
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.4.1";
+  const SURUM = "1.5.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -271,6 +284,7 @@
   let fade = 1;             // sönen fener (final)
   let liars = new Set();    // XX. bölümde yalan söyleyen camlar
   let gorulenSayac = 0;     // fener için: kaç yeni cam görüldü
+  let sezgiHakki = 3;       // oda büyüklüğüne göre sezgi hakkı
   let ripple = 0;           // Venedik dalgası: 0..1
   let nextRipple = 0;
   let sand = [];            // Kahire kum taneleri
@@ -302,7 +316,7 @@
       label, keymap, tint,
       x: CELL * 0.5, y: CELL * 0.5,
       vx: 0, vy: 0,
-      hints: chapter.hints, hintUntil: 0,
+      hints: sezgiHakki, hintUntil: 0,
       seen: new Set(), foundAt: 0, bloom: 0, done: 0, reachedDoor: false,
       durgunSince: 0, durgunPencere: 0,
     };
@@ -310,15 +324,19 @@
 
   // Sıcak iz: dev aynanın çevresindeki camların çerçevesi hafif altın vurur.
   function hesaplaSicakIz() {
-    warm = new Set();
+    warm = new Map();
     const gx = giant.x;
     const gy = giant.y;
-    for (let y = gy - WARM_CELLS; y <= gy + WARM_CELLS; y++) {
-      for (let x = gx - WARM_CELLS; x <= gx + WARM_CELLS; x++) {
+    const R = sicakYaricap(size);
+    for (let y = gy - R; y <= gy + R; y++) {
+      for (let x = gx - R; x <= gx + R; x++) {
         if (x < 0 || y < 0 || x > size || y > size) continue;
-        if (Math.hypot(x - gx, y - gy) > WARM_CELLS) continue;
-        if (x < size && maze.hWalls[y][x]) warm.add(idOf(true, x, y));
-        if (y < size && maze.vWalls[y][x]) warm.add(idOf(false, x, y));
+        const d = Math.hypot(x - gx, y - gy);
+        if (d > R) continue;
+        // Kenarda belli belirsiz, merkeze doğru açık altın.
+        const guc = Math.pow(1 - d / R, 1.6);
+        if (x < size && maze.hWalls[y][x]) warm.set(idOf(true, x, y), guc);
+        if (y < size && maze.vWalls[y][x]) warm.set(idOf(false, x, y), guc);
       }
     }
   }
@@ -428,7 +446,8 @@
     const paletler = CHAPTERS.map((c) => c.palette);
     return Object.assign(
       {
-        size: Math.min(90, 42 + n * 3),
+        aynaHedefi: Math.min(30000, AYNA_BAS + n * 1500),
+        size: Math.min(90, 42 + n * 3),   // yalnızca yoğunluk ölçeği
         light: Math.max(150, 230 - n * 6),
         hints: n < 3 ? 2 : 1,
         decoys: Math.min(60, 10 + n * 4),
@@ -441,11 +460,29 @@
   function newRoom(nextSeed) {
     chapter = endless ? endlessChapter(endlessCount, nextSeed) : CHAPTERS[chapterIndex];
     C = { ...chapter.palette };
-    size = chapter.size;
+    // Salon, elle yazılmış bir kenar uzunluğuyla değil, hedeflenen ayna
+    // sayısıyla kuruluyor. chapter.size yalnızca yoğunluk ölçeği için
+    // (sahte dev / yalancı / sezgi sayısı) referans olarak kalıyor.
+    // Paris'in açık galerisi, New York'un ızgarası ve çarşı sokakları duvar
+    // söküyor; aynı kenar uzunluğu bu odalarda daha az ayna veriyor. Bu yüzden
+    // salon kurulup ÖLÇÜLÜYOR ve hedefi tutturana kadar kenar düzeltiliyor.
+    const hedefAyna = endless
+      ? chapter.aynaHedefi
+      : bolumAynasi(chapterIndex, CHAPTERS.length);
     seed = nextSeed;
-    maze = Maze.generate(size, size, seed);
-    applyCityLayout();
-    mirrorCount = Maze.mirrors(maze).length;
+    size = kenarIcin(hedefAyna);
+    for (let deneme = 0; deneme < 3; deneme++) {
+      maze = Maze.generate(size, size, seed);
+      applyCityLayout();
+      mirrorCount = Maze.mirrors(maze).length;
+      const sapma = mirrorCount / hedefAyna;
+      if (sapma > 0.94 && sapma < 1.06) break;
+      size = Math.min(220, Math.max(20, Math.round(size / Math.sqrt(sapma))));
+    }
+    // Oda büyüdükçe sahte devler, yalancılar ve sezgi hakkı da orantılı artar;
+    // yoksa 20.000 aynalı salonda 38 sahte dev hiç görünmezdi.
+    const alanOlcek = (size * size) / (chapter.size * chapter.size);
+    sezgiHakki = Math.max(chapter.hints, Math.round(chapter.hints * (size / chapter.size)));
     bandOfRoom = Maze.pickBand(seed + chapterIndex * 31);
     giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed, bandOfRoom);
     giantSeg = segCenter(giant);
@@ -457,7 +494,8 @@
       let s = (seed * 2654435761) >>> 0;
       const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
       let guard = 0;
-      while (decoys.size < chapter.decoys && guard++ < 4000) {
+      const hedefDecoy = Math.round(chapter.decoys * alanOlcek);
+      while (decoys.size < hedefDecoy && guard++ < 60000) {
         const seg = all[Math.floor(rand() * all.length)];
         if (seg.id === giant.id) continue;
         const c = segCenter(seg);
@@ -473,7 +511,8 @@
       let ls = (seed * 40503 + 7919) >>> 0;
       const lrand = () => ((ls = (ls * 1664525 + 1013904223) >>> 0) / 4294967296);
       let guard = 0;
-      while (liars.size < chapter.liars && guard++ < 6000) {
+      const hedefLiar = Math.round(chapter.liars * alanOlcek);
+      while (liars.size < hedefLiar && guard++ < 60000) {
         const seg = all[Math.floor(lrand() * all.length)];
         if (seg.id === giant.id) continue;
         const c = segCenter(seg);
@@ -845,7 +884,7 @@
     ctx.stroke();
     if (glow > 0.2) {
       ctx.strokeStyle = isWarm
-        ? `rgba(${BRASS}, ${(glow - 0.2) * 0.85})`
+        ? `rgba(${BRASS}, ${(glow - 0.2) * (0.28 + 0.62 * isWarm)})`
         : `rgba(255, 255, 255, ${(glow - 0.2) * 0.55})`;
       ctx.lineWidth = 1.3;
       ctx.beginPath();
@@ -950,7 +989,7 @@
     ctx.lineCap = "round";
     const panelMenzil = ripple > 0 ? light * 3.4 : light * 1.25;
     forEachNearSegment(p, panelMenzil, (horizontal, x, y, d) => {
-      drawPanel({ horizontal, x, y }, d, light, warm.has(idOf(horizontal, x, y)), now);
+      drawPanel({ horizontal, x, y }, d, light, warm.get(idOf(horizontal, x, y)) || 0, now);
     });
 
     if (sand.length && !ayarlar.azHareket) {

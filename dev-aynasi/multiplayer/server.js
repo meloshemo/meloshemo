@@ -12,6 +12,12 @@
 const http = require("http");
 const { WebSocketServer } = require("ws");
 const Maze = require("../maze.js");
+// Turnuva kuralları (salon ölçeği, sıralama, süre) ayrı bir dosyada:
+// testler de sunucunun kullandığı kodun tam olarak aynısını sınıyor.
+const {
+  CHAPTERS, BERABERLIK_SN, hedefAyna, kenarIcin, roomSize, decoyCount,
+  siralaBitirenler, sonSirayiPaylasanlar, turSuresi,
+} = require("./kural.js");
 
 const PORT = process.env.PORT || 8787;
 const CELL = 72;
@@ -19,10 +25,6 @@ const TICK = 1000 / 20;          // sunucu saniyede 20 kez durum yayınlar
 const LOOK = 132;                // aynada yansımanın belirdiği mesafe
 const FOUND_MS = 1600;           // dev aynanın önünde durulması gereken süre
 const LOBBY_WAIT = 5000;         // ilk oyuncudan sonra başlama sayacı
-const TUR_TABAN = 75000;         // tur süresi: taban 75 sn
-const TUR_AYNA_BASI = 1000 / 110; // her 110 ayna için +1 sn
-const TUR_EN_AZ = 90000;         // en kısa tur 1.5 dakika
-const TUR_EN_COK = 300000;       // en uzun tur 5 dakika
 const ISARET_ONCE = 45000;       // son 45 sn: bulamayanlara bölge işareti
 const UYARILAR = [60000, 30000, 10000];
 const MAX_SPEED = 260;           // birim/saniye - hız hilesi eşiği
@@ -38,63 +40,6 @@ const COLORS = [
   { id: "turkuaz", hex: "#4fd8d0" },
   { id: "pembe", hex: "#ff7ec4" },
 ];
-
-// Kaç kişi varsa salon o kadar büyür: bulma olasılığı düşer, yarış uzar.
-// 1 kişi 40x40 (~1.6 bin ayna) ... 8 kişi 138x138 (~18 bin ayna).
-// Bölüm ilerledikçe oda ayrıca %15 büyür.
-const CHAPTERS = [
-  { ad: "I · Aynalı Salon", decoyPay: 0 },
-  { ad: "II · Aynanın İçinde", decoyPay: 14 },
-  { ad: "III · Ters Salon", decoyPay: 16 },
-  { ad: "IV · Kayan Aynalar", decoyPay: 18 },
-  { ad: "V · Yankı", decoyPay: 20 },
-  { ad: "VI · Kibir Odası", decoyPay: 24 },
-  { ad: "VII · Paris", decoyPay: 26 },
-  { ad: "VIII · Venedik", decoyPay: 24 },
-  { ad: "IX · Tokyo", decoyPay: 30 },
-  { ad: "X · New York", decoyPay: 28 },
-  { ad: "XI · Kahire", decoyPay: 26 },
-  { ad: "XII · İstanbul", decoyPay: 34 },
-  { ad: "XIII · Londra", decoyPay: 28 },
-  { ad: "XIV · Dubai", decoyPay: 32 },
-  { ad: "XV · Rio", decoyPay: 30 },
-  { ad: "XVI · Kaçan Ayna", decoyPay: 36 },
-  { ad: "XVII · Kyoto", decoyPay: 30 },
-  { ad: "XVIII · Reykjavík", decoyPay: 32 },
-  { ad: "XIX · Marrakeş", decoyPay: 34 },
-  { ad: "XX · Sonsuzluk", decoyPay: 38 },
-];
-
-// Salon boyutu iki kurala göre belirlenir:
-//
-//  1) Tek kişilik boyut tabandır. Oyunun kendi odaları elle ayarlandı;
-//     çevrimiçi tek kişilik oyun da aynı boyutu görür, daha küçüğü asla.
-//  2) Her ek oyuncu salona +3.400 ayna ekler. Ayna sayısı ≈ 0.94 × kare
-//     sayısı olduğundan gereken kenar uzunluğu buradan geri hesaplanır.
-//     Oyuncu elenip sayı düştüğünde salon aynı formülle küçülür — yani
-//     ölçek her iki yönde de orantılıdır.
-//
-// I. odada (taban 40×40) oyuncu sayısına göre yaklaşık ayna:
-//   1 kişi  40×40   ~1.700      5 kişi 127×127 ~15.900
-//   2 kişi  73×73   ~5.300      6 kişi 141×141 ~19.600
-//   3 kişi  95×95   ~8.900      7 kişi 153×153 ~22.000
-//   4 kişi 112×112 ~12.400      8 kişi 164×164 ~26.400
-// Bölüm ilerledikçe boyut ayrıca %8 artar; taban oda büyüdükçe hepsi büyür.
-const CHAPTER_SIZES = [40, 46, 48, 50, 52, 54, 56, 54, 58, 60, 58, 62, 60, 66, 64, 70, 66, 68, 68, 74];
-
-function roomSize(playerCount, chapter = 0) {
-  const taban = CHAPTER_SIZES[Math.min(chapter, CHAPTER_SIZES.length - 1)];
-  if (playerCount <= 1) return taban;
-  const hedefAyna = 1700 + (playerCount - 1) * 3400;
-  const kalabalik = Math.round(Math.sqrt(hedefAyna / 0.94));
-  // Kalabalık her zaman o bölümün tek kişilik odasından büyük olur. Bölüm
-  // için ayrı bir çarpan yok: zorluk zaten taban boyuttan ve sahte dev
-  // sayısından geliyor; çarpan eklemek üst sınıra dayanıp ölçeği bozuyordu.
-  return Math.min(200, Math.max(taban, kalabalik));
-}
-function decoyCount(playerCount, chapter = 0) {
-  return CHAPTERS[Math.min(chapter, CHAPTERS.length - 1)].decoyPay + playerCount * 6;
-}
 
 const rooms = new Map(); // kod -> oda
 
@@ -151,8 +96,19 @@ function fairGiant(maze, spawns, seed) {
 
 function createHall(playerCount, chapter) {
   const seed = (Math.random() * 99999) | 0 || 1;
-  const size = roomSize(playerCount, chapter);
-  const maze = Maze.generate(size, size, seed);
+  const hedef = hedefAyna(playerCount, chapter);
+  // Salon kurulup ölçülüyor: duvar sökücü düzenlerde kenar tek başına hedefi
+  // tutturmaz, bu yüzden sapma büyükse kenar düzeltilip yeniden kuruluyor.
+  let size = kenarIcin(hedef);
+  let maze = Maze.generate(size, size, seed);
+  let mirrorCount = Maze.mirrors(maze).length;
+  for (let deneme = 0; deneme < 2; deneme++) {
+    const sapma = mirrorCount / hedef;
+    if (sapma > 0.94 && sapma < 1.06) break;
+    size = kenarIcin(Math.round(hedef * hedef / Math.max(1, mirrorCount)));
+    maze = Maze.generate(size, size, seed);
+    mirrorCount = Maze.mirrors(maze).length;
+  }
   const spawns = spawnPoints(size, playerCount);
   const tarz = playerCount > 1 && Math.random() < 0.3 ? "zalim" : "adil";
   const giant = playerCount > 1
@@ -162,7 +118,7 @@ function createHall(playerCount, chapter) {
   return {
     chapter, seed, size, maze, giant, spawns, tarz,
     mirrorCount: mirrors.length,
-    decoys: pickDecoys(mirrors, giant, seed, decoyCount(playerCount, chapter)),
+    decoys: pickDecoys(mirrors, giant, seed, decoyCount(playerCount, chapter, mirrors.length)),
   };
 }
 
@@ -180,14 +136,6 @@ function createRoom(code, playerCount) {
 }
 
 // Bir bölümün salonunu getirir, yoksa üretir.
-// Tur süresi salonun büyüklüğüne göre belirlenir: küçük salonda kısa,
-// 26 bin aynalık salonda beş dakika. Böylece hiçbir tur sürüncemede kalmaz
-// ama kalabalık odada da acele ettirmez.
-function turSuresi(mirrorCount) {
-  const ms = TUR_TABAN + mirrorCount * TUR_AYNA_BASI * 1000 / 1000;
-  return Math.round(Math.min(TUR_EN_COK, Math.max(TUR_EN_AZ, ms)));
-}
-
 function hallFor(room, chapter) {
   while (room.halls.length <= chapter) {
     room.halls.push(createHall(hayattakiler(room).length || room.players.size, room.halls.length));
@@ -246,25 +194,62 @@ function hayattakiler(room) {
   return [...room.players.values()].filter((p) => !p.elendi);
 }
 
-// Bir turda son kalan elenir; kalanlarla yeni tur kurulur.
-// 10 kişi girer, her turda biri elenir: 10 → 9 → 8 → ... → 1 kazanan.
-function turKontrol(room) {
+// Bu turda gerçekten yarışanlar. Normal turda hayatta olan herkes; beraberlik
+// turunda yalnızca eşit bitiren oyuncular.
+function turOyunculari(room) {
   const canli = hayattakiler(room);
-  if (room.finishers.length < canli.length - (canli.length > 1 ? 1 : 0)) return;
+  if (!room.katilanlar) return canli;
+  return canli.filter((p) => room.katilanlar.has(p.id));
+}
 
-  if (canli.length <= 1) return;
+function turKontrol(room) {
+  const yarisanlar = turOyunculari(room);
+  if (yarisanlar.length <= 1) return;
+  // Herkes bitirmeden karar verilmez: son sırayı kimin aldığı ancak o zaman
+  // kesinleşir. (Süre dolarsa kararı sureDoldu verir.)
+  if (room.finishers.length < yarisanlar.length) return;
 
-  const bulanIdler = new Set(room.finishers.map((f) => f.id));
-  const gecKalan = canli.find((p) => !bulanIdler.has(p.id));
-  if (gecKalan) {
-    gecKalan.elendi = true;
-    room.elenenler.push({ id: gecKalan.id, ad: gecKalan.ad, renk: gecKalan.renk, tur: room.tur + 1 });
-    broadcast(room, "elendi", {
-      id: gecKalan.id, ad: gecKalan.ad, renk: gecKalan.renk,
-      tur: room.tur + 1, kalan: hayattakiler(room).length,
+  const sonuncular = sonSirayiPaylasanlar(room.finishers);
+
+  // Aynı anda bitirdiler: kimse haksız yere elenmesin, aralarında bir
+  // beraberlik turu oynanır. Öbürleri doğrudan bir üst tura geçer.
+  if (sonuncular.length > 1 && sonuncular.length < yarisanlar.length) {
+    const esitler = yarisanlar.filter((p) => sonuncular.some((f) => f.id === p.id));
+    broadcast(room, "beraberlik", {
+      oyuncular: esitler.map((p) => ({ id: p.id, ad: p.ad, renk: p.renk })),
+      tur: room.tur + 1,
     });
+    yeniTur(room, esitler, true);
+    return;
+  }
+  // Herkes aynı anda bitirdiyse tur tekrarlanır, kimse elenmez.
+  if (sonuncular.length >= yarisanlar.length) {
+    broadcast(room, "beraberlik", {
+      oyuncular: yarisanlar.map((p) => ({ id: p.id, ad: p.ad, renk: p.renk })),
+      tur: room.tur + 1,
+    });
+    yeniTur(room, yarisanlar, true);
+    return;
   }
 
+  ele(room, yarisanlar.find((p) => p.id === sonuncular[0].id), "elendi", {});
+  turSonu(room);
+}
+
+// Bir oyuncuyu eler ve haber verir.
+function ele(room, oyuncu, tur_mesaji, ek) {
+  if (!oyuncu) return;
+  oyuncu.elendi = true;
+  room.elenenler.push({ id: oyuncu.id, ad: oyuncu.ad, renk: oyuncu.renk, tur: room.tur + 1 });
+  broadcast(room, tur_mesaji, {
+    id: oyuncu.id, ad: oyuncu.ad, renk: oyuncu.renk,
+    tur: room.tur + 1, kalan: hayattakiler(room).length, ...ek,
+  });
+}
+
+// Eleme sonrası: tek kişi kaldıysa turnuva biter, yoksa yeni tur kurulur.
+// Beraberlik turundan çıkıldığında sıradaki tura hayatta olan HERKES katılır.
+function turSonu(room) {
   const kalanlar = hayattakiler(room);
   if (kalanlar.length <= 1) {
     room.state = "bitti";
@@ -278,15 +263,18 @@ function turKontrol(room) {
     });
     return;
   }
-
   yeniTur(room, kalanlar);
 }
 
-// Kalan oyuncularla yeni tur kurar: yeni salon, yeni köşeler, yeni süre.
-function yeniTur(room, kalanlar) {
+function yeniTur(room, kalanlar, beraberlikTuru = false) {
   room.tur++;
   room.finishers = [];
-  room.halls[room.tur] = createHall(kalanlar.length, Math.min(room.tur, CHAPTERS.length - 1));
+  room.beraberlik = beraberlikTuru;
+  room.katilanlar = new Set(kalanlar.map((p) => p.id));
+  // Beraberlik turu turnuvada bir basamak sayılmaz: aynı bölümün yeni bir
+  // salonu kurulur, oyuncular bölüm atlamış olmaz.
+  if (!beraberlikTuru) room.bolum = (room.bolum || 0) + 1;
+  room.halls[room.tur] = createHall(kalanlar.length, Math.min(room.bolum, CHAPTERS.length - 1));
   const salon = room.halls[room.tur];
   kalanlar.forEach((p, i) => {
     p.spawnIndex = i;
@@ -304,9 +292,18 @@ function yeniTur(room, kalanlar) {
   room.isaretVerildi = false;
   for (const [sock, p] of room.players) {
     if (p.elendi) continue;
+    // Beraberlik turunda yalnızca eşit bitirenler oynar; ötekiler bir üst
+    // tura geçmiş sayılır ve sonucu bekler.
+    if (!room.katilanlar.has(p.id)) {
+      send(sock, "bekle", {
+        tur: room.tur + 1, sebep: "beraberlik",
+        oyuncular: kalanlar.map((k) => ({ id: k.id, ad: k.ad, renk: k.renk })),
+      });
+      continue;
+    }
     send(sock, "tur", {
       tur: room.tur + 1, kalan: kalanlar.length, baslarAt: room.startAt,
-      sure: room.limitMs, ...hallInfo(room, room.tur, p),
+      sure: room.limitMs, beraberlik: room.beraberlik, ...hallInfo(room, room.tur, p),
     });
   }
   broadcast(room, "oyuncular", { oyuncular: roster(room) });
@@ -316,10 +313,10 @@ function yeniTur(room, kalanlar) {
 // "En uzak" kuş uçuşu değil, duvarlardan geçmeden kaç adım kaldığıdır —
 // yani gerçekten en geride kalan gider, şanssız yerde duran değil.
 function sureDoldu(room) {
-  const canli = hayattakiler(room);
-  if (canli.length <= 1) return;
+  const yarisanlar = turOyunculari(room);
+  if (yarisanlar.length <= 1) return;
   const bulanlar = new Set(room.finishers.map((f) => f.id));
-  const bulamayanlar = canli.filter((p) => !bulanlar.has(p.id));
+  const bulamayanlar = yarisanlar.filter((p) => !bulanlar.has(p.id));
   if (!bulamayanlar.length) return;
 
   const salon = hallFor(room, room.tur);
@@ -334,29 +331,31 @@ function sureDoldu(room) {
     return d < 0 ? Infinity : d;
   };
 
+  // Aynaya en uzak kalan elenir. Eşit uzaklıkta birden fazla kişi varsa
+  // aralarında beraberlik turu oynanır; kimse kura ile elenmez.
   bulamayanlar.sort((a, b) => adim(b) - adim(a));
-  const giden = bulamayanlar[0];
-  giden.elendi = true;
-  room.elenenler.push({ id: giden.id, ad: giden.ad, renk: giden.renk, tur: room.tur + 1 });
-  broadcast(room, "sureBitti", {
-    id: giden.id, ad: giden.ad, renk: giden.renk,
-    uzaklik: adim(giden), tur: room.tur + 1, kalan: hayattakiler(room).length,
-  });
+  const enUzak = adim(bulamayanlar[0]);
+  const esitler = bulamayanlar.filter((p) => adim(p) === enUzak);
 
-  const kalanlar = hayattakiler(room);
-  if (kalanlar.length <= 1) {
-    room.state = "bitti";
-    const kazanan = kalanlar[0];
-    broadcast(room, "bitti", {
-      kazanan: kazanan ? { id: kazanan.id, ad: kazanan.ad, renk: kazanan.renk } : null,
-      siralama: [
-        ...(kazanan ? [{ id: kazanan.id, ad: kazanan.ad, renk: kazanan.renk, tur: room.tur + 1 }] : []),
-        ...room.elenenler.slice().reverse(),
-      ],
+  if (esitler.length > 1 && esitler.length < yarisanlar.length) {
+    broadcast(room, "beraberlik", {
+      oyuncular: esitler.map((p) => ({ id: p.id, ad: p.ad, renk: p.renk })),
+      tur: room.tur + 1, sebep: "sure",
     });
+    yeniTur(room, esitler, true);
     return;
   }
-  yeniTur(room, kalanlar);
+  if (esitler.length >= yarisanlar.length) {
+    broadcast(room, "beraberlik", {
+      oyuncular: yarisanlar.map((p) => ({ id: p.id, ad: p.ad, renk: p.renk })),
+      tur: room.tur + 1, sebep: "sure",
+    });
+    yeniTur(room, yarisanlar, true);
+    return;
+  }
+
+  ele(room, esitler[0], "sureBitti", { uzaklik: enUzak });
+  turSonu(room);
 }
 
 // Son düdük: sürenin son 45 saniyesinde aynayı bulamayanlara aynanın
@@ -449,6 +448,9 @@ wss.on("connection", (ws) => {
       const hepsiHazir = [...room.players.values()].every((p) => p.hazir);
       if (hepsiHazir && room.state === "lobi") {
         room.state = "yaris";
+        room.bolum = 0;
+        room.beraberlik = false;
+        room.katilanlar = new Set(hayattakiler(room).map((p) => p.id));
         room.startAt = Date.now() + LOBBY_WAIT;
         room.limitMs = turSuresi(hallFor(room, 0).mirrorCount);
         room.deadline = room.startAt + room.limitMs;
@@ -489,14 +491,21 @@ wss.on("connection", (ws) => {
           const gecen = (now - room.startAt) / 1000;
           broadcast(room, "buldu", {
             id: me.id, ad: me.ad, renk: me.renk, bolum: me.bolum,
-            bolumAdi: CHAPTERS[me.bolum].ad, sure: gecen,
+            bolumAdi: CHAPTERS[Math.min(hallFor(room, me.bolum).chapter, CHAPTERS.length - 1)].ad,
+            sure: gecen,
           });
 
           me.sure = gecen;
           room.finishers.push({ id: me.id, ad: me.ad, renk: me.renk, sure: gecen });
+          // Sıra, varış anına göre verilir: aynı anda (300 ms içinde) bitiren
+          // iki oyuncu aynı sırayı paylaşır, sonraki sıra atlanır.
+          siralaBitirenler(room.finishers);
+          const benim = room.finishers.find((f) => f.id === me.id);
           broadcast(room, "gecti", {
             id: me.id, ad: me.ad, renk: me.renk, sure: gecen,
-            sira: room.finishers.length, kalan: hayattakiler(room).length,
+            sira: benim ? benim.sira : room.finishers.length,
+            esitler: room.finishers.filter((f) => f.sira === (benim ? benim.sira : 0)).length,
+            kalan: hayattakiler(room).length,
           });
           turKontrol(room);
         }
@@ -564,6 +573,11 @@ setInterval(() => {
   }
 }, TICK);
 
-server.listen(PORT, () => {
-  console.log(`Dev Aynası sunucusu hazır: ws://localhost:${PORT}`);
-});
+// Doğrudan çalıştırıldığında dinlemeye başlar; testler dosyayı require ile
+// yükleyip yalnızca hesapları sınayabilsin diye porta bağlanmaz.
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Dev Aynası sunucusu hazır: ws://localhost:${PORT}`);
+  });
+}
+

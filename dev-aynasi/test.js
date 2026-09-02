@@ -111,41 +111,68 @@ test("bölüm boyutları büyüdükçe ayna sayısı artar", () => {
   assert.ok(counts[0] < counts[1] && counts[1] < counts[2], counts.join(" < "));
 });
 
-test("çok oyunculu salon oyuncu sayısıyla orantılı büyüyüp küçülür", () => {
-  // Sunucudaki kuralın aynısı: tek kişilik boyut taban, her ek oyuncu
-  // +3.400 ayna. Eleme sırasında sayı düşünce salon aynı formülle küçülür.
-  const CHAPTER_SIZES = [40, 46, 48, 50, 52, 54, 56, 54, 58, 60, 58, 62, 60, 66, 64, 70];
-  const boyut = (n, ch = 0) => {
-    const taban = CHAPTER_SIZES[Math.min(ch, CHAPTER_SIZES.length - 1)];
-    if (n <= 1) return taban;
-    return Math.min(200, Math.max(taban, Math.round(Math.sqrt((1700 + (n - 1) * 3400) / 0.94))));
-  };
-  const ayna = (s) => Maze.mirrors(Maze.generate(s, s, 11)).length;
+test("çok oyunculu salon: her ek oyuncu +5.000 ayna", () => {
+  // Sunucunun kendi kural dosyası kullanılıyor; formül testte kopyalanmıyor.
+  const K = require("./multiplayer/kural.js");
+  assert.equal(K.hedefAyna(1, 0), 5000, "tek kişi birinci tur 5.000 ayna");
+  assert.equal(K.hedefAyna(2, 0), 10000, "iki kişi birinci tur 10.000 ayna");
+  assert.equal(K.hedefAyna(4, 0), 20000, "dört kişi birinci tur 20.000 ayna");
+  assert.equal(K.hedefAyna(8, 0), 40000, "sekiz kişi birinci tur 40.000 ayna");
+  // Bölüm merdiveni: I. tur 5.000, son tur 20.000
+  assert.equal(K.bolumAynasi(0), 5000);
+  assert.equal(K.bolumAynasi(K.CHAPTERS.length - 1), 20000);
+  // Eleme sırasında salon aynı kuralla küçülür
+  assert.ok(K.hedefAyna(3, 5) < K.hedefAyna(4, 5), "oyuncu elenince salon küçülür");
+  assert.ok(K.roomSize(8, 19) <= 260, "kenar üst sınırı aşılmıyor");
+});
 
-  let onceki = 0;
-  for (let n = 1; n <= 8; n++) {
-    const a = ayna(boyut(n));
-    if (n > 1) {
-      assert.ok(a > onceki, `${n} kişide ayna artmadı: ${onceki} -> ${a}`);
-      assert.ok(a - onceki > 2500, `${n}. oyuncu yeterince ayna eklemedi: +${a - onceki}`);
-    }
-    onceki = a;
-  }
-  // Eleme: sayı düştükçe salon küçülür
-  assert.ok(ayna(boyut(4)) < ayna(boyut(8)), "eleme sonrası salon küçülmedi");
-  // Çevrimiçi tek kişilik oda, oyunun kendi odasıyla aynı boyutta
-  for (const ch of [0, 8, 15]) assert.strictEqual(boyut(1, ch), CHAPTER_SIZES[ch]);
+test("sıralama: aynı anda bitirenler aynı sırayı paylaşır", () => {
+  const K = require("./multiplayer/kural.js");
+  // A ve B 0,1 sn arayla (aynı anda sayılır), C çok sonra.
+  const s1 = K.siralaBitirenler([
+    { id: "a", sure: 12.00 }, { id: "b", sure: 12.10 }, { id: "c", sure: 30.0 },
+  ]);
+  assert.deepEqual(s1.map((f) => f.sira), [1, 1, 3], "1, 1, 3 olmalı");
+  // Belirgin farklarla normal sıra
+  const s2 = K.siralaBitirenler([
+    { id: "a", sure: 10 }, { id: "b", sure: 20 }, { id: "c", sure: 30 },
+  ]);
+  assert.deepEqual(s2.map((f) => f.sira), [1, 2, 3]);
+});
+
+test("eleme: son sırayı paylaşanlar beraberlik turuna kalır", () => {
+  const K = require("./multiplayer/kural.js");
+  // Sonuncu tek kişi: doğrudan elenir
+  const tek = K.sonSirayiPaylasanlar([
+    { id: "a", sure: 10 }, { id: "b", sure: 20 }, { id: "c", sure: 40 },
+  ]);
+  assert.equal(tek.length, 1);
+  assert.equal(tek[0].id, "c");
+  // Son iki kişi aynı anda bitirdi: ikisi de döner, kimse kurayla elenmez
+  const esit = K.sonSirayiPaylasanlar([
+    { id: "a", sure: 10 }, { id: "b", sure: 40.0 }, { id: "c", sure: 40.2 },
+  ]);
+  assert.equal(esit.length, 2, "eşit bitirenlerin ikisi de son sırayı paylaşır");
+  assert.deepEqual(esit.map((f) => f.id).sort(), ["b", "c"]);
+});
+
+test("tur süresi salonla büyür ama sınırların dışına çıkmaz", () => {
+  const K = require("./multiplayer/kural.js");
+  assert.ok(K.turSuresi(5000) >= K.TUR_EN_AZ, "en kısa tur sınırı");
+  assert.ok(K.turSuresi(10000) > K.turSuresi(5000), "salon büyüdükçe süre uzar");
+  assert.ok(K.turSuresi(500000) <= K.TUR_EN_COK, "en uzun tur sınırı");
 });
 
 let failed = 0;
-for (const [name, fn] of tests) {
+for (const [ad, fn] of tests) {
   try {
     fn();
-    console.log(`✅ ${name}`);
+    console.log(`✅ ${ad}`);
   } catch (err) {
     failed++;
-    console.log(`❌ ${name}\n   ${err.message}`);
+    console.error(`❌ ${ad}\n   ${err.message}`);
   }
 }
+
 console.log(`\n${tests.length - failed}/${tests.length} test geçti.`);
 process.exit(failed ? 1 : 0);
