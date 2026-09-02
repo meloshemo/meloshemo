@@ -60,13 +60,13 @@ getirir. Açtığın odalara ayarlardan geri dönebilirsin.
 Odalar elle yazılmış bir kenar uzunluğuyla değil, **hedeflenen ayna sayısıyla**
 kuruluyor: I. oda 5.000 ayna, XX. oda 20.000. Aradaki odalar düzgün artar.
 
-| Oda | Ayna | Kenar | Sıcak iz | Sezgi | Düzlük | Çıkmaz |
-| --- | --- | --- | --- | --- | --- | --- |
-| I | 5.000 | 71×71 | 14 kare | 5 | 0,75 | %4,7 |
-| V | 8.158 | 91×91 | 18 kare | 6 | 0,62 | %6,2 |
-| X | 12.105 | 111×111 | 22 kare | 7 | 0,45 | %7,5 |
-| XV | 16.053 | 128×128 | 26 kare | 7 | 0,29 | %8,4 |
-| XX | 20.000 | 143×143 | 29 kare | 8 | 0,12 | %9,4 |
+| Oda | Ayna | Kenar | Sıcak iz | Sezgi | Odacık | Koridor tavanı | Odacık kapısı |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| I | 5.000 | 71×71 | 14 kare | 5 | 35 | 6 kare | 3-4 |
+| V | 8.158 | 91×91 | 18 kare | 6 | 54 | 5 kare | 2-3 |
+| X | 12.105 | 111×111 | 22 kare | 7 | 75 | 5 kare | 2-3 |
+| XV | 16.053 | 128×128 | 26 kare | 7 | 91 | 4 kare | 2 |
+| XX | 20.000 | 143×143 | 29 kare | 8 | 101 | 4 kare | 2 |
 
 Salon kurulduktan sonra **ölçülür**: açık galeri, ızgara ve çarşı düzenleri
 duvar söktüğü için kenar tek başına hedefi tutturmaz; sapma %6'yı geçerse
@@ -77,15 +77,24 @@ yoğunlukta kalsın diye orantılı artar, **sıcak iz** kuşağı (dev aynanın
 çevresinde çerçeveleri altın vuran camlar) salonla birlikte genişler ve
 **sezgi hakkı** oda büyüdükçe çoğalır.
 
-**Labirentin dokusu da sertleşir.** *Düzlük*, kazıcının aynı yönde devam etme
-eğilimidir: I. odada 0,75 (uzun düz koridorlar, nerede olduğunu kestirirsin),
-XX. odada 0,12 (koridorlar sürekli kıvrılır, zihinsel harita tutmak zor).
-Aynı anda halka sayısı düşer, yani çıkmaz sokaklar iki katına çıkar (%4,7 →
-%9,4) ve her yanlış dönüş geri dönüş demektir.
+**Salonun ritmi.** Uzun düz bir koridorda yürümek boş geçer; bu yüzden
+koridorun kesintisiz uzayabileceği bir tavan var (bölüme göre dört ile altı
+kare). En uzun koridor 13-16 karedir, 10 kareden uzun koridor sayısı bir
+salonda 16'yı geçmez.
 
-Dürüst olmak gerekirse doku **arama süresini** neredeyse değiştirmiyor: toplam
-koridor uzunluğu ayarlar arasında yalnızca %4 oynuyor. Süreyi belirleyen şey
-salonun boyutu ve sıcak iz kuşağı. Doku salonun *okunabilirliğini* değiştiriyor.
+Aralarda **odacıklar** vardır: üç ile beş kare boyunda, etrafı camla çevrili
+küçük odalar (I. odada 35, XX. odada 101 tane, zeminin %5-7'si). Dört kare ve
+üzerindeki odacıkların ortasında **ayna sütunu** durur — dört yüzü de cam olan
+tek bir kare. Etrafından sıkışarak dolaşırsın; odacığın ağzı da sayılıdır
+(ilk odalarda üç-dört kapı, son odalarda iki), yani her odacık bir kıskaçtır.
+
+Doku bölümle sertleşir: ilk odalar sık ve geniş ağızlı odacıklarla ferah, son
+odalar seyrek ve iki kapılı odacıklarla sıkışık; halka sayısı düştüğü için
+çıkmaz sokaklar da iki katına çıkar.
+
+Dürüst olmak gerekirse doku **arama süresini** neredeyse değiştirmiyor.
+Süreyi belirleyen şey salonun boyutu ve sıcak iz kuşağı. Doku salonun
+*ritmini* değiştiriyor.
 
 **Ölçülen süreler** (40 tohum ortalaması, koridor koridor tarayan bir oyuncu):
 

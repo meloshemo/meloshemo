@@ -72,7 +72,13 @@ function hedefAyna(playerCount, chapter = 0) {
 function dokuIcin(chapter) {
   const son = CHAPTERS.length - 1;
   const t = Math.max(0, Math.min(1, chapter / Math.max(1, son)));
-  return { duzluk: 0.75 - 0.63 * t, ekstra: 0.09 - 0.07 * t };
+  return {
+    duzluk: 0.5 - 0.25 * t,
+    ekstra: 0.09 - 0.07 * t,
+    maxDuz: Math.round(6 - 2 * t),
+    odacik: 7 - 2 * t,
+    agiz: t < 0.34 ? [3, 4] : t < 0.67 ? [2, 3] : [2, 2],
+  };
 }
 
 const kenarIcin = (ayna) =>

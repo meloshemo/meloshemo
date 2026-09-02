@@ -57,19 +57,32 @@
   // arama süresini belirleyen şey salonun boyutu. Doku başka bir şeyi
   // değiştiriyor — salonun okunabilirliğini:
   //
-  //   I. oda  : düz uzun koridorlar, bol halka → nerede olduğunu kestirirsin,
-  //             yanlış dönüş ucuz (111×111'de ~580 çıkmaz)
-  //   XX. oda : sürekli kıvrılan koridorlar, halka yok → zihinsel harita
-  //             tutmak zor, her yanlış dönüş geri dönüş (~1.190 çıkmaz)
+  //   I. oda  : sık odacıklar, geniş ağızlar, bol halka → salon nefes alır,
+  //             yanlış dönüş ucuz
+  //   XX. oda : seyrek ve iki kapılı odacıklar, halka yok, koridor dört
+  //             karede bir döner → sıkışık, her yanlış dönüş geri dönüş
+  //
+  // Hiçbir odada koridor altı kareden uzun sürmez: eskiden otuz kareye kadar
+  // dümdüz yollar çıkıyordu ve oyuncu on saniye boşa yürüyordu.
   const dokuIcin = (i, toplam) => {
     const t = Math.max(0, Math.min(1, i / Math.max(1, toplam - 1)));
-    return { duzluk: 0.75 - 0.63 * t, ekstra: 0.09 - 0.07 * t };
+    return {
+      duzluk: 0.5 - 0.25 * t,
+      ekstra: 0.09 - 0.07 * t,
+      // Koridor hiçbir odada altı kareden uzun sürmez; son odalara doğru
+      // dörde iner, yani sürekli dönersin.
+      maxDuz: Math.round(6 - 2 * t),
+      // Odacık: ilk odalarda daha çok ve daha davetkâr, son odalarda daha
+      // seyrek ve iki kapılı — yani gerçek bir kıskaç.
+      odacik: 7 - 2 * t,
+      agiz: t < 0.34 ? [3, 4] : t < 0.67 ? [2, 3] : [2, 2],
+    };
   };
   const BEST_KEY = "dev-aynasi:en-iyi";
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.6.0";
+  const SURUM = "1.7.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -1508,7 +1521,7 @@
       dizi[k.y][k.x] = true;
       konanlar.push({ dizi, x: k.x, y: k.y });
     }
-    const kopukMu = () => Maze.distances(maze, { x: 0, y: 0 }).some((d) => d < 0);
+    const kopukMu = () => !Maze.baglantiliMi(maze);
     let kontrol = 0;
     while (konanlar.length && kontrol < 8 && kopukMu()) {
       const geri = konanlar.pop();
@@ -2049,6 +2062,30 @@
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
     olcek: () => scale(),
+    // En yakın odacığın ortasına götürür (ekran görüntüsü için).
+    teleportToOdacik(index = 0) {
+      const p = players[index];
+      let enIyi = null;
+      for (let y = 1; y + 2 < size; y++) {
+        for (let x = 1; x + 2 < size; x++) {
+          let acik = true;
+          for (let dy = 0; dy < 3 && acik; dy++) {
+            for (let dx = 0; dx < 3; dx++) {
+              if (dx < 2 && Maze.hasWall(maze, x + dx, y + dy, "E")) { acik = false; break; }
+              if (dy < 2 && Maze.hasWall(maze, x + dx, y + dy, "S")) { acik = false; break; }
+            }
+          }
+          if (!acik) continue;
+          const mx = (x + 1.5) * CELL;
+          const my = (y + 1.5) * CELL;
+          const d = Math.hypot(mx - p.x, my - p.y);
+          if (!enIyi || d < enIyi.d) enIyi = { x: mx, y: my, d };
+        }
+      }
+      if (!enIyi) return false;
+      p.x = enIyi.x; p.y = enIyi.y; p.vx = 0; p.vy = 0;
+      return true;
+    },
     gercekAynaSayisi: () => Maze.mirrorCount(maze),
     fener: () => fade,
     durgun: (i = 0) => durgunMu(players[i], performance.now()),

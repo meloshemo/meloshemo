@@ -20,10 +20,73 @@ test("farklı tohum farklı salon üretir", () => {
 });
 
 test("salonun her karesi yürüyerek ulaşılabilir", () => {
+  // Odacıkların ortasındaki ayna sütunları dört yanı kapalı karelerdir;
+  // salonun bir parçası değil, içindeki engeldir. baglantiliMi onları hesaba
+  // katmadan "yürünebilir her yere ulaşılıyor mu" sorusunu yanıtlar.
   for (const seed of [1, 99, 12345, 65535]) {
-    const maze = Maze.generate(30, 30, seed);
-    const dist = Maze.distances(maze, { x: 0, y: 0 });
-    assert.strictEqual(dist.filter((d) => d < 0).length, 0, `tohum ${seed}`);
+    for (const size of [30, 60, 100]) {
+      const maze = Maze.generate(size, size, seed);
+      assert.ok(Maze.baglantiliMi(maze), `tohum ${seed}, kenar ${size}`);
+    }
+  }
+});
+
+test("ayna sütunları salonun içinde, kenarında değil", () => {
+  // Sütun dış duvara yapışırsa oyuncu geçemeyeceği bir kör nokta görür.
+  for (const seed of [3, 777, 40404]) {
+    const maze = Maze.generate(60, 60, seed);
+    for (let y = 0; y < 60; y++) {
+      for (let x = 0; x < 60; x++) {
+        if (!Maze.tamKapali(maze, x, y)) continue;
+        assert.ok(x > 0 && y > 0 && x < 59 && y < 59, `sütun kenarda: ${x},${y}`);
+      }
+    }
+  }
+});
+
+test("koridorlar upuzun uzamaz", () => {
+  // Oyuncunun şikâyeti buydu: otuz kare dümdüz yürümek boş geçiyor.
+  const Kural = require("./multiplayer/kural.js");
+  for (const bolum of [0, 9, 19]) {
+    const doku = Kural.dokuIcin(bolum);
+    const maze = Maze.generate(90, 90, 4821, doku);
+    let enUzun = 0;
+    for (const [yon, dx, dy] of [["E", 1, 0], ["S", 0, 1]]) {
+      const geri = yon === "E" ? "W" : "N";
+      for (let y = 0; y < 90; y++) {
+        for (let x = 0; x < 90; x++) {
+          if (!Maze.hasWall(maze, x, y, geri)) continue;
+          let n = 1;
+          let cx = x;
+          let cy = y;
+          while (!Maze.hasWall(maze, cx, cy, yon) && n <= 90) { cx += dx; cy += dy; n++; }
+          if (n > enUzun) enUzun = n;
+        }
+      }
+    }
+    assert.ok(enUzun <= 20, `bölüm ${bolum + 1}: en uzun koridor ${enUzun} kare`);
+  }
+});
+
+test("her salonda odacıklar açılır", () => {
+  const Kural = require("./multiplayer/kural.js");
+  for (const bolum of [0, 9, 19]) {
+    const maze = Maze.generate(80, 80, 7, Kural.dokuIcin(bolum));
+    // 3x3'lük hiç iç duvarı olmayan bir alan = odacık
+    let odacik = 0;
+    for (let y = 0; y + 2 < 80; y++) {
+      for (let x = 0; x + 2 < 80; x++) {
+        let acik = true;
+        for (let dy = 0; dy < 3 && acik; dy++) {
+          for (let dx = 0; dx < 3; dx++) {
+            if (dx < 2 && Maze.hasWall(maze, x + dx, y + dy, "E")) { acik = false; break; }
+            if (dy < 2 && Maze.hasWall(maze, x + dx, y + dy, "S")) { acik = false; break; }
+          }
+        }
+        if (acik) odacik++;
+      }
+    }
+    assert.ok(odacik > 20, `bölüm ${bolum + 1}: yalnızca ${odacik} açık alan`);
   }
 });
 

@@ -1,5 +1,48 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.7.0 — Koridorlar kısaldı, salonlara odacık girdi
+Şikâyet yerindeydi ve suçlusu 1.5.1'de eklediğim "düzlük" ayarıydı: salonu
+okunaklı yapayım derken **otuz bir kareye kadar dümdüz koridorlar** ürettim.
+230 birim/saniye hızla bu, hiçbir şeyin olmadığı on saniyelik bir yürüyüş
+demek. I. odada 10 kareden uzun 133 koridor vardı.
+
+- **Koridora tavan kondu:** kazıcı aynı yönde en fazla dört-altı kare
+  gidebiliyor (bölüm ilerledikçe azalıyor). Fazladan duvar sökümü de artık
+  iki kısa koridoru birleştirip uzun bir yol doğurmuyor — sökmeden önce
+  oluşacak koşunun uzunluğuna bakılıyor.
+  Sonuç: en uzun koridor **31 → 13-16 kare**, 10+ karelik koridor sayısı
+  **133 → 16**
+- **Odacıklar:** her salonun içine üç ile beş kare boyunda küçük aynalı
+  odalar açılıyor (I. odada 35, XX. odada 101 tane; zeminin ~%5-7'si). Dar
+  bir koridordan çıkıp etrafı camla çevrili bir boşluğa giriyorsun
+- **Odacığın ortasında ayna sütunu:** dört yüzü de cam olan tek bir kare.
+  Boş bir açıklık yalnızca "daha az duvar" olurdu; sütun hem bakacak bir şey
+  veriyor hem de etrafından sıkışarak dolaşılıyor — asıl kıskaç bu
+- **Odacığın ağzı sayılı:** ilk odalarda üç-dört kapı, son odalarda iki.
+  Kapılar tek tek kısılıyor ve her kısmadan sonra o geçidin iki yanının hâlâ
+  birbirine ulaştığı doğrulanıyor
+- Doku merdiveni yeniden yazıldı: artık "düz mü kıvrımlı mı" değil,
+  "ne kadar nefes alıyor" — ilk odalar sık ve geniş ağızlı odacıklarla ferah,
+  son odalar seyrek ve iki kapılı odacıklarla sıkışık
+
+**Düzeltmeler bu iş sırasında çıktı:**
+
+- Kapı kısma işlemi ilk hâliyle son odalarda salonun yarısını koparıyordu
+  (XV. odada 5.622, XX. odada 7.220 ulaşılamaz kare). Tek bir geçidi kapatmak
+  bağlı bir salonu ya bölmez ya da tam ikiye böler; bu yüzden bütün salonu
+  taramak yerine yalnızca geçidin iki yanının hâlâ birbirine ulaşıp
+  ulaşmadığına bakılıyor. Hem doğru hem çok daha ucuz: oda kurulumu
+  **520 ms → 55-87 ms**
+- `Maze.baglantiliMi()` eklendi: ayna sütunları dört yanı kapalı kareler
+  olduğu için `distances()` onları hep "ulaşılamaz" gösteriyordu ve bu,
+  Kayan Aynalar odasının bağlantı kontrolünü bozacaktı
+- Testlere dört yeni sınav: sütunlar salonun kenarında olamaz, koridor yirmi
+  kareyi geçemez, her salonda odacık açılır, yürünebilir her kareye ulaşılır
+  (18 test)
+
+Arama süresi neredeyse aynı kaldı (sezgisiz 8-33 dakika): bu değişiklik
+zorluğu değil **ritmi** değiştiriyor.
+
 ## 1.6.0 — Kare hiç düşmesin
 Ölçümle başladı: tarayıcının kare sürelerini yüzdelik dilimleriyle çıkarınca
 görüldü ki yüksek piksel yoğunluğunda (retina ekran) **karelerin %100'ü**
