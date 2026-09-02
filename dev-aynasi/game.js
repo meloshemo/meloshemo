@@ -17,6 +17,7 @@
     chapterCard: $("chapterCard"), cardTitle: $("cardTitle"), cardText: $("cardText"),
     fsBtn: $("fsBtn"), settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
     brightness: $("brightness"), reduceMotion: $("reduceMotion"), roomPicker: $("roomPicker"),
+    autoRes: $("autoRes"),
     privacyBtn: $("privacyBtn"), privacy: $("privacy"), privacyClose: $("privacyClose"),
     privacyText: $("privacyText"), version: $("version"),
     progressCode: $("progressCode"), copyProgress: $("copyProgress"),
@@ -68,11 +69,11 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.5.1";
+  const SURUM = "1.6.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
-    { parlaklik: 1, azHareket: false },
+    { parlaklik: 1, azHareket: false, otomatikCozunurluk: true },
     (() => {
       try {
         return JSON.parse(localStorage.getItem(AYAR_KEY) || "{}");
@@ -280,7 +281,57 @@
   ];
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const scale = () => Math.min(window.devicePixelRatio || 1, 1.5);
+  // --- Çözünürlük yönetimi ------------------------------------------------
+  //
+  // Hedef: kare hiç düşmesin. Sabit bir çözünürlük bunu garanti edemez —
+  // güçlü bir ekranda gereksiz düşük, zayıf bir cihazda ise yetişilemez
+  // olur. Bu yüzden oyun kendi kare süresini ölçüyor:
+  //
+  //   · 60 kare boyunca ölçüp ortancayı alıyor (tek tük tepe onu bozmasın),
+  //   · bütçeyi (13,5 ms) aşıyorsa çözünürlüğü bir kademe düşürüyor,
+  //   · uzun süre rahatsa (< 7 ms) bir kademe yükseltiyor.
+  //
+  // Kademeler ekranın kendi piksel yoğunluğunu geçmez: en üstte tam
+  // yoğunluk (2× ekranda 2×) yani mümkün olan en keskin görüntü.
+  const OLCEK_KADEMELERI = [1, 1.25, 1.5, 1.75, 2];
+  const KARE_BUTCESI = 13.5;      // ms — 60 fps için güvenli üst sınır
+  const KARE_RAHAT = 7;           // ms — bunun altında kalırsa yükselebilir
+  let olcekIndex = 2;             // 1.5 ile başla
+  let kareOrnekleri = [];
+  let sonOlcekDegisimi = 0;
+
+  function ustSinirIndex() {
+    const dpr = window.devicePixelRatio || 1;
+    let i = OLCEK_KADEMELERI.length - 1;
+    while (i > 0 && OLCEK_KADEMELERI[i] > dpr) i--;
+    return i;
+  }
+  const scale = () => Math.min(OLCEK_KADEMELERI[olcekIndex], window.devicePixelRatio || 1);
+
+  // Her karede çağrılır. Ölçek değişirse tuval yeniden boyutlanır.
+  function olcegiAyarla(dtMs, now) {
+    if (!ayarlar.otomatikCozunurluk) return;
+    kareOrnekleri.push(dtMs);
+    if (kareOrnekleri.length < 60) return;
+    const sirali = kareOrnekleri.slice().sort((a, b) => a - b);
+    const ortanca = sirali[30];
+    // Düşürme kararı ortancaya değil TEPEYE bakar: ortanca rahat görünürken
+    // karelerin altıda biri bütçeyi aşıyorsa oyuncu takılmayı hisseder.
+    const tepe = sirali[Math.floor(sirali.length * 0.85)];
+    kareOrnekleri.length = 0;
+    // Ölçek değişiminden hemen sonra bir soluk payı: ilk kareler ısınma.
+    if (now - sonOlcekDegisimi < 700) return;
+    const ust = ustSinirIndex();
+    if ((ortanca > KARE_BUTCESI || tepe > 16.7) && olcekIndex > 0) {
+      olcekIndex--;
+      sonOlcekDegisimi = now;
+      resize();
+    } else if (ortanca < KARE_RAHAT && tepe < KARE_BUTCESI && olcekIndex < ust) {
+      olcekIndex++;
+      sonOlcekDegisimi = now;
+      resize();
+    }
+  }
 
   let chapterIndex = 0;
   let carding = 0;          // bölüm kartının ekranda kalacağı ana kadar
@@ -297,6 +348,9 @@
   let shiftFlash = 0;       // kayma anındaki parlama
   let fade = 1;             // sönen fener (final)
   let liars = new Set();    // XX. bölümde yalan söyleyen camlar
+  let liarKeys = new Set(); // aynısı, çizim döngüsü için sayısal anahtarla
+  let decoyKeys = new Map();
+  let giantKey = -1;
   let gorulenSayac = 0;     // fener için: kaç yeni cam görüldü
   let sezgiHakki = 3;       // oda büyüklüğüne göre sezgi hakkı
   let ripple = 0;           // Venedik dalgası: 0..1
@@ -314,11 +368,32 @@
   let joystick = null;
 
   const keys = new Set();
+  // Yansıma döngüsünde yeniden kullanılan tek nesne.
+  const segCalisma = { horizontal: false, x: 0, y: 0 };
   const idOf = (horizontal, x, y) => `${horizontal ? "h" : "v"}${x},${y}`;
+  // Çizim döngüsünde metin anahtarı üretmek her karede binlerce kısa ömürlü
+  // string demekti (çöp toplayıcıya yük). Aynı parça için sayısal bir anahtar
+  // kullanılıyor; metin kimlikler yalnızca kayıt/dış dünya için kaldı.
+  let anahtarAdim = 1;
+  const keyOf = (horizontal, x, y) => (y * anahtarAdim + x) * 2 + (horizontal ? 1 : 0);
+  const keyOfId = (id) => {
+    const yatay = id[0] === "h";
+    const v = id.slice(1).split(",");
+    return keyOf(yatay, +v[0], +v[1]);
+  };
 
+  // Sık çağrılan yerlerde (yansıma döngüsü) yeni nesne üretmemek için
+  // sonucu hazır bir nesneye yazan bir sürüm de var.
+  const geoCalisma = { ax: 0, ay: 0, bx: 0, by: 0 };
+  function segGeometryTo(seg, hedef) {
+    hedef.ax = seg.x * CELL;
+    hedef.ay = seg.y * CELL;
+    hedef.bx = seg.horizontal ? (seg.x + 1) * CELL : hedef.ax;
+    hedef.by = seg.horizontal ? hedef.ay : (seg.y + 1) * CELL;
+    return hedef;
+  }
   function segGeometry(seg) {
-    if (seg.horizontal) return { ax: seg.x * CELL, ay: seg.y * CELL, bx: (seg.x + 1) * CELL, by: seg.y * CELL };
-    return { ax: seg.x * CELL, ay: seg.y * CELL, bx: seg.x * CELL, by: (seg.y + 1) * CELL };
+    return segGeometryTo(seg, { ax: 0, ay: 0, bx: 0, by: 0 });
   }
   function segCenter(seg) {
     const g = segGeometry(seg);
@@ -338,6 +413,9 @@
 
   // Sıcak iz: dev aynanın çevresindeki camların çerçevesi hafif altın vurur.
   function hesaplaSicakIz() {
+    // Dev ayna her yer değiştirdiğinde (kaçan ayna, kayan duvarlar) burası
+    // çağrılıyor; sayısal anahtar da burada tazeleniyor.
+    giantKey = keyOf(giant.horizontal, giant.x, giant.y);
     warm = new Map();
     const gx = giant.x;
     const gy = giant.y;
@@ -349,8 +427,8 @@
         if (d > R) continue;
         // Kenarda belli belirsiz, merkeze doğru açık altın.
         const guc = Math.pow(1 - d / R, 1.6);
-        if (x < size && maze.hWalls[y][x]) warm.set(idOf(true, x, y), guc);
-        if (y < size && maze.vWalls[y][x]) warm.set(idOf(false, x, y), guc);
+        if (x < size && maze.hWalls[y][x]) warm.set(keyOf(true, x, y), guc);
+        if (y < size && maze.vWalls[y][x]) warm.set(keyOf(false, x, y), guc);
       }
     }
   }
@@ -361,8 +439,12 @@
   function fleeGiant(now) {
     const eski = segCenter(giant);
     let yeni = giant;
+    // Mesafe haritası aday başına yeniden hesaplanıyordu: 20.000 hücrelik bir
+    // salonda 30 aday = 600 bin hücre gezmek, tek karede görülen bir takılma.
+    // Harita bir kez çıkarılıp hepsinde kullanılıyor.
+    const uzaklikHaritasi = Maze.distances(maze, { x: 0, y: 0 });
     for (let deneme = 0; deneme < 30; deneme++) {
-      const aday = Maze.pickGiant(maze, { x: 0, y: 0 }, (seed + now + deneme * 7919) | 0, "uzak");
+      const aday = Maze.pickGiant(maze, { x: 0, y: 0 }, (seed + now + deneme * 7919) | 0, "uzak", uzaklikHaritasi);
       const m = segCenter(aday);
       // Düelloda ayna iki oyuncudan da uzağa kaçar; yoksa ikinci oyuncu
       // aynanın dibinde bekleyip bedava kazanırdı.
@@ -492,7 +574,7 @@
     for (let deneme = 0; deneme < 3; deneme++) {
       maze = Maze.generate(size, size, seed, doku);
       applyCityLayout();
-      mirrorCount = Maze.mirrors(maze).length;
+      mirrorCount = Maze.mirrorCount(maze);
       const sapma = mirrorCount / hedefAyna;
       if (sapma > 0.94 && sapma < 1.06) break;
       size = Math.min(220, Math.max(20, Math.round(size / Math.sqrt(sapma))));
@@ -501,6 +583,7 @@
     // yoksa 20.000 aynalı salonda 38 sahte dev hiç görünmezdi.
     const alanOlcek = (size * size) / (chapter.size * chapter.size);
     sezgiHakki = Math.max(chapter.hints, Math.round(chapter.hints * (size / chapter.size)));
+    anahtarAdim = size + 2;
     bandOfRoom = Maze.pickBand(seed + chapterIndex * 31);
     giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed, bandOfRoom);
     giantSeg = segCenter(giant);
@@ -543,6 +626,10 @@
       }
     }
     gorulenSayac = 0;
+
+    decoyKeys = new Map();
+    for (const [id, bicim] of decoys) decoyKeys.set(keyOfId(id), bicim);
+    liarKeys = new Set([...liars].map(keyOfId));
 
     hesaplaSicakIz();
 
@@ -781,7 +868,7 @@
   // Yansımanın geometrisi tek yerde hesaplanır: hem çizim hem de fizik
   // denetimi (reflectionCheck) aynı sayıları kullansın diye.
   function yansimaGeometrisi(p, seg, kind, distortion) {
-    const g = segGeometry(seg);
+    const g = segGeometryTo(seg, geoCalisma);
     const isGiant = kind === "giant";
     const isLiar = kind === "liar";
     const buyuk = isGiant || isLiar;
@@ -880,47 +967,206 @@
     return true;
   }
 
-  function drawPanel(seg, dist, light, isWarm, now) {
-    const g = segGeometry(seg);
+  // --- Çizim önbellekleri -------------------------------------------------
+  //
+  // Ölçüm şunu gösterdi: kare süresinin büyük kısmı ayna sayısından değil,
+  // ekranı baştan sona kaplayan boyamalardan geliyordu. 1.5× ölçekte
+  // 1920×1200 = 2,3 milyon piksel; her karede iki ayrı radial gradient
+  // bunun tamamını gölgelendiriyordu.
+  //
+  // İkisi de yumuşak, ayrıntısız halelerdir; bu yüzden küçük bir tuvale
+  // (en fazla 320 piksel) bir kez çizilip büyütülerek basılıyorlar. Gözle
+  // fark edilecek bir kayıp yok — gradyan zaten bulanık — ama gölgelendirilen
+  // piksel sayısı ~40 kat azalıyor.
+
+  const HALE_BOY = 320;         // önbellek tuvalinin kenarı
+  const haleler = new Map();    // "tür|yarıçap" -> tuval
+
+  function haleTuvali(tur, yaricap) {
+    // Yarıçapı 16 pikselde bir yuvarla: ışık sürekli oynadığında (sis,
+    // fırtına, sönen fener) her değer için ayrı tuval üretilmesin.
+    const adim = Math.max(16, Math.round(yaricap / 16) * 16);
+    const anahtar = `${tur}|${adim}|${C.ground}`;
+    let tuval = haleler.get(anahtar);
+    if (tuval) return { tuval, adim };
+
+    tuval = document.createElement("canvas");
+    tuval.width = HALE_BOY;
+    tuval.height = HALE_BOY;
+    const g = tuval.getContext("2d");
+    const m = HALE_BOY / 2;
+    // Tuval, yarıçapı tam olarak yarım kenar olacak biçimde çizilir; basarken
+    // istenen yarıçapa göre ölçeklenir.
+    if (tur === "lamba") {
+      const gr = g.createRadialGradient(m, m, m * (6 / Math.max(1, adim)), m, m, m);
+      gr.addColorStop(0, `rgba(${C.lamp}, 0.15)`);
+      gr.addColorStop(0.55, "rgba(216, 178, 106, 0.05)");
+      gr.addColorStop(1, "rgba(0, 0, 0, 0)");
+      g.fillStyle = gr;
+      g.fillRect(0, 0, HALE_BOY, HALE_BOY);
+    } else {
+      const gr = g.createRadialGradient(m, m, m * 0.24, m, m, m);
+      gr.addColorStop(0, "rgba(0, 0, 0, 0)");
+      gr.addColorStop(0.7, "rgba(0, 0, 0, 0.62)");
+      gr.addColorStop(1, C.ground);
+      g.fillStyle = gr;
+      g.fillRect(0, 0, HALE_BOY, HALE_BOY);
+    }
+    // Önbellek sınırsız büyümesin.
+    if (haleler.size > 24) haleler.clear();
+    haleler.set(anahtar, tuval);
+    return { tuval, adim };
+  }
+
+  // Haleyi verilen dikdörtgene basar. Vinyette hale dışında kalan yerler
+  // düz zemin rengiyle kapatılır — gradyanın son durağı zaten o renkti.
+  function haleyiBas(g, x, y, w, h, yaricap, tur) {
+    const { tuval, adim } = haleTuvali(tur, yaricap);
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+    const r = adim;
+    if (tur === "vinyet") {
+      // Halenin ulaşmadığı kenarlar: gradyanın bittiği renk.
+      g.fillStyle = C.ground;
+      if (cx - r > x) g.fillRect(x, y, cx - r - x, h);
+      if (cx + r < x + w) g.fillRect(cx + r, y, x + w - (cx + r), h);
+      const solX = Math.max(x, cx - r);
+      const genis = Math.min(x + w, cx + r) - solX;
+      if (genis > 0) {
+        if (cy - r > y) g.fillRect(solX, y, genis, cy - r - y);
+        if (cy + r < y + h) g.fillRect(solX, cy + r, genis, y + h - (cy + r));
+      }
+    }
+    g.drawImage(tuval, cx - r, cy - r, r * 2, r * 2);
+  }
+
+  // Zemin daması: iki kare boyunda bir desen tuvali, palet başına bir kez.
+  let desenTuvali = null;
+  let desenAnahtar = "";
+  function zeminDeseni() {
+    const anahtar = `${C.floorA}|${C.floorB}`;
+    if (desenAnahtar !== anahtar) {
+      const t = document.createElement("canvas");
+      t.width = CELL * 2;
+      t.height = CELL * 2;
+      const g = t.getContext("2d");
+      // (x + y) çift olan kareler floorB, tek olanlar floorA — özgün düzenin
+      // aynısı: (0,0) ve (1,1) çift, (1,0) ve (0,1) tek.
+      g.fillStyle = C.floorB;
+      g.fillRect(0, 0, CELL, CELL);
+      g.fillRect(CELL, CELL, CELL, CELL);
+      g.fillStyle = C.floorA;
+      g.fillRect(CELL, 0, CELL, CELL);
+      g.fillRect(0, CELL, CELL, CELL);
+      desenTuvali = ctx.createPattern(t, "repeat");
+      desenAnahtar = anahtar;
+    }
+    return desenTuvali;
+  }
+
+  // Çizim döngüsünde nesne üretilmez: her karede yüzlerce kısa ömürlü nesne
+  // çöp toplayıcıyı tetikleyip ara sıra 40 ms'lik tepeler yapıyordu.
+  // --- Panel çizimi -------------------------------------------------------
+  //
+  // Geniş ışıklı salonlarda (Paris, Dubai) bir karede iki yüze yakın cam
+  // çiziliyor. Her biri için ayrı ayrı strokeStyle atayıp stroke() çağırmak
+  // pahalı: çizim çağrısı başına sabit bir maliyet var ve köşe noktaları için
+  // dizi üretiliyordu (karede yüzlerce kısa ömürlü nesne).
+  //
+  // Bunun yerine camlar saydamlık basamağına göre kovalara toplanıp her kova
+  // TEK bir yolda çiziliyor. Saydamlık 1/24 adıma yuvarlanıyor — gözle
+  // ayırt edilemez, ama çizim çağrısı sayısı yüzlerceden onlara iniyor.
+  const ANA_KOVA = new Map();      // saydamlık basamağı -> koordinat dizisi
+  const PARLAK_KOVA = new Map();   // "sıcaklık|basamak" -> koordinat dizisi
+  const NOKTA_KOVA = new Map();    // basamak -> köşe noktaları
+
+  function kovayaKoy(kova, anahtar, a, b, c, d) {
+    let dizi = kova.get(anahtar);
+    if (!dizi) { dizi = []; kova.set(anahtar, dizi); }
+    dizi.push(a, b, c, d);
+  }
+
+  function panelleriBosalt() {
+    ctx.lineWidth = 5;
+    for (const [basamak, dizi] of ANA_KOVA) {
+      ctx.strokeStyle = `rgba(${C.glass}, ${(basamak / 48).toFixed(3)})`;
+      ctx.beginPath();
+      for (let i = 0; i < dizi.length; i += 4) {
+        ctx.moveTo(dizi[i], dizi[i + 1]);
+        ctx.lineTo(dizi[i + 2], dizi[i + 3]);
+      }
+      ctx.stroke();
+      dizi.length = 0;
+    }
+    ctx.lineWidth = 1.3;
+    for (const [anahtar, dizi] of PARLAK_KOVA) {
+      const sicak = anahtar.charCodeAt(0) === 115;   // "s" = sıcak
+      const basamak = +anahtar.slice(2);
+      ctx.strokeStyle = sicak
+        ? `rgba(${BRASS}, ${(basamak / 48).toFixed(3)})`
+        : `rgba(255, 255, 255, ${(basamak / 48).toFixed(3)})`;
+      ctx.beginPath();
+      for (let i = 0; i < dizi.length; i += 4) {
+        ctx.moveTo(dizi[i], dizi[i + 1]);
+        ctx.lineTo(dizi[i + 2], dizi[i + 3]);
+      }
+      ctx.stroke();
+      dizi.length = 0;
+    }
+    for (const [basamak, dizi] of NOKTA_KOVA) {
+      ctx.fillStyle = `rgba(${BRASS}, ${(basamak / 48).toFixed(3)})`;
+      ctx.beginPath();
+      for (let i = 0; i < dizi.length; i += 4) {
+        ctx.moveTo(dizi[i] + 2.4, dizi[i + 1]);
+        ctx.arc(dizi[i], dizi[i + 1], 2.4, 0, Math.PI * 2);
+        ctx.moveTo(dizi[i + 2] + 2.4, dizi[i + 3]);
+        ctx.arc(dizi[i + 2], dizi[i + 3], 2.4, 0, Math.PI * 2);
+      }
+      ctx.fill();
+      dizi.length = 0;
+    }
+  }
+
+  function drawPanel(horizontal, sx, sy, dist, light, isWarm, now) {
+    const ax = sx * CELL;
+    const ay = sy * CELL;
+    const bx = horizontal ? (sx + 1) * CELL : ax;
+    const by = horizontal ? ay : (sy + 1) * CELL;
     let glow = Math.max(0, 1 - dist / (light * 1.15));
     // Venedik dalgası geçerken uzaktaki camlar bir an parlar.
     if (ripple > 0) {
       const halka = ripple * light * 3.2;
       if (Math.abs(dist - halka) < 46) glow = Math.max(glow, 0.55 * (1 - ripple));
     }
+
     if (chapter.neon) {
-      // Tokyo: her cam kendi ritminde renk değiştirir; dev ayna kıpırdamaz.
-      const faz = (seg.x * 37 + seg.y * 61) % 360;
+      // Tokyo/Rio: her cam kendi ritminde renk değiştirir, bu yüzden kovaya
+      // toplanamaz. Bu salonlarda ışık dar olduğu için çizilen cam da azdır.
+      const faz = (sx * 37 + sy * 61) % 360;
       const t = now / 520 + faz;
       const r = 150 + 105 * Math.sin(t);
       const yesil = 120 + 90 * Math.sin(t + 2.1);
       const m = 190 + 65 * Math.sin(t + 4.2);
       ctx.strokeStyle = `rgba(${r | 0}, ${yesil | 0}, ${m | 0}, ${(0.12 + glow * 0.7).toFixed(3)})`;
-    } else {
-      ctx.strokeStyle = `rgba(${C.glass}, ${(0.1 + glow * 0.6).toFixed(3)})`;
-    }
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(g.ax, g.ay);
-    ctx.lineTo(g.bx, g.by);
-    ctx.stroke();
-    if (glow > 0.2) {
-      ctx.strokeStyle = isWarm
-        ? `rgba(${BRASS}, ${(glow - 0.2) * (0.28 + 0.62 * isWarm)})`
-        : `rgba(255, 255, 255, ${(glow - 0.2) * 0.55})`;
-      ctx.lineWidth = 1.3;
+      ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.moveTo(g.ax, g.ay);
-      ctx.lineTo(g.bx, g.by);
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
       ctx.stroke();
-      ctx.fillStyle = `rgba(${BRASS}, ${(glow - 0.2) * 0.8})`;
-      for (const [px, py] of [[g.ax, g.ay], [g.bx, g.by]]) {
-        ctx.beginPath();
-        ctx.arc(px, py, 2.4, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    } else {
+      const basamak = Math.max(1, Math.round((0.1 + glow * 0.6) * 48));
+      kovayaKoy(ANA_KOVA, basamak, ax, ay, bx, by);
+    }
+
+    if (glow > 0.2) {
+      const parlak = glow - 0.2;
+      const b2 = Math.max(1, Math.round(parlak * (isWarm ? 0.28 + 0.62 * isWarm : 0.55) * 48));
+      kovayaKoy(PARLAK_KOVA, `${isWarm ? "s" : "c"}|${b2}`, ax, ay, bx, by);
+      const b3 = Math.max(1, Math.round(parlak * 0.8 * 48));
+      kovayaKoy(NOKTA_KOVA, b3, ax, ay, bx, by);
     }
   }
+
 
   function drawDoor() {
     const cx = CELL * 0.5;
@@ -956,9 +1202,7 @@
     ctx.beginPath();
     ctx.rect(rect.x, rect.y, rect.w, rect.h);
     ctx.clip();
-    ctx.fillStyle = C.ground;
-    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-
+    // Zemin dolgusu draw() içinde bir kez yapılıyor; burada tekrarı gereksiz.
     const zoom = 1 + p.bloom * (ayarlar.azHareket ? 0 : 0.14);
     ctx.save();
     ctx.translate(rect.x + rect.w / 2, rect.y + rect.h / 2);
@@ -970,23 +1214,29 @@
     const camX = p.x - halfW;
     const camY = p.y - halfH;
 
+    // Zemin: her kareyi ayrı fillRect ile boyamak yerine iki kare boyunda
+    // hazır bir dama deseni tek seferde doldurulur (≈216 çizim → 1).
     const x0 = Math.max(0, Math.floor(camX / CELL));
     const y0 = Math.max(0, Math.floor(camY / CELL));
     const x1 = Math.min(size - 1, Math.ceil((camX + halfW * 2) / CELL));
     const y1 = Math.min(size - 1, Math.ceil((camY + halfH * 2) / CELL));
-    for (let y = y0; y <= y1; y++) {
-      for (let x = x0; x <= x1; x++) {
-        ctx.fillStyle = (x + y) % 2 ? C.floorA : C.floorB;
-        ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+    const desen = zeminDeseni();
+    if (desen) {
+      ctx.fillStyle = desen;
+      ctx.fillRect(x0 * CELL, y0 * CELL, (x1 - x0 + 1) * CELL, (y1 - y0 + 1) * CELL);
+    } else {
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          ctx.fillStyle = (x + y) % 2 ? C.floorA : C.floorB;
+          ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+        }
       }
     }
 
-    const lamp = ctx.createRadialGradient(p.x, p.y, 6, p.x, p.y, light * 0.9);
-    lamp.addColorStop(0, `rgba(${C.lamp}, 0.15)`);
-    lamp.addColorStop(0.55, "rgba(216, 178, 106, 0.05)");
-    lamp.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = lamp;
-    ctx.fillRect(camX, camY, halfW * 2, halfH * 2);
+    // Fener halesi: tam ekran radial gradient her karede 2,3 milyon pikseli
+    // gölgelendiriyordu. Aynı hale küçük bir tuvale bir kez çizilip büyütülerek
+    // basılıyor — yumuşak bir ışık olduğu için görüntü birebir aynı kalıyor.
+    haleyiBas(ctx, camX, camY, halfW * 2, halfH * 2, light * 0.9, "lamba");
 
     if (chapter.returnTrip) drawDoor();
 
@@ -996,23 +1246,27 @@
     // görüntü oluşmaz.
     let giantVisible = false;
     forEachNearSegment(p, YANSIMA_MENZIL + 4, (horizontal, x, y, d) => {
-      const id = idOf(horizontal, x, y);
-      const seg = { horizontal, x, y };
-      const gercekDev = id === giant.id && phase === "arayis";
+      const k = keyOf(horizontal, x, y);
+      segCalisma.horizontal = horizontal;
+      segCalisma.x = x;
+      segCalisma.y = y;
+      const seg = segCalisma;
+      const gercekDev = k === giantKey && phase === "arayis";
       // Durgun Su: yürürken dev yansıma dağılır, sıradan bir cam gibi görünür.
       const isGiant = gercekDev && durgunMu(p, now);
-      const isLiar = liars.has(id) && phase === "arayis";
+      const isLiar = liarKeys.has(k) && phase === "arayis";
       const tur = isGiant ? "giant" : isLiar ? "liar" : "normal";
-      const cizildi = drawReflection(p, seg, tur, tur === "normal" ? decoys.get(id) : null);
-      if (d < SEEN_RANGE) p.seen.add(id);
+      const cizildi = drawReflection(p, seg, tur, tur === "normal" ? decoyKeys.get(k) : null);
+      if (d < SEEN_RANGE) p.seen.add(k);
       if (isGiant && cizildi) giantVisible = true;
     });
 
     ctx.lineCap = "round";
     const panelMenzil = ripple > 0 ? light * 3.4 : light * 1.25;
     forEachNearSegment(p, panelMenzil, (horizontal, x, y, d) => {
-      drawPanel({ horizontal, x, y }, d, light, warm.get(idOf(horizontal, x, y)) || 0, now);
+      drawPanel(horizontal, x, y, d, light, warm.get(keyOf(horizontal, x, y)) || 0, now);
     });
+    panelleriBosalt();
 
     if (sand.length && !ayarlar.azHareket) {
       for (const k of sand) {
@@ -1073,12 +1327,7 @@
 
     const cx = rect.x + rect.w / 2;
     const cy = rect.y + rect.h / 2;
-    const dark = ctx.createRadialGradient(cx, cy, light * 0.24 * zoom, cx, cy, light * zoom);
-    dark.addColorStop(0, "rgba(0, 0, 0, 0)");
-    dark.addColorStop(0.7, "rgba(0, 0, 0, 0.62)");
-    dark.addColorStop(1, C.ground);
-    ctx.fillStyle = dark;
-    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    haleyiBas(ctx, rect.x, rect.y, rect.w, rect.h, light * zoom, "vinyet");
 
     if (shiftFlash > 0) {
       ctx.fillStyle = `rgba(190, 255, 236, ${0.16 * shiftFlash})`;
@@ -1245,22 +1494,39 @@
       kaldirilan++;
     }
 
-    let eklenen = 0;
-    for (let deneme = 0; deneme < 300 && eklenen < kaldirilan; deneme++) {
+    // Duvarlar önce hep birlikte konur, sonra TEK bir bağlantı kontrolü
+    // yapılır. Eskiden her ekleme için ayrı bir tarama vardı: 12.000 hücrelik
+    // bir salonda 300 denemeye kadar çıkıp kareyi elli milisaniye kilitliyordu.
+    // Kontrol düşerse en son konan duvar geri alınıp yeniden bakılır; pratikte
+    // bir ya da iki tarama yetiyor.
+    const konanlar = [];
+    for (let deneme = 0; deneme < 300 && konanlar.length < kaldirilan; deneme++) {
       const k = rastgeleKenar();
       if (!uzakOyuncudan(k.x, k.y)) continue;
       const dizi = k.yatay ? maze.hWalls : maze.vWalls;
       if (dizi[k.y][k.x]) continue;
       dizi[k.y][k.x] = true;
-      if (Maze.distances(maze, { x: 0, y: 0 }).some((d) => d < 0)) {
-        dizi[k.y][k.x] = false;   // bir köşeyi koparıyor, vazgeç
-        continue;
-      }
-      eklenen++;
+      konanlar.push({ dizi, x: k.x, y: k.y });
     }
+    const kopukMu = () => Maze.distances(maze, { x: 0, y: 0 }).some((d) => d < 0);
+    let kontrol = 0;
+    while (konanlar.length && kontrol < 8 && kopukMu()) {
+      const geri = konanlar.pop();
+      geri.dizi[geri.y][geri.x] = false;
+      kontrol++;
+    }
+    if (kontrol >= 8) {
+      // Olağandışı: hâlâ kopuksa konan duvarların hepsi geri alınır.
+      for (const g of konanlar) g.dizi[g.y][g.x] = false;
+      konanlar.length = 0;
+    }
+    const eklenen = konanlar.length;
 
     if (!kaldirilan && !eklenen) return;
-    mirrorCount = Maze.mirrors(maze).length;
+    // Sayım için bütün aynaları listelemek gerekmiyor: kaç tane kaldırdığımızı
+    // ve kaç tane koyduğumuzu zaten biliyoruz. (Eskiden her kaymada on binlerce
+    // nesne üretiliyordu; kareyi kırk milisaniye kilitleyen asıl iş buydu.)
+    mirrorCount = mirrorCount - kaldirilan + eklenen;
     els.total.textContent = mirrorCount.toLocaleString("tr-TR");
     shiftFlash = 1;
   }
@@ -1317,8 +1583,10 @@
   }
 
   function loop(now) {
-    const dt = Math.min(0.05, (now - lastFrame) / 1000 || 0);
+    const ham = now - lastFrame;
+    const dt = Math.min(0.05, ham / 1000 || 0);
     lastFrame = now;
+    if (running && ham > 0 && ham < 200) olcegiAyarla(ham, now);
     if (carding && now > carding) {
       carding = 0;
       els.chapterCard.hidden = true;
@@ -1551,6 +1819,7 @@
   function ayarlariAc() {
     els.brightness.value = String(ayarlar.parlaklik);
     els.reduceMotion.checked = !!ayarlar.azHareket;
+    els.autoRes.checked = ayarlar.otomatikCozunurluk !== false;
     els.version.textContent = SURUM;
     bolumListesiKur();
     els.progressCode.value = ilerlemeKodu();
@@ -1613,6 +1882,14 @@
   });
   els.reduceMotion.addEventListener("change", () => {
     ayarlar.azHareket = els.reduceMotion.checked;
+    ayarlariKaydet();
+  });
+  els.autoRes.addEventListener("change", () => {
+    ayarlar.otomatikCozunurluk = els.autoRes.checked;
+    // Kapatılırsa ölçek ekranın kendi yoğunluğuna sabitlenir.
+    if (!ayarlar.otomatikCozunurluk) olcekIndex = ustSinirIndex();
+    kareOrnekleri.length = 0;
+    resize();
     ayarlariKaydet();
   });
   els.privacyBtn.addEventListener("click", () => {
@@ -1771,6 +2048,8 @@
     setLang(l) { I18n.set(l); refreshLanguage(); },
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
+    olcek: () => scale(),
+    gercekAynaSayisi: () => Maze.mirrorCount(maze),
     fener: () => fade,
     durgun: (i = 0) => durgunMu(players[i], performance.now()),
     liarCount: () => liars.size,

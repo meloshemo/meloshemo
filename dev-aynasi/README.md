@@ -103,6 +103,24 @@ her zaman açık tutar. Ne zaman yakacağın senin kararın.
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).
 
+## Akıcılık
+
+Oyun kendi kare süresini ölçer ve çözünürlüğü buna göre ayarlar: rahatsa
+keskinliği yükseltir, kare bütçesi zorlanırsa bir kademe düşürür. Üst sınır
+ekranın kendi piksel yoğunluğudur. Ayarlar'daki **Akıcılık önceliği** ile
+kapatılabilir; kapalıyken çözünürlük ekranın yoğunluğuna sabitlenir.
+
+Ölçüm (1280×800, en ağır beş oda, kararlı hâl):
+
+| Piksel yoğunluğu | Ortanca kare | %99'luk dilim | Bütçeyi aşan kare |
+| --- | --- | --- | --- |
+| 1× | 3–5 ms | 5–7 ms | %0 |
+| 2× | 9–12 ms | 11–16 ms | %0–1 |
+| 3× | 8–12 ms | 12–17 ms | %0–1 |
+
+Telefon ve tabletlerde (iPhone 13, Pixel 5, iPad) 20.000 aynalı son odada
+**60 fps** ölçüldü.
+
 ## Sonsuz salon
 
 Giriş perdesindeki **Sonsuz salon** modu bitmeyen bir seri açar: her salon

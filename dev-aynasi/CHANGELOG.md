@@ -1,5 +1,49 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.6.0 — Kare hiç düşmesin
+Ölçümle başladı: tarayıcının kare sürelerini yüzdelik dilimleriyle çıkarınca
+görüldü ki yüksek piksel yoğunluğunda (retina ekran) **karelerin %100'ü**
+16,7 ms bütçesini aşıyordu — yani hiçbir zaman gerçek 60 fps değildi. Suçlu
+ayna sayısı değildi: ekranı baştan sona kaplayan boyamalardı.
+
+- **Fener halesi ve vinyet önbellekten basılıyor.** İkisi de her karede
+  ekranın tamamını (1,5× ölçekte 2,3 milyon piksel) radial gradient ile
+  gölgelendiriyordu. Artık 320 pikselik bir tuvale bir kez çizilip
+  büyütülerek basılıyorlar; ikisi de yumuşak hale olduğu için görüntü aynı
+- **Zemin daması tek dolguya indi:** her kareyi ayrı `fillRect` ile boyamak
+  yerine iki kare boyunda hazır bir desen kullanılıyor (≈216 çizim → 1)
+- **Cam panelleri saydamlığa göre kovalanıp toplu çiziliyor:** geniş ışıklı
+  salonlarda (Paris, Dubai) karede iki yüze yakın ayrı çizim çağrısı vardı,
+  şimdi onlarca
+- **Çizim döngüsünde artık nesne üretilmiyor:** her cam için üretilen ara
+  nesneler ve metin anahtarları çöp toplayıcıyı tetikleyip ara sıra 40 ms'lik
+  tepeler yapıyordu. Sayısal anahtar ve yeniden kullanılan tek nesne
+- **Kayan Aynalar odasındaki takılma giderildi:** her duvar eklemesi için ayrı
+  bağlantı taraması yapılıyordu (12.000 hücrelik salonda 300 denemeye kadar).
+  Artık duvarlar birlikte konup tek tarama yapılıyor. Ayna sayısı da on binlerce
+  nesne üretilerek yeniden sayılmıyor, artımlı tutuluyor — 12 kaymanın
+  hepsinde sayaç gerçek sayıyla birebir doğrulandı
+- **Kaçan ayna** yeni yerini ararken mesafe haritasını aday başına yeniden
+  çıkarıyordu (20.000 hücre × 30 aday); bir kez çıkarılıp hepsinde kullanılıyor
+- **Uyarlanabilir çözünürlük.** Oyun kendi kare süresini ölçüyor (60 karede bir
+  ortanca ve %85'lik dilim) ve görüntüyü ekranın sürdürebileceği en yüksek
+  keskinlikte tutuyor: rahatsa yükseltiyor, bütçeyi zorlarsa düşürüyor.
+  Üst sınır ekranın kendi piksel yoğunluğu — güçlü bir ekranda eskisinden
+  **daha keskin**. Ayarlar'dan kapatılabilir ("Akıcılık önceliği")
+
+**Ölçülen sonuç** (1280×800, en ağır beş oda):
+
+| | önce | sonra |
+| --- | --- | --- |
+| Ortanca kare (yoğunluk 1×) | 9,0 ms | 3–5 ms |
+| Ortanca kare (yoğunluk 2×) | 19,1 ms | 9–12 ms |
+| Bütçeyi aşan kare (2×) | %99–100 | %0–1 |
+
+Görüntü değişmedi: aynı salon kodu ve aynı konumla alınan kareler
+piksel piksel karşılaştırıldı — piksellerin **%0,015'i** 8/255'ten fazla
+sapıyor (cam çerçevelerinin saydamlık basamağı ve köşe noktalarının tek
+yolda birleşmesi).
+
 ## 1.5.1 — Labirentin dokusu da sertleşiyor
 - **Labirent üreticisine iki ayar eklendi:** *düzlük* (kazıcının aynı yönde
   devam etme eğilimi) ve *ekstra* (fazladan sökülen duvar oranı, yani halka

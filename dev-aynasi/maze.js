@@ -83,6 +83,21 @@
     return { width, height, hWalls, vWalls };
   }
 
+  // Ayna sayısını nesne üretmeden sayar. mirrors() her çağrıda on binlerce
+  // nesne ayırıyordu; yalnızca sayı gerektiğinde bu kullanılır.
+  function mirrorCount(maze) {
+    let n = 0;
+    for (let y = 0; y <= maze.height; y++) {
+      const satir = maze.hWalls[y];
+      for (let x = 0; x < maze.width; x++) if (satir[x]) n++;
+    }
+    for (let y = 0; y < maze.height; y++) {
+      const satir = maze.vWalls[y];
+      for (let x = 0; x <= maze.width; x++) if (satir[x]) n++;
+    }
+    return n;
+  }
+
   // Tüm ayna parçalarını (birim duvar kenarları) listeler.
   function mirrors(maze) {
     const list = [];
@@ -155,9 +170,12 @@
     return "uzak";
   }
 
-  function pickGiant(maze, start, seed, band) {
+  // hazirDist: aynı salonda arka arkaya seçim yapılırken (kaçan ayna her
+  // 20 saniyede 30 aday deniyor) mesafe haritası bir kez hesaplanıp
+  // yeniden kullanılabilsin diye.
+  function pickGiant(maze, start, seed, band, hazirDist) {
     const rand = rng(seed + 7919);
-    const dist = distances(maze, start);
+    const dist = hazirDist || distances(maze, start);
     const kusak = BANDS[band] || BANDS[pickBand(seed)];
     const far = [];
     let max = 0;
@@ -187,5 +205,5 @@
     return mirrors(maze)[0];
   }
 
-  return { generate, mirrors, hasWall, distances, pickGiant, pickBand, BANDS };
+  return { generate, mirrors, mirrorCount, hasWall, distances, pickGiant, pickBand, BANDS };
 });
