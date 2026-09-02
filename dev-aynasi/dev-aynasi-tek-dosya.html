@@ -562,7 +562,7 @@ body.sinema .veil { inset: 0; }
               <button id="privacyBtn" class="btn" type="button" data-i18n="privacy">Gizlilik</button>
               <button id="settingsClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
             </div>
-            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.5.0</b></p>
+            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.5.1</b></p>
           </div>
         </div>
 
@@ -871,7 +871,19 @@ body.sinema .veil { inset: 0; }
 
   // hWalls[y][x]: (x, y-1) ile (x, y) arasındaki yatay duvar  (y: 0..h)
   // vWalls[y][x]: (x-1, y) ile (x, y) arasındaki dikey duvar   (x: 0..w)
-  function generate(width, height, seed) {
+  // Doku ayarları — labirentin ne kadar "okunaklı" olduğunu belirler:
+  //
+  //   duzluk : 0..1. Kazıcı aynı yönde devam etmeyi ne kadar tercih eder.
+  //            Yüksekse uzun düz koridorlar çıkar; oyuncu nerede olduğunu
+  //            kolayca kestirir. Düşükse koridorlar sürekli kıvrılır ve
+  //            zihinsel harita tutmak zorlaşır.
+  //   ekstra : fazladan sökülen duvar oranı. Yüksekse salon halka halka
+  //            dolaşılır (çıkmaz azdır); düşükse çıkmaz sokaklar artar ve
+  //            her yanlış dönüş geri dönüş demektir.
+  const VARSAYILAN_DOKU = { duzluk: 0.5, ekstra: 0.06 };
+
+  function generate(width, height, seed, doku) {
+    const { duzluk, ekstra } = { ...VARSAYILAN_DOKU, ...(doku || {}) };
     const rand = rng(seed);
     const hWalls = [];
     for (let y = 0; y <= height; y++) hWalls.push(new Array(width).fill(true));
@@ -893,7 +905,14 @@ body.sinema .veil { inset: 0; }
         stack.pop();
         continue;
       }
-      const dir = options[Math.floor(rand() * options.length)];
+      // Düzlük: mümkünse önceki yönde devam et. Kazıcının yönü labirentin
+      // dokusunu belirler; bu yüzden yön seçimi tohuma bağlı kalır.
+      let dir;
+      if (cur.dir && options.includes(cur.dir) && rand() < duzluk) {
+        dir = cur.dir;
+      } else {
+        dir = options[Math.floor(rand() * options.length)];
+      }
       let nx = cur.x;
       let ny = cur.y;
       if (dir === "N") { hWalls[cur.y][cur.x] = false; ny--; }
@@ -901,12 +920,12 @@ body.sinema .veil { inset: 0; }
       if (dir === "W") { vWalls[cur.y][cur.x] = false; nx--; }
       if (dir === "E") { vWalls[cur.y][cur.x + 1] = false; nx++; }
       visited[ny * width + nx] = true;
-      stack.push({ x: nx, y: ny });
+      stack.push({ x: nx, y: ny, dir });
     }
 
     // Birkaç duvarı fazladan kaldırıp çıkmaz sokakları azalt: oda daha çok
     // "salon" gibi dolaşılır, tek çözümlü labirent gibi değil.
-    const extra = Math.floor(width * height * 0.06);
+    const extra = Math.floor(width * height * ekstra);
     for (let i = 0; i < extra; i++) {
       const x = 1 + Math.floor(rand() * (width - 2));
       const y = 1 + Math.floor(rand() * (height - 2));
@@ -1078,11 +1097,25 @@ body.sinema .veil { inset: 0; }
   // ipucu kuşağıyla taramak saatler sürerdi. Kuşak, altın tonu merkeze doğru
   // koyulaşacak şekilde derecelendirilmiştir.
   const sicakYaricap = (kenar) => Math.max(5, Math.round(kenar / 5));
+
+  // Labirentin DOKUSU da bölümle birlikte sertleşir. Ölçüm şunu gösterdi:
+  // doku toplam koridor uzunluğunu neredeyse hiç değiştirmiyor (%4), yani
+  // arama süresini belirleyen şey salonun boyutu. Doku başka bir şeyi
+  // değiştiriyor — salonun okunabilirliğini:
+  //
+  //   I. oda  : düz uzun koridorlar, bol halka → nerede olduğunu kestirirsin,
+  //             yanlış dönüş ucuz (111×111'de ~580 çıkmaz)
+  //   XX. oda : sürekli kıvrılan koridorlar, halka yok → zihinsel harita
+  //             tutmak zor, her yanlış dönüş geri dönüş (~1.190 çıkmaz)
+  const dokuIcin = (i, toplam) => {
+    const t = Math.max(0, Math.min(1, i / Math.max(1, toplam - 1)));
+    return { duzluk: 0.75 - 0.63 * t, ekstra: 0.09 - 0.07 * t };
+  };
   const BEST_KEY = "dev-aynasi:en-iyi";
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.5.0";
+  const SURUM = "1.5.1";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -1475,6 +1508,7 @@ body.sinema .veil { inset: 0; }
     return Object.assign(
       {
         aynaHedefi: Math.min(30000, AYNA_BAS + n * 1500),
+        decoyBin: Math.min(14, 5 + n),   // her 1.000 aynada kaç sahte dev
         size: Math.min(90, 42 + n * 3),   // yalnızca yoğunluk ölçeği
         light: Math.max(150, 230 - n * 6),
         hints: n < 3 ? 2 : 1,
@@ -1498,9 +1532,12 @@ body.sinema .veil { inset: 0; }
       ? chapter.aynaHedefi
       : bolumAynasi(chapterIndex, CHAPTERS.length);
     seed = nextSeed;
+    const doku = endless
+      ? dokuIcin(Math.min(endlessCount, 19), 20)
+      : dokuIcin(chapterIndex, CHAPTERS.length);
     size = kenarIcin(hedefAyna);
     for (let deneme = 0; deneme < 3; deneme++) {
-      maze = Maze.generate(size, size, seed);
+      maze = Maze.generate(size, size, seed, doku);
       applyCityLayout();
       mirrorCount = Maze.mirrors(maze).length;
       const sapma = mirrorCount / hedefAyna;
@@ -1522,7 +1559,11 @@ body.sinema .veil { inset: 0; }
       let s = (seed * 2654435761) >>> 0;
       const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
       let guard = 0;
-      const hedefDecoy = Math.round(chapter.decoys * alanOlcek);
+      // Sonsuz modda yoğunluk doğrudan ayna sayısından hesaplanır: oradaki
+      // chapter.size yalnızca bir referans olduğu için alan ölçeği zıplıyordu.
+      const hedefDecoy = chapter.decoyBin
+        ? Math.round((mirrorCount * chapter.decoyBin) / 1000)
+        : Math.round(chapter.decoys * alanOlcek);
       while (decoys.size < hedefDecoy && guard++ < 60000) {
         const seg = all[Math.floor(rand() * all.length)];
         if (seg.id === giant.id) continue;
@@ -2288,6 +2329,14 @@ body.sinema .veil { inset: 0; }
 
   // Dev aynayı bulan oyuncu aynanın içinden geçer: bir sonraki bölüm,
   // kendi ışığı ve rengiyle açılır. Süre kaldığı yerden devam eder.
+  // Sonsuz oda kartı: o odada yürürlükte olan kuralların adını da yazar.
+  function sonsuzKartMetni() {
+    const adlar = chapter.kuralAdlari || [];
+    return adlar.length
+      ? `${I18n.t("endlessCard")} — ${adlar.join(" · ")}`
+      : I18n.t("endlessCard");
+  }
+
   function enterMirror(now) {
     if (endless) {
       endlessCount++;
@@ -2296,10 +2345,7 @@ body.sinema .veil { inset: 0; }
       startedAt = gecenSure;
       carding = now + 2000;
       els.cardTitle.textContent = `${I18n.t("endless")} · ${endlessCount + 1}`;
-      const adlar = chapter.kuralAdlari || [];
-      els.cardText.textContent = adlar.length
-        ? `${I18n.t("endlessCard")} — ${adlar.join(" · ")}`
-        : I18n.t("endlessCard");
+      els.cardText.textContent = sonsuzKartMetni();
       els.chapterCard.hidden = false;
       kaydetSonsuzRekor();
       updateHud();
@@ -2450,6 +2496,14 @@ body.sinema .veil { inset: 0; }
     els.chapterCard.hidden = true;
     els.intro.hidden = true;
     newRoom(nextSeed);
+    // Sonsuz modun ilk odası da kuralını duyursun: sonraki odalar kartı
+    // enterMirror'da alıyordu, ilki hiç almıyor ve oyuncu odaya kör giriyordu.
+    if (endless) {
+      carding = performance.now() + 2600;
+      els.cardTitle.textContent = `${I18n.t("endless")} · 1`;
+      els.cardText.textContent = sonsuzKartMetni();
+      els.chapterCard.hidden = false;
+    }
     running = true;
     startedAt = performance.now();
     updateHud();

@@ -1,5 +1,21 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.5.1 — Labirentin dokusu da sertleşiyor
+- **Labirent üreticisine iki ayar eklendi:** *düzlük* (kazıcının aynı yönde
+  devam etme eğilimi) ve *ekstra* (fazladan sökülen duvar oranı, yani halka
+  yoğunluğu). Bölüm ilerledikçe I. odanın düz ve halkalı salonundan XX. odanın
+  kıvrımlı, çıkmaz dolu warren'ına geçiliyor: çıkmaz sokaklar %4,7'den %9,4'e
+  çıkıyor, kavşaklar azalıyor. Her odada bütün hücreler hâlâ ulaşılabilir
+- Doku çok oyunculu sunucuda da aynı merdivenle uygulanıyor
+- Sonsuz modun **ilk odası** da artık kuralını kartta yazıyor; önceki sürümde
+  yalnızca sonraki odalar yazıyordu ve oyuncu ilk odaya kör giriyordu
+- Sonsuz modda sahte dev yoğunluğu doğrudan ayna sayısından hesaplanıyor:
+  eskiden bir referans boyuta bağlıydı ve odadan odaya zıplıyordu
+  (%0,7 → %1,6 → %0,7); artık her 1.000 aynada 5'ten 14'e düzgün çıkıyor
+- **Düzeltme (belge):** README'de sezgisiz tarama süresi "6–20 dakika"
+  yazıyordu; bu 3 tohumluk bir örnekten geliyordu. 40 tohumla ölçülen gerçek
+  değerler 7,5 – 31 dakika. Tablo düzeltildi
+
 ## 1.5.0 — Beş binden yirmi bine
 - **Salonlar ayna sayısına göre kuruluyor:** I. oda 5.000, XX. oda 20.000 ayna.
   Elle yazılmış kenar uzunlukları kalktı; salon kurulup ölçülüyor ve hedeften

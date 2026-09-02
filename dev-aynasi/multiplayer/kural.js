@@ -67,6 +67,14 @@ function hedefAyna(playerCount, chapter = 0) {
   return bolumAynasi(chapter) + Math.max(0, playerCount - 1) * AYNA_OYUNCU_BASI;
 }
 
+// Labirent dokusu da bölümle sertleşir: ilk turlar düz ve halkalı (okunaklı),
+// son turlar kıvrımlı ve çıkmaz dolu.
+function dokuIcin(chapter) {
+  const son = CHAPTERS.length - 1;
+  const t = Math.max(0, Math.min(1, chapter / Math.max(1, son)));
+  return { duzluk: 0.75 - 0.63 * t, ekstra: 0.09 - 0.07 * t };
+}
+
 const kenarIcin = (ayna) =>
   Math.min(EN_BUYUK_KENAR, Math.max(20, Math.round(Math.sqrt(ayna / 0.985))));
 
@@ -126,6 +134,6 @@ function turSuresi(mirrorCount) {
 module.exports = {
   CHAPTERS, TUR_TABAN, TUR_AYNA_BASI, TUR_EN_AZ, TUR_EN_COK,
   AYNA_BAS, AYNA_SON, AYNA_OYUNCU_BASI, EN_BUYUK_KENAR, BERABERLIK_SN,
-  bolumAynasi, hedefAyna, kenarIcin, roomSize, decoyCount,
+  bolumAynasi, hedefAyna, kenarIcin, roomSize, decoyCount, dokuIcin,
   siralaBitirenler, sonSirayiPaylasanlar, turSuresi,
 };

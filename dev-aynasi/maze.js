@@ -18,7 +18,19 @@
 
   // hWalls[y][x]: (x, y-1) ile (x, y) arasındaki yatay duvar  (y: 0..h)
   // vWalls[y][x]: (x-1, y) ile (x, y) arasındaki dikey duvar   (x: 0..w)
-  function generate(width, height, seed) {
+  // Doku ayarları — labirentin ne kadar "okunaklı" olduğunu belirler:
+  //
+  //   duzluk : 0..1. Kazıcı aynı yönde devam etmeyi ne kadar tercih eder.
+  //            Yüksekse uzun düz koridorlar çıkar; oyuncu nerede olduğunu
+  //            kolayca kestirir. Düşükse koridorlar sürekli kıvrılır ve
+  //            zihinsel harita tutmak zorlaşır.
+  //   ekstra : fazladan sökülen duvar oranı. Yüksekse salon halka halka
+  //            dolaşılır (çıkmaz azdır); düşükse çıkmaz sokaklar artar ve
+  //            her yanlış dönüş geri dönüş demektir.
+  const VARSAYILAN_DOKU = { duzluk: 0.5, ekstra: 0.06 };
+
+  function generate(width, height, seed, doku) {
+    const { duzluk, ekstra } = { ...VARSAYILAN_DOKU, ...(doku || {}) };
     const rand = rng(seed);
     const hWalls = [];
     for (let y = 0; y <= height; y++) hWalls.push(new Array(width).fill(true));
@@ -40,7 +52,14 @@
         stack.pop();
         continue;
       }
-      const dir = options[Math.floor(rand() * options.length)];
+      // Düzlük: mümkünse önceki yönde devam et. Kazıcının yönü labirentin
+      // dokusunu belirler; bu yüzden yön seçimi tohuma bağlı kalır.
+      let dir;
+      if (cur.dir && options.includes(cur.dir) && rand() < duzluk) {
+        dir = cur.dir;
+      } else {
+        dir = options[Math.floor(rand() * options.length)];
+      }
       let nx = cur.x;
       let ny = cur.y;
       if (dir === "N") { hWalls[cur.y][cur.x] = false; ny--; }
@@ -48,12 +67,12 @@
       if (dir === "W") { vWalls[cur.y][cur.x] = false; nx--; }
       if (dir === "E") { vWalls[cur.y][cur.x + 1] = false; nx++; }
       visited[ny * width + nx] = true;
-      stack.push({ x: nx, y: ny });
+      stack.push({ x: nx, y: ny, dir });
     }
 
     // Birkaç duvarı fazladan kaldırıp çıkmaz sokakları azalt: oda daha çok
     // "salon" gibi dolaşılır, tek çözümlü labirent gibi değil.
-    const extra = Math.floor(width * height * 0.06);
+    const extra = Math.floor(width * height * ekstra);
     for (let i = 0; i < extra; i++) {
       const x = 1 + Math.floor(rand() * (width - 2));
       const y = 1 + Math.floor(rand() * (height - 2));

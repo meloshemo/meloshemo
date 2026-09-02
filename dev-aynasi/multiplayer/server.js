@@ -15,7 +15,7 @@ const Maze = require("../maze.js");
 // Turnuva kuralları (salon ölçeği, sıralama, süre) ayrı bir dosyada:
 // testler de sunucunun kullandığı kodun tam olarak aynısını sınıyor.
 const {
-  CHAPTERS, BERABERLIK_SN, hedefAyna, kenarIcin, roomSize, decoyCount,
+  CHAPTERS, BERABERLIK_SN, hedefAyna, kenarIcin, roomSize, decoyCount, dokuIcin,
   siralaBitirenler, sonSirayiPaylasanlar, turSuresi,
 } = require("./kural.js");
 
@@ -99,14 +99,15 @@ function createHall(playerCount, chapter) {
   const hedef = hedefAyna(playerCount, chapter);
   // Salon kurulup ölçülüyor: duvar sökücü düzenlerde kenar tek başına hedefi
   // tutturmaz, bu yüzden sapma büyükse kenar düzeltilip yeniden kuruluyor.
+  const doku = dokuIcin(chapter);
   let size = kenarIcin(hedef);
-  let maze = Maze.generate(size, size, seed);
+  let maze = Maze.generate(size, size, seed, doku);
   let mirrorCount = Maze.mirrors(maze).length;
   for (let deneme = 0; deneme < 2; deneme++) {
     const sapma = mirrorCount / hedef;
     if (sapma > 0.94 && sapma < 1.06) break;
     size = kenarIcin(Math.round(hedef * hedef / Math.max(1, mirrorCount)));
-    maze = Maze.generate(size, size, seed);
+    maze = Maze.generate(size, size, seed, doku);
     mirrorCount = Maze.mirrors(maze).length;
   }
   const spawns = spawnPoints(size, playerCount);
