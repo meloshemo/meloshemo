@@ -37,6 +37,23 @@
       endText: "Kendini dev aynasında gördün — ve oradan kendine döndün.",
       fullscreen: "Tam ekran", helpFs: "tam ekran",
       endlessBtn: "Sonsuz salon", endless: "Sonsuz salon",
+      onlineBtn: "Çevrimiçi yarış", onlineTitle: "Çevrimiçi yarış",
+      onlineNote: "Aynı salonda herkes aynı anda arar. En son bulan elenir; tek kişi kalana kadar sürer.",
+      onlineName: "Takma ad", onlineRoom: "Oda", onlineServer: "Sunucu", onlineJoin: "Katıl",
+      onlineConnecting: "Bağlanılıyor…",
+      onlineWaiting: (n) => `Salonda ${n} kişi — herkes hazır olunca başlıyor`,
+      onlineFailed: "Sunucuya ulaşılamadı. Adresi kontrol et ya da kendi sunucunu çalıştır: npm run sunucu",
+      onlineLeft: "Çevrimiçi yarıştan çıkıldı",
+      onlineRound: (n, k) => `${n}. tur · ${k} kişi`,
+      onlineFound: (ad, s) => `${ad} aynayı buldu (${s}.)`,
+      onlineOut: (ad) => `${ad} elendi`,
+      onlineTimeout: (ad) => `Süre doldu — ${ad} elendi`,
+      onlineTie: (adlar) => `Beraberlik: ${adlar} — aralarında ek tur`,
+      onlineWaitTie: "Bir üst tura geçtin, beraberlik turu bitiyor",
+      onlineWin: (ad) => `Kazanan: ${ad}`,
+      onlineCountdown: (sn) => `${sn} saniye`,
+      onlineBeacon: "Aynanın bölgesi işaretlendi",
+      onlineNoHunch: "Sezgi hakkın kalmadı",
       endlessGoal: "Dev aynayı bul — salonlar bitmiyor",
       endlessCard: "Yeni salon, yeni kural. Ne kadar ileri gidebilirsin?",
       endlessOver: "Sonsuz salon",
@@ -72,8 +89,8 @@
         konumunuz ve süreniz sunucuya gider; oda boşalınca tamamen silinir.
         Veritabanı yoktur, IP adresi günlüğe yazılmaz.</p>
         <h3>Üçüncü taraflar</h3>
-        <p>Yazı tipleri Google Fonts üzerinden yüklenir; bu istek sırasında IP
-        adresiniz Google'a ulaşır ve Google'ın kendi politikasına tabidir.</p>
+        <p><b>Yoktur.</b> Oyun hiçbir dış siteye istek atmaz: yazı tipleri de
+        dahil her şey oyunun içindedir. Çevrimdışı da aynı şekilde çalışır.</p>
         <h3>İletişim</h3>
         <p>Osman Melih Yılmaz — y.osmanmelih@gmail.com</p>`,
       chapters: [
@@ -129,6 +146,23 @@
       endText: "You saw yourself as a giant — and found your way back.",
       fullscreen: "Fullscreen", helpFs: "fullscreen",
       endlessBtn: "Endless hall", endless: "Endless hall",
+      onlineBtn: "Online race", onlineTitle: "Online race",
+      onlineNote: "Everyone searches the same hall at once. The last to find it is out; it runs until one remains.",
+      onlineName: "Nickname", onlineRoom: "Room", onlineServer: "Server", onlineJoin: "Join",
+      onlineConnecting: "Connecting…",
+      onlineWaiting: (n) => `${n} in the hall — starts when everyone is ready`,
+      onlineFailed: "Could not reach the server. Check the address, or run your own: npm run sunucu",
+      onlineLeft: "Left the online race",
+      onlineRound: (n, k) => `Round ${n} · ${k} players`,
+      onlineFound: (ad, s) => `${ad} found the mirror (${s})`,
+      onlineOut: (ad) => `${ad} is out`,
+      onlineTimeout: (ad) => `Time up — ${ad} is out`,
+      onlineTie: (adlar) => `Tie: ${adlar} — extra round between them`,
+      onlineWaitTie: "You advanced; a tie-break round is finishing",
+      onlineWin: (ad) => `Winner: ${ad}`,
+      onlineCountdown: (sn) => `${sn} seconds`,
+      onlineBeacon: "The mirror's area has been marked",
+      onlineNoHunch: "No hunches left",
       endlessGoal: "Find the giant mirror — the halls never end",
       endlessCard: "New hall, new rule. How far can you get?",
       ruleNames: {
@@ -171,8 +205,8 @@
         time reach the server; everything is discarded when the room empties.
         There is no database and IP addresses are not logged.</p>
         <h3>Third parties</h3>
-        <p>Fonts load from Google Fonts; that request exposes your IP address to
-        Google under Google's own policy.</p>
+        <p><b>None.</b> The game makes no request to any outside site — fonts
+        included, everything ships inside the game. It works the same offline.</p>
         <h3>Contact</h3>
         <p>Osman Melih Yılmaz — y.osmanmelih@gmail.com</p>`,
       chapters: [

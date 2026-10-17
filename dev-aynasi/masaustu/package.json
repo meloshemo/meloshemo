@@ -1,0 +1,40 @@
+{
+  "name": "dev-aynasi-masaustu",
+  "version": "1.8.0",
+  "description": "Dev Aynası — masaüstü sürümü",
+  "author": "Osman Melih Yılmaz <y.osmanmelih@gmail.com>",
+  "license": "SEE LICENSE IN ../LICENSE",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "paketle": "electron-builder",
+    "paketle:win": "electron-builder --win",
+    "paketle:mac": "electron-builder --mac",
+    "paketle:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.meloshemo.devaynasi",
+    "productName": "Dev Aynasi",
+    "copyright": "© 2026 Osman Melih Yılmaz",
+    "directories": { "output": "cikti" },
+    "files": ["main.js", "package.json"],
+    "extraResources": [
+      {
+        "from": "..",
+        "to": "oyun",
+        "filter": [
+          "index.html", "style.css", "game.js", "maze.js", "i18n.js",
+          "yazitipi/**", "ikon/**", "multiplayer/net.js", "LICENSE"
+        ]
+      }
+    ],
+    "win": { "target": ["nsis", "portable"], "icon": "../ikon/dev-aynasi-256.png" },
+    "mac": { "target": ["dmg"], "category": "public.app-category.games", "icon": "../ikon/dev-aynasi-512.png" },
+    "linux": { "target": ["AppImage"], "category": "Game", "icon": "../ikon/dev-aynasi-512.png" }
+  }
+}

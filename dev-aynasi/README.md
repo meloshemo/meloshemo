@@ -112,6 +112,41 @@ her zaman açık tutar. Ne zaman yakacağın senin kararın.
 ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki camların
 çerçevesi altın vurur. **Dev ayna ancak dibinden geçerken parlar** (0,8 kare).
 
+## Kurulum ve çalıştırma
+
+Oyunun **hiçbir bağımlılığı yok**: `index.html` dosyasını tarayıcıda açmak
+yeter. Geliştirirken:
+
+```bash
+npm run baslat      # yerel sunucu — http://localhost:8080
+npm test            # 18 regresyon testi
+npm run paketle     # tek dosyalık sürüm (dev-aynasi-tek-dosya.html)
+npm run denetim     # tam otomatik denetim (Playwright gerekir)
+npm run sunucu      # çevrimiçi turnuva sunucusu (ws gerekir)
+```
+
+Masaüstü sürümü için `masaustu/README.md`.
+
+## Çevrimiçi yarış
+
+Giriş perdesindeki **Çevrimiçi yarış** düğmesi: takma ad, oda adı ve sunucu
+adresi. Kendi sunucunu çalıştırmak için `npm run sunucu` (varsayılan
+`ws://localhost:8787`).
+
+Salonu sunucu üretir; istemci aynı tohum ve aynı dokuyla birebir aynısını
+kurar, yani herkes gerçekten aynı labirentte yarışır.
+
+**Hileye kapalı iki nokta:**
+
+- **Dev aynanın yeri istemciye gönderilmez.** Gönderilse tarayıcının
+  geliştirici araçlarından okunurdu. Oyuncu dört kare yaklaşınca sunucu
+  açıklar — o mesafede bilgi zaten işe yaramaz, çünkü oyuncu aynayı görüyordur.
+- **Sezgi oku da sunucudan gelir.** Hakkı sunucu sayar, yönü sunucu söyler.
+
+Ayrıca "buldum" kararını sunucu verir ve konum paketleri hız sınırına tabidir.
+Turnuva kuralları (kişi başı +5.000 ayna, eleme, beraberlik turu) için
+`multiplayer/README.md`.
+
 ## Akıcılık
 
 Oyun kendi kare süresini ölçer ve çözünürlüğü buna göre ayarlar: rahatsa

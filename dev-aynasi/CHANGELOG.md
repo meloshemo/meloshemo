@@ -1,5 +1,67 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.8.0 — Kendi ayakları üstünde
+Proje artık bağımsız: kendi manifesti, kendi araçları, kendi kuralları var ve
+deponun geri kalanıyla hiçbir dosyayı paylaşmıyor.
+
+**Temiz proje**
+
+- `package.json`, `.gitignore`, `.editorconfig` eklendi — Dev Aynası'na özgü
+- `CLAUDE.md`: kapsam ("`dev-aynasi/` dışına yazma"), çalıştırma komutları,
+  değişmez kurallar (ses yok, gerçek ayna simetrisi, ayna sayısına göre salon,
+  koridor tavanı, kare düşmemesi) ve "ölçmeden iddia etme"
+- Araçlar `arac/` altında toplandı: `sun.js` (yerel sunucu), `paketle.js`,
+  `denetim.js` (tek komutla tam otomatik denetim)
+- Komutlar: `npm run baslat`, `npm test`, `npm run paketle`,
+  `npm run denetim`, `npm run sunucu`, `npm run masaustu`
+
+**Yazı tipleri oyunun içinde**
+
+- Cormorant Garamond, Jost ve IBM Plex Mono artık `yazitipi/` klasöründe
+  (latin + latin-ext, 252 KB). Google Fonts'a bağlanılmıyor
+- Üç kazanç: çevrimdışı açıldığında da doğru görünüyor, oyuncunun IP adresi
+  kimseye gitmiyor, ilk kare yazısız gelmiyor
+- Gizlilik politikası güncellendi: "üçüncü taraf **yoktur**" (TR + EN,
+  oyun içi metin dahil). Lisans bildirimi SIL OFL dosyalarını adıyla listeliyor
+- Tek dosyalık sürüm yazı tiplerini base64 olarak içine gömüyor: tek başına,
+  internetsiz, 463 KB
+
+**Çevrimiçi yarış bağlandı**
+
+Sunucu hazırdı ama oyuna bağlı değildi; artık bağlı ve uçtan uca sınandı.
+
+- Giriş perdesinde **Çevrimiçi yarış**: takma ad, oda ve sunucu adresi
+  (localStorage'da saklanır)
+- Salonu sunucu üretir; istemci aynı tohum **ve aynı dokuyla** birebir aynısını
+  kurar. Doku protokole eklendi — onsuz istemci farklı bir labirent üretiyordu
+- **Dev aynanın yeri istemciye peşinen gönderilmez**: tarayıcıdan okunup hile
+  yapılabilirdi. Oyuncu dört kare yaklaşınca sunucu açıklar; o mesafede bilgi
+  zaten işe yaramaz çünkü oyuncu aynayı görüyordur
+- **Sezgi oku da sunucudan gelir** (aynı nedenle): hakkı sunucu sayar, yönü
+  sunucu söyler
+- Rakipler kendi renkleriyle, fenerin yettiği yere kadar görünür; konum
+  saniyede 20 kez gidip aradaki kareler yumuşatılır
+- Tur, geçiş, eleme, beraberlik, geri sayım ve işaret olayları hedef satırında
+  yazılır (TR + EN)
+
+**Çevrimiçi tarafta bulunan iki hata**
+
+- `sezgiYon` ve `yakin` mesajları yanlış değişken adıyla gönderiliyordu
+  (`sock` yerine `ws` olmalıydı): sunucu ilk sezgi isteğinde çöküyordu
+- **İlk oyuncu "hazırım" der demez oda kapanıyordu**; ikinci oyuncu
+  `yaris_basladi` hatası alıp hiç giremiyordu, yani iki kişilik bir yarış
+  pratikte kurulamıyordu. Artık geri sayım sürerken katılım açık ve yeni
+  gelen biri olursa sayaç uzuyor
+
+**Masaüstü sürümü**
+
+- `masaustu/`: Electron kabuğu + electron-builder yapılandırması
+  (Windows .exe/portable, macOS .dmg, Linux .AppImage)
+- Oyunun kopyasını tutmaz, projeyi doğrudan açar; paketlendiğinde
+  `resources/oyun` yolunu kullanır
+- Açılışta beyaz çakma yok, menü çubuğu yok, arka plandayken kare düşmesin
+  diye `backgroundThrottling` kapalı, `nodeIntegration` kapalı + sandbox açık
+
 ## 1.7.0 — Koridorlar kısaldı, salonlara odacık girdi
 Şikâyet yerindeydi ve suçlusu 1.5.1'de eklediğim "düzlük" ayarıydı: salonu
 okunaklı yapayım derken **otuz bir kareye kadar dümdüz koridorlar** ürettim.

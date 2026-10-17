@@ -28,6 +28,7 @@ const LOBBY_WAIT = 5000;         // ilk oyuncudan sonra başlama sayacı
 const ISARET_ONCE = 45000;       // son 45 sn: bulamayanlara bölge işareti
 const UYARILAR = [60000, 30000, 10000];
 const MAX_SPEED = 260;           // birim/saniye - hız hilesi eşiği
+const SEZGI_HAKKI = 5;           // tur başına sezgi hakkı (yön sunucudan gelir)
 
 // Oyuncu renkleri: 1. giren beyaz (sen), sonrakiler sırayla.
 const COLORS = [
@@ -117,7 +118,7 @@ function createHall(playerCount, chapter) {
     : Maze.pickGiant(maze, spawns[0], seed);
   const mirrors = Maze.mirrors(maze);
   return {
-    chapter, seed, size, maze, giant, spawns, tarz,
+    chapter, seed, size, maze, giant, spawns, tarz, doku,
     mirrorCount: mirrors.length,
     decoys: pickDecoys(mirrors, giant, seed, decoyCount(playerCount, chapter, mirrors.length)),
   };
@@ -155,7 +156,10 @@ function hallInfo(room, chapter, oyuncu) {
   const s = h.spawns[sira];
   return {
     bolum: chapter, bolumAdi: CHAPTERS[chapter].ad,
-    tohum: h.seed, boyut: h.size, aynaSayisi: h.mirrorCount, decoys: h.decoys, tarz: h.tarz,
+    // doku olmadan istemci aynı tohumdan aynı labirenti üretemez: odacıklar
+    // ve koridor tavanı buradan geliyor.
+    tohum: h.seed, boyut: h.size, doku: h.doku,
+    aynaSayisi: h.mirrorCount, decoys: h.decoys, tarz: h.tarz,
     baslangic: { x: (s.x + 0.5) * CELL, y: (s.y + 0.5) * CELL },
     ...(TEST_MODU ? { devAyna: h.giant } : {}),
   };
@@ -282,6 +286,8 @@ function yeniTur(room, kalanlar, beraberlikTuru = false) {
     p.bolum = room.tur;
     p.sure = null;
     p.yakinlik = 0;
+    p.aynaAcildi = false;
+    p.sezgi = SEZGI_HAKKI;
     const s = salon.spawns[i % salon.spawns.length];
     p.x = (s.x + 0.5) * CELL;
     p.y = (s.y + 0.5) * CELL;
@@ -406,7 +412,13 @@ wss.on("connection", (ws) => {
         room = createRoom(code, 1);
         rooms.set(code, room);
       }
-      if (room.state !== "lobi") return send(ws, "hata", { sebep: "yaris_basladi" });
+      // Geri sayım sürerken de katılmaya izin verilir. Eskiden ilk oyuncu
+      // "hazırım" der demez oda kapanıyordu: ikinci oyuncu hiç giremiyor,
+      // iki kişilik bir yarış pratikte kurulamıyordu.
+      const geriSayimSuruyor = room.state === "yaris" && Date.now() < room.startAt;
+      if (room.state !== "lobi" && !geriSayimSuruyor) {
+        return send(ws, "hata", { sebep: "yaris_basladi" });
+      }
       if (room.players.size >= COLORS.length) return send(ws, "hata", { sebep: "oda_dolu" });
 
       const used = new Set([...room.players.values()].map((p) => p.renk.id));
@@ -428,6 +440,12 @@ wss.on("connection", (ws) => {
       room.halls = [createHall(room.players.size, 0)];
 
       send(ws, "hosgeldin", { benim: me.id, renk: me.renk });
+      // Geri sayım sürerken biri katıldıysa herkesin biraz daha vakti olsun.
+      if (room.state === "yaris" && Date.now() < room.startAt) {
+        room.startAt = Math.max(room.startAt, Date.now() + Math.min(LOBBY_WAIT, 4000));
+        room.deadline = room.startAt + room.limitMs;
+        broadcast(room, "baslangic", { baslarAt: room.startAt, sure: room.limitMs });
+      }
       // Her oyuncuya kendi başlangıç noktasıyla salon bilgisi gider.
       for (const [sock, kisi] of room.players) {
         send(sock, "salon", {
@@ -441,6 +459,25 @@ wss.on("connection", (ws) => {
     }
 
     if (!room || !me) return;
+
+    // --- sezgi ---
+    // İstemci dev aynanın yerini bilmediği için yönü de kendisi hesaplayamaz.
+    // Hakkı sunucu sayar, yönü sunucu söyler.
+    if (msg.type === "sezgi" && room.state === "yaris" && !me.elendi) {
+      if (me.sezgi === undefined) me.sezgi = SEZGI_HAKKI;
+      if (me.sezgi <= 0) {
+        send(ws, "sezgiYon", { kalan: 0, verildi: false });
+        return;
+      }
+      me.sezgi--;
+      const c = giantCenter(room, me.bolum);
+      send(ws, "sezgiYon", {
+        kalan: me.sezgi,
+        verildi: true,
+        aci: Math.atan2(c.y - me.y, c.x - me.x),
+      });
+      return;
+    }
 
     // --- hazırım ---
     if (msg.type === "hazir") {
@@ -482,9 +519,16 @@ wss.on("connection", (ws) => {
         me.y = ny;
       }
 
-      // Dev aynanın önünde yeterince durduysa bulmuş sayılır - kararı sunucu verir.
+      // Dev aynanın yeri istemciye peşinen söylenmez: söylense tarayıcıdan
+      // okunup hile yapılabilirdi. Ama oyuncu yansımayı görebilmeli. Çözüm:
+      // ayna yalnızca oyuncu dibine geldiğinde (dört kare) bir kez açıklanır.
+      // O mesafede bilgi zaten işe yaramaz - oyuncu aynayı görüyordur.
       if (me.sure === null && now >= room.startAt) {
         const c = giantCenter(room, me.bolum);
+        if (!me.aynaAcildi && Math.hypot(me.x - c.x, me.y - c.y) < CELL * 4) {
+          me.aynaAcildi = true;
+          send(ws, "yakin", { ayna: hallFor(room, me.bolum).giant });
+        }
         const yakin = Math.hypot(me.x - c.x, me.y - c.y) < LOOK * 0.8;
         me.yakinlik = yakin ? me.yakinlik + dt * 1000 : 0;
         if (me.yakinlik >= FOUND_MS) {

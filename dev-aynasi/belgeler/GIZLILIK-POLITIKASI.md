@@ -42,11 +42,11 @@ kalıcı kayıt tutulmaz, IP adresleri günlüğe yazılmaz.
 
 ## 3. Üçüncü taraflar
 
-Oyun, yazı tiplerini Google Fonts üzerinden yükler. Bu istek sırasında
-tarayıcınızın IP adresi Google'a ulaşır; bu Google'ın kendi gizlilik
-politikasına tabidir (https://policies.google.com/privacy). Yazı tiplerini
-oyunun içine gömerek bu bağlantıyı tamamen kaldırma seçeneği yol
-haritamızdadır.
+**Üçüncü taraf yoktur.** Oyun çalışırken hiçbir dış siteye istek atmaz.
+Yazı tipleri de dahil her şey oyunun içindedir; oyun çevrimdışı da aynı
+şekilde çalışır. (1.8.0 öncesinde yazı tipleri Google Fonts üzerinden
+yükleniyordu ve bu istek sırasında IP adresiniz Google'a ulaşıyordu. Bu
+bağlantı tamamen kaldırıldı.)
 
 Steam üzerinden dağıtılan sürümde Valve'ın kendi veri işleme kuralları
 geçerlidir; oyunun kendisi Steam'e ek bir veri göndermez.

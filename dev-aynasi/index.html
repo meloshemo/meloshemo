@@ -4,12 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dev Aynası</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Jost:wght@300;400&family=IBM+Plex+Mono:wght@400;500&display=swap"
-    />
+    <link rel="stylesheet" href="yazitipi/yazitipi.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -58,6 +53,7 @@
               <button id="enterSolo" class="btn solid" type="button" data-i18n="solo">Tek başına gir</button>
               <button id="enterDuel" class="btn" type="button" data-i18n="duelBtn">Düello · iki kişi</button>
               <button id="enterEndless" class="btn" type="button" data-i18n="endlessBtn">Sonsuz salon</button>
+              <button id="enterOnline" class="btn" type="button" data-i18n="onlineBtn">Çevrimiçi yarış</button>
             </div>
             <p class="keys keys-kb" data-i18n="keys" data-i18n-html></p>
             <p class="keys keys-touch" data-i18n="touchKeys" data-i18n-html></p>
@@ -65,6 +61,30 @@
               <label for="codeInput" data-i18n="codeLabel">Salon kodu</label>
               <input id="codeInput" type="text" inputmode="numeric" maxlength="5" placeholder="örn. 4821" data-i18n="codePlaceholder" data-i18n-attr="placeholder" />
               <button id="codeApply" class="btn" type="button" data-i18n="codeApply">Aç</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="veil panel" id="online" hidden>
+          <div class="frame">
+            <h2 data-i18n="onlineTitle">Çevrimiçi yarış</h2>
+            <p class="fine" data-i18n="onlineNote">Aynı salonda herkes aynı anda arar. En son bulan elenir; tek kişi kalana kadar sürer.</p>
+            <div class="code-row">
+              <label for="onlineName" data-i18n="onlineName">Takma ad</label>
+              <input id="onlineName" type="text" maxlength="14" placeholder="Melih" />
+            </div>
+            <div class="code-row">
+              <label for="onlineRoom" data-i18n="onlineRoom">Oda</label>
+              <input id="onlineRoom" type="text" maxlength="12" placeholder="genel" />
+            </div>
+            <div class="code-row">
+              <label for="onlineUrl" data-i18n="onlineServer">Sunucu</label>
+              <input id="onlineUrl" type="text" placeholder="ws://localhost:8787" />
+            </div>
+            <p id="onlineStatus" class="fine"></p>
+            <div class="modes">
+              <button id="onlineJoin" class="btn solid" type="button" data-i18n="onlineJoin">Katıl</button>
+              <button id="onlineClose" class="btn" type="button" data-i18n="close">Kapat</button>
             </div>
           </div>
         </div>
@@ -120,7 +140,7 @@
               <button id="privacyBtn" class="btn" type="button" data-i18n="privacy">Gizlilik</button>
               <button id="settingsClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
             </div>
-            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.7.0</b></p>
+            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.8.0</b></p>
           </div>
         </div>
 
@@ -159,6 +179,7 @@
       </footer>
     </main>
 
+    <script src="multiplayer/net.js"></script>
     <script src="i18n.js"></script>
     <script src="maze.js"></script>
     <script src="game.js"></script>

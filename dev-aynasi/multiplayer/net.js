@@ -10,6 +10,8 @@
 //   net.on("sureBitti", (e) => { /* süre doldu, e.ad elendi */ });
 //   net.on("elendi", (e) => { /* e.ad bu turda elendi */ });
 //   net.on("tur", (t) => { /* yeni tur: t.tur, t.kalan, t.sure, t.tohum ... */ });
+//   net.on("yakin", (y) => { /* y.ayna: dev ayna açıklandı, artık çizilebilir */ });
+//   net.on("sezgiYon", (s) => { /* s.aci yönünde ok göster, s.kalan hak */ });
 //   oyun döngüsünde: net.konum(player.x, player.y);
 //
 // Diğer oyuncular ekranda kendi renkleriyle çizilir; sunucudan saniyede 20
@@ -78,6 +80,10 @@
       },
       hazir() {
         if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "hazir" }));
+      },
+      // Sezgi: dev aynanın yeri istemcide olmadığı için yönü sunucu söyler.
+      sezgi() {
+        if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: "sezgi" }));
       },
       konum(x, y) {
         const now = performance.now();

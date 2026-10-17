@@ -18,6 +18,9 @@
     fsBtn: $("fsBtn"), settingsBtn: $("settingsBtn"), settings: $("settings"), settingsClose: $("settingsClose"),
     brightness: $("brightness"), reduceMotion: $("reduceMotion"), roomPicker: $("roomPicker"),
     autoRes: $("autoRes"),
+    enterOnline: $("enterOnline"), online: $("online"), onlineName: $("onlineName"),
+    onlineRoom: $("onlineRoom"), onlineUrl: $("onlineUrl"), onlineStatus: $("onlineStatus"),
+    onlineJoin: $("onlineJoin"), onlineClose: $("onlineClose"),
     privacyBtn: $("privacyBtn"), privacy: $("privacy"), privacyClose: $("privacyClose"),
     privacyText: $("privacyText"), version: $("version"),
     progressCode: $("progressCode"), copyProgress: $("copyProgress"),
@@ -82,7 +85,7 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.7.0";
+  const SURUM = "1.8.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -372,6 +375,15 @@
   let chapter, size, maze, mirrorCount, giant, giantSeg, decoys, warm;
   let players = [];
   let duel = false;
+  // --- Çevrimiçi yarış ---------------------------------------------------
+  // Salonu sunucu üretir; istemci aynı tohum ve aynı dokuyla birebir aynısını
+  // kurar. Dev aynanın yeri peşinen gelmez: oyuncu dibine gelince sunucu
+  // "yakin" mesajıyla açıklar (anti-hile).
+  let net = null;            // Net.connect sonucu
+  let cevrimici = false;
+  let salonBilgisi = null;   // sunucudan gelen son salon/tur bilgisi
+  let cevrimiciDurum = "";   // HUD'da gösterilen son olay
+  let cevrimiciDurumA = 0;   // o olayın söneceği an
   let seed = 0;
   let running = false;
   let finished = null;      // { winner, elapsed }
@@ -583,14 +595,23 @@
     const doku = endless
       ? dokuIcin(Math.min(endlessCount, 19), 20)
       : dokuIcin(chapterIndex, CHAPTERS.length);
-    size = kenarIcin(hedefAyna);
-    for (let deneme = 0; deneme < 3; deneme++) {
-      maze = Maze.generate(size, size, seed, doku);
-      applyCityLayout();
+    if (cevrimici && salonBilgisi) {
+      // Çevrimiçi: boyut, tohum ve doku sunucudan gelir. Herkes birebir aynı
+      // salonda yarışır; istemci kendi ölçüsünü uydurmaz.
+      seed = salonBilgisi.tohum;
+      size = salonBilgisi.boyut;
+      maze = Maze.generate(size, size, seed, salonBilgisi.doku);
       mirrorCount = Maze.mirrorCount(maze);
-      const sapma = mirrorCount / hedefAyna;
-      if (sapma > 0.94 && sapma < 1.06) break;
-      size = Math.min(220, Math.max(20, Math.round(size / Math.sqrt(sapma))));
+    } else {
+      size = kenarIcin(hedefAyna);
+      for (let deneme = 0; deneme < 3; deneme++) {
+        maze = Maze.generate(size, size, seed, doku);
+        applyCityLayout();
+        mirrorCount = Maze.mirrorCount(maze);
+        const sapma = mirrorCount / hedefAyna;
+        if (sapma > 0.94 && sapma < 1.06) break;
+        size = Math.min(220, Math.max(20, Math.round(size / Math.sqrt(sapma))));
+      }
     }
     // Oda büyüdükçe sahte devler, yalancılar ve sezgi hakkı da orantılı artar;
     // yoksa 20.000 aynalı salonda 38 sahte dev hiç görünmezdi.
@@ -598,12 +619,26 @@
     sezgiHakki = Math.max(chapter.hints, Math.round(chapter.hints * (size / chapter.size)));
     anahtarAdim = size + 2;
     bandOfRoom = Maze.pickBand(seed + chapterIndex * 31);
-    giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed, bandOfRoom);
-    giantSeg = segCenter(giant);
+    if (cevrimici) {
+      // Dev aynanın yeri sunucuda. İstemci onu bilmez; "yakin" mesajı
+      // gelene kadar hiçbir cam dev görüntü vermez. Yerine salonun dışında
+      // bir yer tutucu konur ki çizim ve mesafe hesapları patlamasın.
+      giant = { id: "yok", x: -99, y: -99, horizontal: true };
+      giantSeg = { x: -9999, y: -9999 };
+    } else {
+      giant = Maze.pickGiant(maze, { x: 0, y: 0 }, seed, bandOfRoom);
+      giantSeg = segCenter(giant);
+    }
 
     // Sahte devler: gerçek dev aynadan uzakta, çarpık yansıma gösteren camlar.
     decoys = new Map();
-    if (chapter.decoys) {
+    if (cevrimici && salonBilgisi) {
+      // Sahte devleri de sunucu seçer ve çarpıklıklarıyla gönderir: herkes
+      // aynı camları aynı biçimde çarpık görür.
+      for (const [id, bicim] of Object.entries(salonBilgisi.decoys || {})) {
+        decoys.set(id, bicim);
+      }
+    } else if (chapter.decoys) {
       const all = Maze.mirrors(maze);
       let s = (seed * 2654435761) >>> 0;
       const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
@@ -1318,11 +1353,21 @@
       const d = Math.hypot(other.x - p.x, other.y - p.y);
       if (d < light) drawFigure(other.x, other.y, 1, 1, 0.75, other.tint, null);
     }
+    // Çevrimiçi rakipler: her biri kendi renginde, fenerin yettiği yere kadar.
+    if (cevrimici && net) {
+      for (const r of net.oyuncular()) {
+        const d = Math.hypot(r.x - p.x, r.y - p.y);
+        if (d < light) drawFigure(r.x, r.y, 1, 1, 0.75, (r.renk && r.renk.hex) || "#9ad4ff", null);
+      }
+    }
     drawFigure(p.x, p.y, 1, 1, 1, p.tint, "rgba(255, 236, 205, 0.5)");
 
     if (now < p.hintUntil) {
+      // Çevrimiçide dev aynanın yeri istemcide yok; yönü sunucu söylemişti.
       const target = phase === "donus" ? { x: CELL * 0.5, y: CELL * 0.5 } : giantSeg;
-      const ang = Math.atan2(target.y - p.y, target.x - p.x);
+      const ang = cevrimici && typeof p.cevrimiciSezgi === "number"
+        ? p.cevrimiciSezgi
+        : Math.atan2(target.y - p.y, target.x - p.x);
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(ang);
@@ -1606,6 +1651,10 @@
     }
     if (running && !finished && !carding) {
       moveAll(dt);
+      if (cevrimici && net) {
+        net.konum(players[0].x, players[0].y);
+        net.guncelle(dt);
+      }
       updateEcho(dt);
       maybeShift(now);
       maybeFlee(now);
@@ -1649,7 +1698,9 @@
           if (!p.foundAt) p.foundAt = now;
           // Işık, aynaya yaklaştıkça güçlenir; asıl geçiş içine yürüyünce olur.
           p.bloom = Math.min(1, p.bloom + dt * 2.2);
-          if (!holdAtMirror && pushingIntoGiant(p)) {
+          // Çevrimiçide geçiş kararını sunucu verir (yakınlık + süre);
+          // istemci kendi kendine bir sonraki tura atlamaz.
+          if (!cevrimici && !holdAtMirror && pushingIntoGiant(p)) {
             if (chapter.returnTrip) {
               phase = "donus";
               els.objective.textContent = I18n.t("doorObjective");
@@ -1693,7 +1744,9 @@
   window.addEventListener("blur", () => keys.clear());
 
   function useHint(p) {
-    if (!p || !running || finished || p.hints === 0) return;
+    if (!p || !running || finished) return;
+    if (cevrimici && net) { net.sezgi(); return; }
+    if (p.hints === 0) return;
     p.hints--;
     p.hintUntil = performance.now() + 2500;
     updateHud();
@@ -1720,7 +1773,143 @@
     }
   }
 
+  // --- Çevrimiçi yarış ----------------------------------------------------
+  //
+  // Salonu sunucu üretir, istemci aynı tohum ve dokuyla birebir aynısını
+  // kurar. Dev aynanın yeri istemciye peşinen gelmez (tarayıcıdan okunup
+  // hile yapılabilirdi): oyuncu dört kare yaklaşınca sunucu açıklar. Sezgi
+  // oku da aynı nedenle sunucudan gelir.
+  const ONLINE_KEY = "dev-aynasi:cevrimici";
+
+  function cevrimiciAyar() {
+    try {
+      return JSON.parse(localStorage.getItem(ONLINE_KEY) || "{}");
+    } catch (err) {
+      return {};
+    }
+  }
+  function cevrimiciAyarKaydet(v) {
+    try { localStorage.setItem(ONLINE_KEY, JSON.stringify(v)); } catch (err) { /* yok say */ }
+  }
+
+  function durumYaz(metin, sure = 4000) {
+    cevrimiciDurum = metin;
+    cevrimiciDurumA = performance.now() + sure;
+    els.objective.textContent = metin;
+  }
+
+  function cevrimiciSalonKur(bilgi) {
+    salonBilgisi = bilgi;
+    chapterIndex = Math.min(bilgi.bolum || 0, CHAPTERS.length - 1);
+    newRoom(bilgi.tohum);
+    const p = players[0];
+    if (bilgi.baslangic) { p.x = bilgi.baslangic.x; p.y = bilgi.baslangic.y; }
+    p.hints = 5;                       // hak sunucuda sayılır, HUD'da gösterilir
+    startedAt = performance.now();
+    running = true;
+    finished = null;
+    carding = 0;
+    els.chapterCard.hidden = true;
+    els.total.textContent = (bilgi.aynaSayisi || mirrorCount).toLocaleString("tr-TR");
+    updateHud();
+  }
+
+  function cevrimiciBaglan(url, ad, oda) {
+    if (typeof Net === "undefined") {
+      els.onlineStatus.textContent = "net.js yüklenemedi";
+      return;
+    }
+    cevrimici = true;
+    duel = false;
+    endless = false;
+    els.onlineStatus.textContent = I18n.t("onlineConnecting");
+    net = Net.connect(url, { ad, kod: oda });
+
+    net.on("kapandi", () => {
+      if (!running) els.onlineStatus.textContent = I18n.t("onlineFailed");
+    });
+    net.on("hata", (m) => { els.onlineStatus.textContent = m.sebep || "hata"; });
+
+    net.on("salon", (m) => {
+      // Test modundaki sunucu salon bilgisinde dev aynayı da yollar;
+      // otomatik denetim bunu okuyabilsin diye saklanır (üretimde gelmez).
+      try { window.__sonSalon = m; } catch (e) { /* yok say */ }
+      els.online.hidden = true;
+      els.intro.hidden = true;
+      tamEkranAc();
+      cevrimiciSalonKur(m);
+      durumYaz(I18n.t("onlineWaiting")(m.kisi || 1), 6000);
+      net.hazir();
+    });
+    net.on("oyuncular", (m) => {
+      if (!running || finished) return;
+      const n = (m.oyuncular || []).length;
+      if (n > 1) durumYaz(I18n.t("onlineWaiting")(n), 3000);
+    });
+    net.on("baslangic", () => durumYaz(I18n.t("objective"), 2000));
+    net.on("tur", (m) => {
+      cevrimiciSalonKur(m);
+      durumYaz(I18n.t("onlineRound")(m.tur, m.kalan), 4000);
+    });
+    net.on("bekle", () => durumYaz(I18n.t("onlineWaitTie"), 6000));
+    net.on("yakin", (m) => {
+      // Dev ayna açıklandı: artık yansıması çizilebilir ve sıcak iz yanar.
+      if (!m.ayna) return;
+      giant = m.ayna;
+      giantSeg = segCenter(giant);
+      giantKey = keyOf(giant.horizontal, giant.x, giant.y);
+      hesaplaSicakIz();
+    });
+    net.on("sezgiYon", (m) => {
+      const p = players[0];
+      p.hints = m.kalan;
+      if (!m.verildi) { durumYaz(I18n.t("onlineNoHunch"), 2000); return; }
+      p.cevrimiciSezgi = m.aci;
+      p.hintUntil = performance.now() + 2500;
+      updateHud();
+    });
+    net.on("gecti", (m) => durumYaz(I18n.t("onlineFound")(m.ad, m.sira)));
+    net.on("elendi", (m) => durumYaz(I18n.t("onlineOut")(m.ad)));
+    net.on("sureBitti", (m) => durumYaz(I18n.t("onlineTimeout")(m.ad)));
+    net.on("beraberlik", (m) => durumYaz(I18n.t("onlineTie")((m.oyuncular || []).map((o) => o.ad).join(" = "))));
+    net.on("sayac", (m) => durumYaz(I18n.t("onlineCountdown")(Math.round((m.kalan || 0) / 1000)), 1500));
+    net.on("isaret", () => durumYaz(I18n.t("onlineBeacon"), 5000));
+    net.on("bitti", (m) => {
+      running = false;
+      finished = { winner: players[0], at: performance.now() };
+      els.overlayTitle.textContent = I18n.t("onlineWin")(m.kazanan ? m.kazanan.ad : "—");
+      els.overlayText.textContent = (m.siralama || []).map((x, i) => `${i + 1}. ${x.ad}`).join(" · ");
+      els.best.parentElement.hidden = true;
+      els.next.hidden = true;
+      els.overlay.hidden = false;
+    });
+  }
+
+  function cevrimiciKapat() {
+    if (net) { net.kapat(); net = null; }
+    cevrimici = false;
+    salonBilgisi = null;
+  }
+
+  els.enterOnline.addEventListener("click", () => {
+    const a = cevrimiciAyar();
+    els.onlineName.value = a.ad || "";
+    els.onlineRoom.value = a.oda || "genel";
+    els.onlineUrl.value = a.url || "ws://localhost:8787";
+    els.onlineStatus.textContent = "";
+    els.online.hidden = false;
+  });
+  els.onlineClose.addEventListener("click", () => { els.online.hidden = true; });
+  els.onlineJoin.addEventListener("click", () => {
+    const ad = (els.onlineName.value || "Oyuncu").trim().slice(0, 14);
+    const oda = (els.onlineRoom.value || "genel").trim().slice(0, 12);
+    const url = (els.onlineUrl.value || "ws://localhost:8787").trim();
+    cevrimiciAyarKaydet({ ad, oda, url });
+    cevrimiciBaglan(url, ad, oda);
+  });
+
   function begin(isDuel, nextSeed, bolum = 0, sonsuz = false) {
+    cevrimiciKapat();
     tamEkranAc();
     endless = sonsuz;
     endlessCount = 0;
@@ -2062,6 +2251,9 @@
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
     olcek: () => scale(),
+    rakipSayisi: () => (cevrimici && net ? net.oyuncular().length : -1),
+    cevrimiciMi: () => cevrimici,
+    devAynaBilindiMi: () => giant && giant.id !== 'yok',
     // En yakın odacığın ortasına götürür (ekran görüntüsü için).
     teleportToOdacik(index = 0) {
       const p = players[index];

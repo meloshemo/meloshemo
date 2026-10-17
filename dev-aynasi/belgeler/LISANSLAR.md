@@ -6,15 +6,19 @@ Kod, görseller ve sesler © 2026 Osman Melih Yılmaz. Tüm hakları saklıdır.
 
 ## Kullanılan yazı tipleri
 
-| Yazı tipi | Lisans | Kaynak |
+| Yazı tipi | Lisans | Oyundaki dosyalar |
 | --- | --- | --- |
-| Cormorant Garamond | SIL Open Font License 1.1 | Google Fonts |
-| Jost | SIL Open Font License 1.1 | Google Fonts |
-| IBM Plex Mono / Sans | SIL Open Font License 1.1 | Google Fonts |
+| Cormorant Garamond | SIL Open Font License 1.1 | `yazitipi/cormorant-600*.woff2` |
+| Jost | SIL Open Font License 1.1 | `yazitipi/jost-300*.woff2`, `jost-400*.woff2` |
+| IBM Plex Mono | SIL Open Font License 1.1 | `yazitipi/plexmono-400*.woff2`, `plexmono-500*.woff2` |
 
-SIL OFL, yazı tiplerinin ticari projelerde ücretsiz kullanılmasına izin verir.
-Masaüstü sürümde yazı tipleri oyunun içine gömülecektir; bu da OFL kapsamında
-serbesttir (yazı tiplerinin kendisi ayrıca satılamaz).
+Yazı tipleri 1.8.0 ile birlikte **oyunun içine gömüldü** (`yazitipi/`
+klasörü, latin ve latin-ext alt kümeleri, toplam 252 KB). Artık Google
+Fonts'a bağlanılmıyor. SIL OFL bunu açıkça serbest bırakır: yazı tipleri
+ticari projelerde ücretsiz kullanılabilir ve gömülebilir; yalnızca yazı
+tiplerinin kendisi ayrı bir ürün olarak satılamaz.
+
+Lisans metni: https://openfontlicense.org
 
 ## Ses
 

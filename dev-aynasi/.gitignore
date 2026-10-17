@@ -1,0 +1,16 @@
+# Dev Aynası — yalnızca bu projeye ait yok sayma kuralları.
+node_modules/
+npm-debug.log*
+
+# Araçların ürettiği geçici çıktılar
+arac/cikti/
+*.log
+
+# Masaüstü paketi çıktıları
+masaustu/cikti/
+masaustu/node_modules/
+
+# İşletim sistemi döküntüleri
+.DS_Store
+Thumbs.db
+desktop.ini

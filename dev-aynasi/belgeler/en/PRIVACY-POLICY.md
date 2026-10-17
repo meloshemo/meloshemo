@@ -40,10 +40,10 @@ contacts, photos, microphone or camera; advertising cookies or trackers.
 
 ## 3. Third parties
 
-The game loads its fonts from Google Fonts. That request exposes your IP
-address to Google and is governed by Google's own privacy policy
-(https://policies.google.com/privacy). Embedding the fonts to remove this
-request entirely is on our roadmap.
+**There are none.** While running, the game makes no request to any outside
+site. Everything — fonts included — ships inside the game, and it works the
+same offline. (Before 1.8.0 the fonts loaded from Google Fonts and that
+request exposed your IP address to Google. That connection is now gone.)
 
 On Steam, Valve's own data practices apply; the game itself sends Steam no
 additional data.
