@@ -565,6 +565,9 @@ body.sinema canvas {
 }
 body.sinema .veil { inset: 0; }
 
+/* Oyun sürerken imleç nişangâh olur: fareyle yürünebildiği belli olsun. */
+body.sinema canvas { cursor: crosshair; }
+
 /* Dokunmatik cihazda klavye satırı yerine parmak yönergesi görünür. */
 .keys-touch { display: none; }
 @media (pointer: coarse) {
@@ -709,7 +712,7 @@ body.sinema .veil { inset: 0; }
               <button id="privacyBtn" class="btn" type="button" data-i18n="privacy">Gizlilik</button>
               <button id="settingsClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
             </div>
-            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.8.0</b></p>
+            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.9.0</b></p>
           </div>
         </div>
 
@@ -882,7 +885,7 @@ body.sinema .veil { inset: 0; }
       introTitle: "Salona giriyorsun",
       introText: "Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.",
       solo: "Tek başına gir", duelBtn: "Düello · iki kişi",
-      keys: "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · <kbd>Shift</kbd> koş · <kbd>H</kbd> sezgi<br />Düello: 2. oyuncu yön tuşları + <kbd>M</kbd>",
+      keys: "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · <kbd>Shift</kbd> koş · <kbd>H</kbd> sezgi<br /><b>Fare:</b> sol tuşu basılı tut, imlecin yönüne yürürsün<br />Düello: 2. oyuncu yön tuşları + <kbd>M</kbd>",
       touchKeys: "Ekrana <b>bas ve sürükle</b>: parmağın hangi yöne giderse oraya yürürsün · <b>Sezgi</b> düğmesi yön gösterir",
       codeLabel: "Salon kodu", codePlaceholder: "örn. 4821", codeApply: "Aç",
       codeRange: "1–99999 arası",
@@ -991,7 +994,7 @@ body.sinema .veil { inset: 0; }
       introTitle: "You step into the hall",
       introText: "You see only as far as your lantern reaches. Find the giant mirror.",
       solo: "Enter alone", duelBtn: "Duel · two players",
-      keys: "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Shift</kbd> run · <kbd>H</kbd> hunch<br />Duel: player 2 uses arrow keys + <kbd>M</kbd>",
+      keys: "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Shift</kbd> run · <kbd>H</kbd> hunch<br /><b>Mouse:</b> hold the left button and you walk toward the cursor<br />Duel: player 2 uses arrow keys + <kbd>M</kbd>",
       touchKeys: "<b>Touch and drag</b> anywhere: you walk in the direction your finger moves · the <b>Hunch</b> button points the way",
       codeLabel: "Hall code", codePlaceholder: "e.g. 4821", codeApply: "Open",
       codeRange: "1–99999 only",
@@ -1653,7 +1656,7 @@ body.sinema .veil { inset: 0; }
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.8.0";
+  const SURUM = "1.9.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -3716,6 +3719,53 @@ body.sinema .veil { inset: 0; }
     }
     begin(duel, code);
   });
+
+  // --- Fare ile yürüme ---------------------------------------------------
+  //
+  // Karar: fare ile "tıkla-git" (yol bulma) YOK, "bas-sürükle" VAR.
+  //
+  // Tıkla-git oyunu bitirirdi: bu oyunun tamamı karanlıkta koridor koridor
+  // yürümek. Yürümeyi bilgisayara devretmek, ürünün kendisini kaldırmak olur.
+  //
+  // Bas-sürükle ise WASD'nin birebir karşılığı: düğmeyi basılı tuttuğun
+  // sürece imlecin yönüne yürürsün. Oyuncu her zaman ekranın ortasında
+  // olduğu için "ortadan imlece" yönü doğrudan gitmek istediğin yön olur.
+  // Hiçbir bilgi avantajı vermez — göremediğin yere yine gidemezsin.
+  //
+  // Düelloda kapalı: ekran ikiye bölündüğünde tek imleç iki oyuncuya
+  // hizmet edemez (dokunmatik denetim de aynı nedenle tek kişilik).
+  const FARE_OLU_BOLGE = 26;     // imleç bu kadar yakınsa dur
+  let fareBasili = false;
+  let fareNokta = null;
+
+  function fareYonunuHesapla() {
+    if (!fareBasili || !fareNokta || duel) { joystick = null; return; }
+    const k = canvas.getBoundingClientRect();
+    // Oyuncu görüntünün ortasında duruyor.
+    const ox = k.left + k.width / 2;
+    const oy = k.top + k.height / 2;
+    const dx = fareNokta.x - ox;
+    const dy = fareNokta.y - oy;
+    const len = Math.hypot(dx, dy);
+    joystick = len < FARE_OLU_BOLGE ? null : { x: dx / len, y: dy / len };
+  }
+
+  canvas.addEventListener("mousedown", (e) => {
+    if (e.button !== 0 || duel) return;
+    fareBasili = true;
+    fareNokta = { x: e.clientX, y: e.clientY };
+    fareYonunuHesapla();
+    e.preventDefault();
+  });
+  canvas.addEventListener("mousemove", (e) => {
+    if (!fareBasili) return;
+    fareNokta = { x: e.clientX, y: e.clientY };
+    fareYonunuHesapla();
+  });
+  const fareBirak = () => { fareBasili = false; fareNokta = null; joystick = null; };
+  window.addEventListener("mouseup", fareBirak);
+  canvas.addEventListener("mouseleave", fareBirak);
+  window.addEventListener("blur", fareBirak);
 
   // dokunmatik (tek kişilik)
   let touchOrigin = null;

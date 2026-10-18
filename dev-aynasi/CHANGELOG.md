@@ -1,5 +1,36 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.0 — Fareyle yürüme
+Karar: **tıkla-git yok, bas-sürükle var.**
+
+Tıkla-git (yol bulma) oyunu bitirirdi. Bu oyunun tamamı karanlıkta koridor
+koridor yürümek; yürümeyi bilgisayara devretmek ürünün kendisini kaldırmak
+olurdu. Bas-sürükle ise WASD'nin birebir karşılığıdır: göremediğin yere yine
+gidemezsin, hızın yine aynı.
+
+- Sol tuşu basılı tut, imlecin yönüne yürürsün. Oyuncu hep ekranın ortasında
+  olduğu için "ortadan imlece" yönü doğrudan gitmek istediğin yöndür
+- 26 piksellik ölü bölge: imleci oyuncunun üstüne getirince durursun
+- Klavyeyle birlikte çalışır, birbirini iptal etmez
+- Düelloda kapalı: ekran ikiye bölününce tek imleç iki oyuncuya hizmet edemez
+  (dokunmatik denetim de aynı nedenle tek kişilik)
+- Oyun sürerken imleç nişangâha dönüşür
+
+**Ölçüldü — fare avantaj vermiyor:**
+
+| | klavye | fare |
+| --- | --- | --- |
+| Çapraz en yüksek hız | 230 br/sn | 230 br/sn |
+| 22,5° en yüksek hız | 230 br/sn | 230 br/sn |
+
+Hız tavanı ikisinde de tam olarak aynı (`SPEED = 230`). Fare 360° yön verir
+ama bu hız kazandırmaz: çapraz hareket zaten normalize ediliyor ve koridorlar
+bir kare genişliğinde. Yani çevrimiçi turnuvada adaleti bozmuyor.
+
+Sekiz yönde de doğru çalıştığı, ölü bölgenin durdurduğu, giriş perdesi
+açıkken oynatmadığı, düğme tıklamalarını yürümeye çevirmediği ve düelloda
+kapalı olduğu ayrı ayrı sınandı.
+
 ## 1.8.0 — Kendi ayakları üstünde
 Proje artık bağımsız: kendi manifesti, kendi araçları, kendi kuralları var ve
 deponun geri kalanıyla hiçbir dosyayı paylaşmıyor.

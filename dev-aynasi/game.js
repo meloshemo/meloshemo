@@ -85,7 +85,7 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.8.0";
+  const SURUM = "1.9.0";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -2148,6 +2148,53 @@
     }
     begin(duel, code);
   });
+
+  // --- Fare ile yürüme ---------------------------------------------------
+  //
+  // Karar: fare ile "tıkla-git" (yol bulma) YOK, "bas-sürükle" VAR.
+  //
+  // Tıkla-git oyunu bitirirdi: bu oyunun tamamı karanlıkta koridor koridor
+  // yürümek. Yürümeyi bilgisayara devretmek, ürünün kendisini kaldırmak olur.
+  //
+  // Bas-sürükle ise WASD'nin birebir karşılığı: düğmeyi basılı tuttuğun
+  // sürece imlecin yönüne yürürsün. Oyuncu her zaman ekranın ortasında
+  // olduğu için "ortadan imlece" yönü doğrudan gitmek istediğin yön olur.
+  // Hiçbir bilgi avantajı vermez — göremediğin yere yine gidemezsin.
+  //
+  // Düelloda kapalı: ekran ikiye bölündüğünde tek imleç iki oyuncuya
+  // hizmet edemez (dokunmatik denetim de aynı nedenle tek kişilik).
+  const FARE_OLU_BOLGE = 26;     // imleç bu kadar yakınsa dur
+  let fareBasili = false;
+  let fareNokta = null;
+
+  function fareYonunuHesapla() {
+    if (!fareBasili || !fareNokta || duel) { joystick = null; return; }
+    const k = canvas.getBoundingClientRect();
+    // Oyuncu görüntünün ortasında duruyor.
+    const ox = k.left + k.width / 2;
+    const oy = k.top + k.height / 2;
+    const dx = fareNokta.x - ox;
+    const dy = fareNokta.y - oy;
+    const len = Math.hypot(dx, dy);
+    joystick = len < FARE_OLU_BOLGE ? null : { x: dx / len, y: dy / len };
+  }
+
+  canvas.addEventListener("mousedown", (e) => {
+    if (e.button !== 0 || duel) return;
+    fareBasili = true;
+    fareNokta = { x: e.clientX, y: e.clientY };
+    fareYonunuHesapla();
+    e.preventDefault();
+  });
+  canvas.addEventListener("mousemove", (e) => {
+    if (!fareBasili) return;
+    fareNokta = { x: e.clientX, y: e.clientY };
+    fareYonunuHesapla();
+  });
+  const fareBirak = () => { fareBasili = false; fareNokta = null; joystick = null; };
+  window.addEventListener("mouseup", fareBirak);
+  canvas.addEventListener("mouseleave", fareBirak);
+  window.addEventListener("blur", fareBirak);
 
   // dokunmatik (tek kişilik)
   let touchOrigin = null;

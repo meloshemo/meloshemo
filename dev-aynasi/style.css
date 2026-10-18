@@ -436,6 +436,9 @@ body.sinema canvas {
 }
 body.sinema .veil { inset: 0; }
 
+/* Oyun sürerken imleç nişangâh olur: fareyle yürünebildiği belli olsun. */
+body.sinema canvas { cursor: crosshair; }
+
 /* Dokunmatik cihazda klavye satırı yerine parmak yönergesi görünür. */
 .keys-touch { display: none; }
 @media (pointer: coarse) {

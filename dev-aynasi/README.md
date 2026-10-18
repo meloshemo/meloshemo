@@ -117,6 +117,12 @@ ayna altın rengiyle parlar. **Sıcak iz:** dev aynanın beş kare çevresindeki
 Oyunun **hiçbir bağımlılığı yok**: `index.html` dosyasını tarayıcıda açmak
 yeter. Geliştirirken:
 
+**Denetim:** <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü ·
+<kbd>Shift</kbd> koş · <kbd>H</kbd> sezgi · <kbd>F</kbd> tam ekran ·
+<kbd>R</kbd> yeni salon. **Fareyle de oynanır:** sol tuşu basılı tut, imlecin
+yönüne yürürsün (tıkla-git yok — yolu bilgisayar bulsaydı oyun kalmazdı).
+Dokunmatik cihazda ekrana bas ve sürükle.
+
 ```bash
 npm run baslat      # yerel sunucu — http://localhost:8080
 npm test            # 18 regresyon testi
