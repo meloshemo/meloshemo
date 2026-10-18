@@ -1,5 +1,45 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.1 — Kapı ağızlarındaki kasma
+Oyuncu "kasma" dedi, ölçümlerim "ortanca 3,1 ms, kaçak %0,1" diyordu. İkisi
+de doğruydu: **ölçtüğüm şey yanlıştı.** Kare süresi akışkanlığı ölçmez,
+verimi ölçer. Hareketin düzgünlüğünü ölçünce sorun bir karede çıktı.
+
+**Bulunan hata: köşe yardımı tek karede 16 piksel zıplatıyordu.**
+
+Kapı ağzına birkaç piksel kala takılmamak için oyuncu boşluğun ortasına
+doğru kaydırılıyor. Bu kaydırma `dt` ile çarpılmıyordu:
+
+- Tam hızda normal adım 3,84 piksel. Köşe yardımı 16 piksele kadar **anında**
+  kaydırıyordu — yana doğru dört katı bir sıçrama. Labirentte koridorlar beş
+  kare olduğu için bu, sürekli oluyordu
+- `dt` ile çarpılmadığı için **kare hızına bağlıydı**: 144 Hz'lik bir ekranda
+  oyuncu 60 Hz'dekinin iki buçuk katı hızla yana çekiliyordu
+- Oyundaki tek kare-hızına-bağlı hareket buydu
+
+**Düzeltme:** kaydırma artık o karede *ileri gidilen mesafeye* bağlı ve onun
+en fazla %80'i kadar. Yani:
+
+1. Yana kayma ileri adımı asla geçmez → savrulma değil, kapıya doğru yumuşak
+   bir yay
+2. Kare uzasa da kısalsa da yolun **şekli** değişmez → kare hızından bağımsız
+3. Takılan bir karede bile sıçrama olmaz
+
+**Ölçüldü:**
+
+| | önce | sonra |
+| --- | --- | --- |
+| En büyük yana kayma | 16,00 px | 2,37 px |
+| İleri adım (tam hız) | 3,84 px | 3,84 px |
+| 60 Hz ↔ 103 Hz farkı | kare hızına bağlı | **0,00 px** |
+
+Aynı yol 60 fps'te 443 px, 103 fps'te 447 px yürünüyor ve en büyük yana
+kayma ikisinde de birebir aynı.
+
+**Denetim aracına kalıcı sınav eklendi** (artık 6 denetim): "köşe yardımı
+sıçratmıyor — yana kayma ileri adımı geçmemeli". Bu hata bir daha geri
+gelirse denetim düşer.
+
 ## 1.9.0 — Fareyle yürüme
 Karar: **tıkla-git yok, bas-sürükle var.**
 

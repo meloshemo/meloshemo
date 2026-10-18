@@ -88,7 +88,22 @@ const yaz = (ad, gecti, ayrinti = "") => {
   yaz("kare bütçesi (en büyük oda)", kare.kacak < 5,
     `ortanca ${kare.p50.toFixed(1)} ms, bütçeyi aşan %${kare.kacak.toFixed(1)}`);
 
-  // 4) Dış istek yok
+  // 4) Köşe yardımı sıçratmıyor: yana kayma ileri adımı geçmemeli.
+  //    Bu, oyuncunun kapı ağızlarında hissettiği "kasma"nın ölçüsüdür.
+  await D(() => window.__devAynasi.jumpToChapter(0));
+  await sayfa.waitForTimeout(300);
+  await D(() => window.__devAynasi.koseSifirla());
+  for (const tus of ["d", "s", "a", "s", "d", "w", "d", "s"]) {
+    await sayfa.keyboard.down(tus);
+    await sayfa.waitForTimeout(600);
+    await sayfa.keyboard.up(tus);
+  }
+  const kose = await D(() => window.__devAynasi.koseIstatistik());
+  const ileriAdim = 230 * 16.7 / 1000;   // tam hızda bir karede gidilen yol
+  yaz("köşe yardımı sıçratmıyor",
+    kose.kezSayisi > 0 && kose.enBuyukAdim <= ileriAdim,
+    `en büyük yana kayma ${kose.enBuyukAdim.toFixed(2)} px (ileri adım ${ileriAdim.toFixed(2)} px), ${kose.kezSayisi} kez`);
+
   const dis = [];
   const s2 = await tarayici.newPage();
   s2.on("request", (r) => { if (!r.url().startsWith("file://") && !r.url().startsWith("data:")) dis.push(r.url()); });

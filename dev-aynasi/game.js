@@ -33,7 +33,24 @@
   const SPRINT = 330;       // Shift ile koşu ~4.6 kare/sn
   const ACCEL = 2400;       // hızlanma - tuşa basınca 0.1 sn'de tam hıza
   const FRICTION = 3200;    // tuşu bırakınca duruş
-  const CORNER_ASSIST = 16; // köşeye takılmayı önleyen kayma payı
+  // Köşe yardımı: kapı ağzına birkaç piksel kala takılmamak için oyuncu
+  // boşluğun ortasına doğru kaydırılır.
+  //
+  // Üç kuralı var ve üçü de "hissedilen takılma"yı önlemek için:
+  //
+  //  1) Kaydırma, o karede ileri gidilen mesafeye bağlıdır — duvar saatine
+  //     değil. Böylece kare uzasa da kısalsa da yolun ŞEKLİ değişmez.
+  //  2) Yana kayma asla ileri adımı geçmez (en fazla %80'i). Geçseydi
+  //     oyuncu yana savruluyormuş gibi görünürdü; bu haliyle kapı ağzına
+  //     doğru yumuşak bir yay çizer.
+  //  3) Dolayısıyla kare hızından bağımsızdır.
+  //
+  // Eskiden her karede 16 piksele kadar ANINDA kaydırıyordu; tam hızda
+  // normal adım 3,84 piksel olduğu için bu, yana doğru dört katı bir
+  // sıçramaydı. Kapı ağızlarından geçerken hissedilen "kasma" buydu.
+  // Üstelik dt ile çarpılmadığı için 144 Hz'lik bir ekranda oyuncu
+  // 60 Hz'dekinin iki buçuk katı hızla yana çekiliyordu.
+  const KOSE_YARDIM_PAY = 0.8;   // ileri adımın en fazla bu kadarı yana gider
   const LOOK = 132;
   const SEEN_RANGE = 118;
   const GIANT_SCALE = 3.6;
@@ -85,7 +102,7 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.9.0";
+  const SURUM = "1.9.1";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -776,7 +793,7 @@
       // Duvara sürtününce o eksendeki hızı sıfırla, yoksa kenarda birikir.
       if (Math.abs(p.x - oncekiX) < 0.01 && Math.abs(p.vx) > 1) p.vx = 0;
       if (Math.abs(p.y - oncekiY) < 0.01 && Math.abs(p.vy) > 1) p.vy = 0;
-      cornerAssist(p, ix, iy);
+      cornerAssist(p, ix, iy, dt);
     }
     for (const p of players) durgunlukIzle(p);
   }
@@ -807,7 +824,20 @@
 
   // Kapı ağzına birkaç piksel kala takılmak sinir bozucu: yönün önü açıksa
   // oyuncuyu boşluğun ortasına doğru hafifçe kaydır.
-  function cornerAssist(p, ix, iy) {
+  // Köşe yardımının ne sıklıkta ve ne kadar kaydırdığını ölçmek için
+  // (denetim araçları okur; oyunun kendisi kullanmaz).
+  const koseIstatistik = { kezSayisi: 0, enBuyukAdim: 0 };
+  function koseKaydir(p, eksen, miktar) {
+    p[eksen] += miktar;
+    koseIstatistik.kezSayisi++;
+    const m = Math.abs(miktar);
+    if (m > koseIstatistik.enBuyukAdim) koseIstatistik.enBuyukAdim = m;
+  }
+
+  function cornerAssist(p, ix, iy, dt) {
+    // O karede gerçekte ne kadar yol alındıysa, kaydırma payı ondan çıkar.
+    const adim = Math.hypot(p.vx, p.vy) * dt * KOSE_YARDIM_PAY;
+    if (adim <= 0) return;
     if (ix && !iy) {
       const merkez = (Math.floor(p.y / CELL) + 0.5) * CELL;
       const fark = merkez - p.y;
@@ -817,7 +847,7 @@
         const cy = Math.floor(p.y / CELL);
         if (hedefCx !== Math.floor(p.x / CELL) &&
             Maze.hasWall(maze, Math.max(0, Math.min(size - 1, hedefCx)), cy, ix > 0 ? "W" : "E")) {
-          p.y += yon * Math.min(CORNER_ASSIST, Math.abs(fark));
+          koseKaydir(p, "y", yon * Math.min(adim, Math.abs(fark)));
         }
       }
     } else if (iy && !ix) {
@@ -829,7 +859,7 @@
         const hedefCy = Math.floor((p.y + Math.sign(iy) * (RADIUS + 2)) / CELL);
         if (hedefCy !== Math.floor(p.y / CELL) &&
             Maze.hasWall(maze, cx, Math.max(0, Math.min(size - 1, hedefCy)), iy > 0 ? "N" : "S")) {
-          p.x += yon * Math.min(CORNER_ASSIST, Math.abs(fark));
+          koseKaydir(p, "x", yon * Math.min(adim, Math.abs(fark)));
         }
       }
     }
@@ -2298,6 +2328,8 @@
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
     olcek: () => scale(),
+    koseIstatistik: () => ({ ...koseIstatistik }),
+    koseSifirla: () => { koseIstatistik.kezSayisi = 0; koseIstatistik.enBuyukAdim = 0; },
     rakipSayisi: () => (cevrimici && net ? net.oyuncular().length : -1),
     cevrimiciMi: () => cevrimici,
     devAynaBilindiMi: () => giant && giant.id !== 'yok',
