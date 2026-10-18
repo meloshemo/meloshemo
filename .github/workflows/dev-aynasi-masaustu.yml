@@ -1,0 +1,81 @@
+# Dev Aynası — masaüstü paketlerini üretir.
+#
+# Neden GitHub Actions? macOS .dmg yalnızca macOS'ta üretilebilir (Apple'ın
+# araçları başka işletim sisteminde çalışmaz). Burada üç işletim sistemi de
+# GitHub'ın kendi makinelerinde koşuyor; kimsenin elle bir şey yapması
+# gerekmiyor.
+#
+# Çalıştırmak: Actions sekmesinden "Run workflow", ya da bir sürüm etiketi
+# gönder:  git tag dev-aynasi-v1.8.0 && git push --tags
+
+name: Dev Aynası — masaüstü paketi
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["dev-aynasi-v*"]
+
+jobs:
+  paketle:
+    name: ${{ matrix.ad }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, ad: "Windows (.exe)",   hedef: "--win" }
+          - { os: macos-latest,   ad: "macOS (.dmg)",     hedef: "--mac" }
+          - { os: ubuntu-latest,  ad: "Linux (.AppImage)", hedef: "--linux" }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Oyunun kendisinin bağımlılığı yok; testler de öyle. Önce onlar geçsin.
+      - name: Testler
+        working-directory: dev-aynasi
+        run: node test.js
+
+      - name: Masaüstü bağımlılıkları
+        working-directory: dev-aynasi/masaustu
+        run: npm install
+
+      - name: Paketle
+        working-directory: dev-aynasi/masaustu
+        run: npx electron-builder ${{ matrix.hedef }} --publish never
+        env:
+          # İmzalama anahtarları depo gizli anahtarlarından gelir. Yoksa
+          # paket imzasız üretilir (çalışır, ama işletim sistemi uyarı verir).
+          CSC_LINK: ${{ secrets.WINDOWS_CERT_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Çıktıları yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-aynasi-${{ runner.os }}
+          retention-days: 30
+          path: |
+            dev-aynasi/masaustu/cikti/*.exe
+            dev-aynasi/masaustu/cikti/*.dmg
+            dev-aynasi/masaustu/cikti/*.AppImage
+
+  yayinla:
+    name: Sürüm sayfası
+    needs: paketle
+    if: startsWith(github.ref, 'refs/tags/dev-aynasi-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: paketler }
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: paketler/**/*
+          generate_release_notes: true

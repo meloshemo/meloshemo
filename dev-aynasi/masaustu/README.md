@@ -23,9 +23,38 @@ npm run paketle:linux    # Linux: .AppImage
 
 Çıktılar `masaustu/cikti/` altına düşer.
 
-**Not:** Windows için .exe üretmek Windows'ta (ya da Wine kurulu bir Linux'ta)
-yapılır; macOS için .dmg üretmek macOS gerektirir. Her üçünü birden üretmenin
-en kolay yolu GitHub Actions'tır.
+## Hangi paket nerede üretilebilir
+
+| Paket | Linux'ta | Windows'ta | macOS'ta |
+| --- | --- | --- | --- |
+| `.AppImage` (Linux) | ✅ | — | — |
+| `.exe` (Windows) | ✅ **Wine ile** | ✅ | ✅ Wine ile |
+| `.dmg` (macOS) | ❌ | ❌ | ✅ |
+
+Linux'ta Windows paketi üretmek için Wine gerekir — electron-builder, .exe
+dosyasının ikonunu ve sürüm bilgisini yazmak için 32-bit bir Windows aracı
+(`rcedit`) çalıştırır:
+
+```bash
+sudo dpkg --add-architecture i386 && sudo apt-get update
+sudo apt-get install -y wine64 wine32:i386
+```
+
+**macOS .dmg yalnızca macOS'ta üretilir.** Apple'ın paketleme ve imzalama
+araçları başka işletim sisteminde çalışmaz; bunun teknik bir çaresi yok.
+
+## Üçünü birden: GitHub Actions
+
+Depodaki `.github/workflows/dev-aynasi-masaustu.yml` üç işletim sistemini de
+GitHub'ın kendi makinelerinde koşturur; macOS dahil hiçbir şeyi elle yapman
+gerekmez.
+
+```bash
+git tag dev-aynasi-v1.8.0 && git push --tags
+```
+
+Etiket gönderildiğinde üç paket üretilir ve bir sürüm (Release) sayfasına
+yüklenir. Etiketsiz denemek için Actions sekmesinden "Run workflow".
 
 ## Kabuğun yaptıkları
 
@@ -41,7 +70,28 @@ en kolay yolu GitHub Actions'tır.
 
 ## İmzalama
 
-Mağazaya çıkarken Windows'ta kod imzalama sertifikası, macOS'ta Apple
-Developer kimliği + notarization gerekir. İkisi de ücretlidir ve
-`electron-builder` yapılandırmasına eklenir; imzasız sürüm "bilinmeyen
-yayıncı" uyarısı verir.
+İmzasız paket **çalışır**, ama işletim sistemi uyarı gösterir:
+Windows'ta SmartScreen "bilinmeyen yayıncı", macOS'ta Gatekeeper
+"geliştirici doğrulanamadı". Oyuncunun uyarıyı geçmesi gerekir.
+
+Uyarıyı kaldırmak için:
+
+| Platform | Gereken | Yıllık maliyet |
+| --- | --- | --- |
+| Windows | Kod imzalama sertifikası (OV ya da EV) | ~100–400 $ |
+| macOS | Apple Developer Program + notarization | 99 $ |
+
+İkisi de **senin adına verilen özel anahtarlardır**; bende olmamalı ve
+olamaz. GitHub Actions akışı anahtarları depo gizli anahtarlarından
+(`Settings → Secrets`) okuyacak şekilde hazır: `WINDOWS_CERT_BASE64`,
+`WINDOWS_CERT_PASSWORD`, `APPLE_ID`, `APPLE_APP_PASSWORD`, `APPLE_TEAM_ID`.
+Bunlar tanımlı değilse paketler imzasız üretilir.
+
+## Denenmiş sürüm
+
+1.8.0 bu depoda gerçekten paketlendi ve çalıştırıldı:
+
+- `Dev Aynasi-1.8.0.AppImage` — 104 MB
+- `Dev Aynasi 1.8.0.exe` (taşınabilir) ve `Dev Aynasi Setup 1.8.0.exe` — 72 MB
+- Uygulama açıldı, oyun yüklendi, yazı tipleri geldi, X. bölüm 11.996 aynayla
+  oynandı
