@@ -1,5 +1,40 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.3 — Çevrimiçi turnuva gerçekten bitiyor
+Yayın kontrolü için çevrimiçi akışı ilk kez uçtan uca, gerçek sunucuyla ve
+gerçek istemcilerle koşturdum. Birim testleri (18/18) sıralama matematiğini
+doğru ölçüyordu ama canlı akışta tur hiç kapanmıyordu.
+
+**Hata:** tur kadrosu (`katilanlar`) ilk oyuncu "hazırım" dediği anda
+kapanıyordu. Geri sayım sırasında katılmaya izin vermek 1.7.0'da bilerek
+eklenmişti — yoksa iki kişilik yarış kurulamıyordu — ama sonradan katılan
+oyuncu kadroya yazılmıyordu. `turOyunculari()` onu saymadığı için "herkes
+bitirdi" koşulu hiç gerçekleşmiyor, tur yalnızca **süre dolunca**
+kapanıyordu. Dev aynayı bulmak turu bitirmiyordu.
+
+Üç kişilik ölçüm: herkes aynayı buldu (19, 43, 77. saniye), sonra 70 saniye
+boyunca hiçbir eleme olmadı, yalnızca süre sayacı uyarıları geldi.
+
+**Düzeltme:** geri sayım sırasında katılan oyuncu tur kadrosuna yazılıyor ve
+sezgi hakkını alıyor. Aynı yerde ikinci bir adaletsizlik vardı: salon yeni
+oyuncuyla büyüyor (her oyuncu +5.000 ayna) ama **tur süresi büyümüyordu** —
+altı kişilik 30.000 aynalık salon, tek kişilik salonun süresiyle oynanıyordu.
+Süre artık salonla birlikte yeniden hesaplanıyor.
+
+Düzeltme sonrası aynı ölçüm: 4 kişi → 20.133 ayna, turnuva 4→3→2→1 inip
+kazananı belirledi, 3 eleme, tam sıralama.
+
+**Yeni denetim aracı:** `npm run denetim:cevrimici`. Sunucuyu başlatır,
+botları bağlar ve beş şeyi doğrular: turnuva tek kazanana iniyor mu, dev
+aynayı bulmak turu bitiriyor mu, herkes sıralamaya giriyor mu, salon oyuncu
+başına büyüyor mu, eleme sayısı tutarlı mı. Bu hata tam da birim testlerinin
+göremediği yerdeydi: kural dosyası doğru, onu uygulayan sunucu yanlıştı.
+
+**Belgeler:** `ROADMAP.md` ve `multiplayer/README.md` hâlâ "multiplayer oyuna
+bağlı değil" diyordu (1.1.1'den kalma). İkisi de gerçek duruma çekildi;
+ROADMAP artık yayına kalan işleri (sunucu barındırma, imzalama, mağaza)
+listeliyor.
+
 ## 1.9.2 — Oyun artık gerçekten 60 fps
 1.9.1'de kapı ağzı sıçramasını düzelttim ama akışkanlığın peşini bırakmadım.
 İkinci ve daha büyük hata ortaya çıktı: **uyarlanabilir çözünürlük

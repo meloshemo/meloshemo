@@ -442,7 +442,18 @@ wss.on("connection", (ws) => {
       send(ws, "hosgeldin", { benim: me.id, renk: me.renk });
       // Geri sayım sürerken biri katıldıysa herkesin biraz daha vakti olsun.
       if (room.state === "yaris" && Date.now() < room.startAt) {
+        // Turun kadrosuna da yazılır. Yazılmazsa turOyunculari onu saymaz:
+        // ilk oyuncu "hazırım" dediğinde kadro bir kişiyle kapanıyor, sonra
+        // katılanlar yarışıyor ama tur "herkes bitirdi" sayılmıyordu. Tur
+        // yalnızca süre dolunca kapanıyor, dev aynayı bulmak turu
+        // bitirmiyordu.
+        if (room.katilanlar) room.katilanlar.add(me.id);
+        me.sezgi = SEZGI_HAKKI;
         room.startAt = Math.max(room.startAt, Date.now() + Math.min(LOBBY_WAIT, 4000));
+        // Salon yeni oyuncuyla büyüdü; süre de onunla büyür. Yoksa altı
+        // kişilik salon (30.000 ayna) tek kişilik salonun süresiyle oynanır
+        // ve kimse yetişemediği için haksız eleme olur.
+        room.limitMs = turSuresi(hallFor(room, 0).mirrorCount);
         room.deadline = room.startAt + room.limitMs;
         broadcast(room, "baslangic", { baslarAt: room.startAt, sure: room.limitMs });
       }

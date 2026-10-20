@@ -24,6 +24,7 @@ npm run baslat      # yerel sunucu + tarayıcıda aç
 npm test            # 18 regresyon testi (bağımlılık gerektirmez)
 npm run paketle     # tek dosyalık sürümü üret
 npm run denetim     # tam otomatik denetim (Playwright gerekir)
+npm run denetim:cevrimici   # çevrimiçi turnuva denetimi (ws gerekir)
 npm run sunucu      # çevrimiçi turnuva sunucusu (ws gerekir)
 ```
 
@@ -39,7 +40,8 @@ game.js                         oyunun tamamı (çizim, fizik, bölümler)
 maze.js                         labirent üretimi (tarayıcı + Node ortak)
 i18n.js                         TR/EN sözlükler
 test.js                         regresyon testleri
-arac/                           yapı ve denetim araçları
+arac/denetim.js                 oyunun otomatik denetimi
+arac/cevrimici.js               çevrimiçi turnuvanın canlı denetimi
 multiplayer/kural.js            turnuva kuralları (sunucu + testler ortak)
 multiplayer/server.js           WebSocket sunucusu
 multiplayer/net.js              tarayıcı istemcisi

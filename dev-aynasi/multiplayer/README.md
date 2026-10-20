@@ -1,8 +1,10 @@
 # Çevrimiçi yarış (multiplayer) — kurulum ve tasarım
 
-Bu klasör hazır ama **oyuna bağlı değil**: bilgisayarına geçtiğinde tek seferde
-bağlanacak şekilde yazıldı. `game.js` tek kişilik ve düello modlarıyla olduğu
-gibi çalışmaya devam eder.
+Çevrimiçi yarış **oyuna bağlı ve çalışıyor** (1.6.0'dan beri; ana ekrandaki
+"Çevrimiçi yarış" düğmesi). Tek kişilik ve düello modları bundan etkilenmez.
+
+Akışın canlı denetimi: `npm run denetim:cevrimici` — sunucuyu başlatır, botları
+bağlar ve turnuvanın tek kazanana indiğini doğrular.
 
 ## Çalıştırma
 
@@ -11,8 +13,7 @@ npm install ws
 node multiplayer/server.js        # ws://localhost:8787
 ```
 
-Sonra `index.html` içine `multiplayer/net.js` dosyasını ekle ve `game.js`
-içinden bağla (aşağıdaki "Bağlama adımları").
+Oyunu aç, "Çevrimiçi yarış" → sunucu adresi, takma ad ve oda kodu gir.
 
 ## Kararlar ve nedenleri
 
@@ -119,26 +120,20 @@ Sunucu üç senaryoda uçtan uca koşuldu:
   en uzak olanın elenmesi doğrulandı
 - **Bağlantı kopması:** oyuncu ortada ayrılınca tur kilitlenmiyor, ayrılan
   sıralamaya "ayrıldı" olarak yazılıyor
-- **Geç katılım:** yarış başladıktan sonra katılmak reddediliyor
+- **Geç katılım:** geri sayım sürerken katılmaya izin verilir (yoksa iki
+  kişilik yarış pratikte kurulamıyordu); katılan turun kadrosuna yazılır ve
+  salon büyüdüğü için tur süresi de yeniden hesaplanır. Geri sayım bittikten
+  sonra katılmak reddedilir.
 - **Hile:** ışınlanma hız sınırıyla engelleniyor
 
-## Bağlama adımları (bilgisayarında yapılacak)
+## Oyuna bağlanma (tamamlandı)
 
-1. `index.html`'e ekle: `<script src="multiplayer/net.js"></script>`
-2. `game.js` içinde bağlantıyı kur:
-   ```js
-   const net = Net.connect("ws://localhost:8787", { kod: salonKodu, ad: oyuncuAdi });
-   net.on("salon", (s) => { /* s.tohum ve s.boyut ile newRoom çağır, s.decoys'u kullan */ });
-   net.on("baslangic", (b) => { /* b.baslarAt anında sayacı başlat */ });
-   net.on("buldu", (b) => { /* "X, b.bolumAdi bölümünde dev aynayı buldu" bildirimi */ });
-   net.on("bolum", (b) => { /* sen aynadan geçtin: b.tohum/b.boyut ile yeni salonu kur */ });
-   net.on("tamamladi", (b) => { /* X oyunu bitirdi, b.sira */ });
-   net.on("bitti", (b) => { /* b.siralama ile sonuç tablosu */ });
-   ```
-3. Oyun döngüsünde: `net.konum(p.x, p.y)` ve `net.guncelle(dt)`.
-4. Çizimde: `for (const o of net.oyuncular()) drawFigure(o.x, o.y, 1, 1, 0.8, o.renk)`.
-5. Kazanan kararını sunucudan gelen `buldu`/`bitti` mesajlarına bırak; yerel
-   `finish()` yalnızca tek kişilik ve düello modunda çalışsın.
+`index.html` `multiplayer/net.js` dosyasını yüklüyor; `game.js` içindeki
+`cevrimiciBaglan()` bağlantıyı kuruyor ve şu mesajları karşılıyor: `salon`,
+`baslangic`, `tur`, `oyuncular`, `yakin`, `sezgiYon`, `gecti`, `elendi`,
+`sureBitti`, `beraberlik`, `bekle`, `sayac`, `isaret`, `bitti`. Konum her
+karede `net.konum()` ile gidiyor, öbür oyuncular `net.oyuncular()` ile
+çiziliyor, kazanan kararı tamamen sunucuda.
 
 ## Yayına alırken
 

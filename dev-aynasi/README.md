@@ -128,6 +128,7 @@ npm run baslat      # yerel sunucu — http://localhost:8080
 npm test            # 18 regresyon testi
 npm run paketle     # tek dosyalık sürüm (dev-aynasi-tek-dosya.html)
 npm run denetim     # tam otomatik denetim (Playwright gerekir)
+npm run denetim:cevrimici   # çevrimiçi turnuva denetimi (ws gerekir)
 npm run sunucu      # çevrimiçi turnuva sunucusu (ws gerekir)
 ```
 
