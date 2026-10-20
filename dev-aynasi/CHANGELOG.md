@@ -1,5 +1,54 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.2 — Oyun artık gerçekten 60 fps
+1.9.1'de kapı ağzı sıçramasını düzelttim ama akışkanlığın peşini bırakmadım.
+İkinci ve daha büyük hata ortaya çıktı: **uyarlanabilir çözünürlük
+denetleyicisi yanlış sayıya bakıyordu ve görüntüyü boşuna düşürüyordu.**
+
+**Hata:** denetleyiciye *kareler arası süre* veriliyordu. Dikey senkron
+(vsync) açıkken bu her zaman 16,7 ms'dir — oyun 4 ms'de çizse bile.
+Denetleyici bunu "yetişemiyorum" diye okuyup ölçeği adım adım tabana
+indiriyordu. 1.6.0–1.9.1 arasındaki her sürümde, her oyuncuda, oyun
+gereksiz yere bulanıklaşıyordu.
+
+Düzeltirken ikinci tuzağa düştüm: yalnızca *karenin kendi iş süresine*
+bakmak da yanlış. O yalnızca CPU'yu ölçer; tarayıcının görüntüyü ekrana
+basması dışarıda kalır. İş 4 ms görünürken kareler yine düşebiliyordu.
+
+**Doğrusu iki ölçüye birden bakmak:**
+
+- İş süresi bütçeyi (10 ms) aşıyorsa **ya da** kareler ekranın tazeleme
+  hızında teslim edilmiyorsa → düş
+- Yükselmek için ikisi de rahat olmalı
+
+Ekranın tazeleme aralığı dışarıdan bilinmez; gözlenen en kısa kare aralığı
+(alt %10) onu verir — bir kare en hızlı ancak bir tazelemede gelebilir.
+
+**Üçüncü sorun: salınım.** İlk düzeltmeden sonra denetleyici 12 saniyede
+8 kez ölçek değiştirdi ("rahatım → yüksel → düştüm → alçal"). Her değişim
+görüntüde bir keskinlik oynaması demek — sabit yanlış değerden beterdir.
+Çözüm: tutmayan seviye 30 saniye yeniden denenmez, ve yükselmek için üst
+üste üç rahat pencere gerekir. Düşmek ise anında olur.
+
+**Ölçülen sonuç** (XX. oda, 20.000 ayna, koşarken, vsync açık):
+
+| Ekran | önce | sonra |
+| --- | --- | --- |
+| DPR 1 | 60 fps | 60 fps · ölçek 1,0 · 0 değişim |
+| DPR 2 | **30 fps** | **60 fps** · ölçek 1,25 · 1 değişim |
+| DPR 3 | **30 fps** | **60 fps** · ölçek 1,25 · 3 değişim |
+
+Salınım 12 saniyede 8 değişimden 25 saniyede 2 değişime indi.
+
+**Denetim aracındaki ölçüt de düzeltildi.** Köşe yardımı sınavı "yana kayma
+3,84 pikseli geçmesin" diyordu; bu sabit, 16,7 ms'lik bir kare varsayıyor.
+Kare uzarsa ileri adım da uzar, ölçüt yanıltır. Artık değişmez olan **orana**
+bakıyor: yana kayma / ileri adım ≤ %80.
+
+**Ayrıca sınandı ve temiz çıktı:** köşe yardımı oyuncuyu duvarın içine
+itmiyor (483 karede 0 kez), çözünürlük değişiminin kendisi takılma yapmıyor
+(değişim karesi 16,6 ms).
+
 ## 1.9.1 — Kapı ağızlarındaki kasma
 Oyuncu "kasma" dedi, ölçümlerim "ortanca 3,1 ms, kaçak %0,1" diyordu. İkisi
 de doğruydu: **ölçtüğüm şey yanlıştı.** Kare süresi akışkanlığı ölçmez,

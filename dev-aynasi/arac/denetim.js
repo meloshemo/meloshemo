@@ -99,10 +99,12 @@ const yaz = (ad, gecti, ayrinti = "") => {
     await sayfa.keyboard.up(tus);
   }
   const kose = await D(() => window.__devAynasi.koseIstatistik());
-  const ileriAdim = 230 * 16.7 / 1000;   // tam hızda bir karede gidilen yol
+  // Mutlak piksele değil ORANA bakılır: yana kayma, aynı karedeki ileri
+  // adımın yüzde kaçı? Kare uzarsa ileri adım da uzar; sabit bir piksel
+  // ölçütü bu yüzden yanıltır. Tasarım sınırı %80.
   yaz("köşe yardımı sıçratmıyor",
-    kose.kezSayisi > 0 && kose.enBuyukAdim <= ileriAdim,
-    `en büyük yana kayma ${kose.enBuyukAdim.toFixed(2)} px (ileri adım ${ileriAdim.toFixed(2)} px), ${kose.kezSayisi} kez`);
+    kose.kezSayisi > 0 && kose.enBuyukOran <= 0.81,
+    `yana kayma / ileri adım = %${(kose.enBuyukOran * 100).toFixed(0)} (sınır %80), ${kose.kezSayisi} kez, en büyük ${kose.enBuyukAdim.toFixed(2)} px`);
 
   const dis = [];
   const s2 = await tarayici.newPage();

@@ -102,7 +102,7 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.9.1";
+  const SURUM = "1.9.2";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -327,10 +327,26 @@
   // Kademeler ekranın kendi piksel yoğunluğunu geçmez: en üstte tam
   // yoğunluk (2× ekranda 2×) yani mümkün olan en keskin görüntü.
   const OLCEK_KADEMELERI = [1, 1.25, 1.5, 1.75, 2];
-  const KARE_BUTCESI = 13.5;      // ms — 60 fps için güvenli üst sınır
-  const KARE_RAHAT = 7;           // ms — bunun altında kalırsa yükselebilir
+  // Bütçeler, bir karenin KENDİ İŞİNE ayrılan süre içindir — iki kare
+  // arasındaki süre için değil.
+  //
+  // Bu ayrım kritik: ekran dikey senkronla (vsync) çalışırken kareler arası
+  // süre her zaman 16,7 ms'dir, oyun ne kadar hızlı olursa olsun. Denetleyici
+  // bu sayıya bakarsa "yetişemiyorum" sanır ve görüntüyü boşuna düşürür.
+  // 1.6.0–1.9.1 arasında tam olarak bu oluyordu: oyun 4 ms'de çiziyor olsa
+  // bile ölçek adım adım tabana iniyordu.
+  //
+  // İşin kendisi ölçülünce sayı gerçeği söyler: 60 fps için karenin işi
+  // 16,7 ms'lik aralığa tarayıcının birleştirme payıyla birlikte sığmalı.
+  const KARE_BUTCESI = 10;        // ms — işin süresi bunu aşarsa düş
+  const KARE_RAHAT = 6;           // ms — bunun altındaysa yüksel
   let olcekIndex = 2;             // 1.5 ile başla
   let kareOrnekleri = [];
+  let aralikOrnekleri = [];
+  let rahatPencere = 0;                 // üst üste kaç rahat pencere görüldü
+  const yukselmeKilidi = {};            // ölçek indeksi -> ne zamana kadar yasak
+  const KILIT_SURESI = 30000;           // tutmayan seviye 30 saniye denenmez
+  const RAHAT_PENCERE_SAYISI = 3;       // yükselmek için gereken rahat pencere
   let sonOlcekDegisimi = 0;
 
   function ustSinirIndex() {
@@ -342,29 +358,75 @@
   const scale = () => Math.min(OLCEK_KADEMELERI[olcekIndex], window.devicePixelRatio || 1);
 
   // Her karede çağrılır. Ölçek değişirse tuval yeniden boyutlanır.
-  function olcegiAyarla(dtMs, now) {
+  // Ölçek denetimi iki ölçüye birden bakar, çünkü ikisi de TEK BAŞINA
+  // yanıltır:
+  //
+  //   · Kareler arası süre, dikey senkron (vsync) açıkken her zaman
+  //     16,7 ms'dir — oyun 4 ms'de çizse de. Buna bakan denetleyici
+  //     "yetişemiyorum" sanıp görüntüyü boşuna düşürür. (1.6.0–1.9.1'de
+  //     tam olarak bu oluyordu: ölçek adım adım tabana iniyordu.)
+  //
+  //   · Karenin kendi iş süresi ise yalnızca CPU'yu ölçer. Tarayıcının
+  //     görüntüyü ekrana basması (birleştirme) bunun dışında kalır; iş
+  //     4 ms görünürken kareler yine de düşüyor olabilir.
+  //
+  // Doğrusu: İŞ SÜRESİ bütçeyi aşıyorsa YA DA kareler ekrana tazeleme
+  // hızında teslim edilmiyorsa düş. Yükselmek içinse ikisi de rahat olmalı.
+  //
+  // Ekranın tazeleme aralığı dışarıdan bilinmez; gözlenen en kısa kare
+  // aralığı (alt %10) onu verir: bir kare en hızlı ancak bir tazelemede
+  // gelebilir.
+  function olcegiAyarla(isSuresi, aralik, now) {
     if (!ayarlar.otomatikCozunurluk) return;
-    kareOrnekleri.push(dtMs);
+    kareOrnekleri.push(isSuresi);
+    aralikOrnekleri.push(aralik);
     if (kareOrnekleri.length < 60) return;
-    const sirali = kareOrnekleri.slice().sort((a, b) => a - b);
-    const ortanca = sirali[30];
-    // Düşürme kararı ortancaya değil TEPEYE bakar: ortanca rahat görünürken
-    // karelerin altıda biri bütçeyi aşıyorsa oyuncu takılmayı hisseder.
-    const tepe = sirali[Math.floor(sirali.length * 0.85)];
+
+    const siraliIs = kareOrnekleri.slice().sort((a, b) => a - b);
+    const siraliAralik = aralikOrnekleri.slice().sort((a, b) => a - b);
+    const isOrtanca = siraliIs[30];
+    const isTepe = siraliIs[Math.floor(siraliIs.length * 0.85)];
+    const tazeleme = siraliAralik[Math.floor(siraliAralik.length * 0.1)];
+    const aralikOrtanca = siraliAralik[30];
+    // Kare düşüyor mu: teslim aralığı tazelemenin %40'ından fazla uzadıysa.
+    const kareDusuyor = aralikOrtanca > tazeleme * 1.4;
+    const teslimRahat = aralikOrtanca < tazeleme * 1.15;
+
     kareOrnekleri.length = 0;
+    aralikOrnekleri.length = 0;
     // Ölçek değişiminden hemen sonra bir soluk payı: ilk kareler ısınma.
     if (now - sonOlcekDegisimi < 700) return;
+
     const ust = ustSinirIndex();
-    if ((ortanca > KARE_BUTCESI || tepe > 16.7) && olcekIndex > 0) {
+    const zorlaniyor = isOrtanca > KARE_BUTCESI || isTepe > KARE_BUTCESI * 1.4 || kareDusuyor;
+    const rahat = isOrtanca < KARE_RAHAT && isTepe < KARE_BUTCESI && teslimRahat;
+
+    // Düşmek anında olur: oyuncu takılmayı hemen hisseder.
+    if (zorlaniyor && olcekIndex > 0) {
+      // Bu seviye denenip tutmadı: bir süre geri dönülmesin. Yoksa denetleyici
+      // "rahatım → yüksel → düştüm → alçal" diye salınıp durur ve her salınım
+      // görüntüde bir keskinlik değişimi demektir.
+      yukselmeKilidi[olcekIndex] = now + KILIT_SURESI;
+      rahatPencere = 0;
       olcekIndex--;
       sonOlcekDegisimi = now;
       resize();
-    } else if (ortanca < KARE_RAHAT && tepe < KARE_BUTCESI && olcekIndex < ust) {
-      olcekIndex++;
-      sonOlcekDegisimi = now;
-      resize();
+      return;
     }
+
+    // Yükselmek sabır ister: üst üste birkaç rahat pencere görmeden olmaz.
+    if (!rahat) { rahatPencere = 0; return; }
+    rahatPencere++;
+    const hedef = olcekIndex + 1;
+    if (rahatPencere < RAHAT_PENCERE_SAYISI) return;
+    if (hedef > ust) return;
+    if (now < (yukselmeKilidi[hedef] || 0)) return;   // bu seviye yakında tutmadı
+    rahatPencere = 0;
+    olcekIndex = hedef;
+    sonOlcekDegisimi = now;
+    resize();
   }
+
 
   let chapterIndex = 0;
   let carding = 0;          // bölüm kartının ekranda kalacağı ana kadar
@@ -826,17 +888,24 @@
   // oyuncuyu boşluğun ortasına doğru hafifçe kaydır.
   // Köşe yardımının ne sıklıkta ve ne kadar kaydırdığını ölçmek için
   // (denetim araçları okur; oyunun kendisi kullanmaz).
-  const koseIstatistik = { kezSayisi: 0, enBuyukAdim: 0 };
-  function koseKaydir(p, eksen, miktar) {
+  // Önemli olan mutlak piksel değil ORAN: yana kayma, o karede ileri
+  // gidilen mesafenin ne kadarı? Bu oran kare hızından bağımsızdır ve
+  // tasarım gereği KOSE_YARDIM_PAY'i (0,8) asla geçmemelidir. Mutlak
+  // piksele bakmak yanıltır: uzun bir karede ileri adım da büyür.
+  const koseIstatistik = { kezSayisi: 0, enBuyukAdim: 0, enBuyukOran: 0 };
+  function koseKaydir(p, eksen, miktar, ileriAdim) {
     p[eksen] += miktar;
     koseIstatistik.kezSayisi++;
     const m = Math.abs(miktar);
     if (m > koseIstatistik.enBuyukAdim) koseIstatistik.enBuyukAdim = m;
+    const oran = ileriAdim > 0 ? m / ileriAdim : 0;
+    if (oran > koseIstatistik.enBuyukOran) koseIstatistik.enBuyukOran = oran;
   }
 
   function cornerAssist(p, ix, iy, dt) {
     // O karede gerçekte ne kadar yol alındıysa, kaydırma payı ondan çıkar.
-    const adim = Math.hypot(p.vx, p.vy) * dt * KOSE_YARDIM_PAY;
+    const ileriAdim = Math.hypot(p.vx, p.vy) * dt;
+    const adim = ileriAdim * KOSE_YARDIM_PAY;
     if (adim <= 0) return;
     if (ix && !iy) {
       const merkez = (Math.floor(p.y / CELL) + 0.5) * CELL;
@@ -847,7 +916,7 @@
         const cy = Math.floor(p.y / CELL);
         if (hedefCx !== Math.floor(p.x / CELL) &&
             Maze.hasWall(maze, Math.max(0, Math.min(size - 1, hedefCx)), cy, ix > 0 ? "W" : "E")) {
-          koseKaydir(p, "y", yon * Math.min(adim, Math.abs(fark)));
+          koseKaydir(p, "y", yon * Math.min(adim, Math.abs(fark)), ileriAdim);
         }
       }
     } else if (iy && !ix) {
@@ -859,7 +928,7 @@
         const hedefCy = Math.floor((p.y + Math.sign(iy) * (RADIUS + 2)) / CELL);
         if (hedefCy !== Math.floor(p.y / CELL) &&
             Maze.hasWall(maze, cx, Math.max(0, Math.min(size - 1, hedefCy)), iy > 0 ? "N" : "S")) {
-          koseKaydir(p, "x", yon * Math.min(adim, Math.abs(fark)));
+          koseKaydir(p, "x", yon * Math.min(adim, Math.abs(fark)), ileriAdim);
         }
       }
     }
@@ -1671,10 +1740,10 @@
   }
 
   function loop(now) {
+    const isBasi = performance.now();
     const ham = now - lastFrame;
     const dt = Math.min(0.05, ham / 1000 || 0);
     lastFrame = now;
-    if (running && ham > 0 && ham < 200) olcegiAyarla(ham, now);
     if (carding && now > carding) {
       carding = 0;
       els.chapterCard.hidden = true;
@@ -1748,6 +1817,13 @@
         }
       });
       updateHud();
+    }
+    // Karenin işi burada bitti: ölçek denetleyicisi bu süreye bakar.
+    if (running) {
+      const isSuresi = performance.now() - isBasi;
+      if (isSuresi >= 0 && isSuresi < 500 && ham > 0 && ham < 500) {
+        olcegiAyarla(isSuresi, ham, now);
+      }
     }
     requestAnimationFrame(loop);
   }
@@ -2328,8 +2404,21 @@
     lang: () => I18n.lang,
     giantPos: () => ({ ...giantSeg }),
     olcek: () => scale(),
+    isSuresi: () => (kareOrnekleri.length ? kareOrnekleri[kareOrnekleri.length - 1] : -1),
+    // Oyuncu duvarın içinde mi? (yarıçapı duvarı aşıyor mu)
+    duvarIcindeMi(i = 0) {
+      const p = players[i];
+      const cx = Math.max(0, Math.min(size - 1, Math.floor(p.x / CELL)));
+      const cy = Math.max(0, Math.min(size - 1, Math.floor(p.y / CELL)));
+      let asim = 0;
+      if (Maze.hasWall(maze, cx, cy, "W")) asim = Math.max(asim, cx * CELL + RADIUS - p.x);
+      if (Maze.hasWall(maze, cx, cy, "E")) asim = Math.max(asim, p.x - ((cx + 1) * CELL - RADIUS));
+      if (Maze.hasWall(maze, cx, cy, "N")) asim = Math.max(asim, cy * CELL + RADIUS - p.y);
+      if (Maze.hasWall(maze, cx, cy, "S")) asim = Math.max(asim, p.y - ((cy + 1) * CELL - RADIUS));
+      return Math.max(0, asim);
+    },
     koseIstatistik: () => ({ ...koseIstatistik }),
-    koseSifirla: () => { koseIstatistik.kezSayisi = 0; koseIstatistik.enBuyukAdim = 0; },
+    koseSifirla: () => { koseIstatistik.kezSayisi = 0; koseIstatistik.enBuyukAdim = 0; koseIstatistik.enBuyukOran = 0; },
     rakipSayisi: () => (cevrimici && net ? net.oyuncular().length : -1),
     cevrimiciMi: () => cevrimici,
     devAynaBilindiMi: () => giant && giant.id !== 'yok',

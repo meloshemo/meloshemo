@@ -160,6 +160,20 @@ keskinliği yükseltir, kare bütçesi zorlanırsa bir kademe düşürür. Üst 
 ekranın kendi piksel yoğunluğudur. Ayarlar'daki **Akıcılık önceliği** ile
 kapatılabilir; kapalıyken çözünürlük ekranın yoğunluğuna sabitlenir.
 
+Denetleyici iki ölçüye birden bakar: karenin kendi iş süresi **ve** karelerin
+ekrana tazeleme hızında teslim edilip edilmediği. Tek başına ikisi de
+yanıltır — vsync açıkken kareler arası süre her zaman 16,7 ms'dir, iş süresi
+ise tarayıcının ekrana basma payını görmez. Tutmayan bir ölçek 30 saniye
+yeniden denenmez; böylece keskinlik oynayıp durmaz.
+
+Ölçüm (XX. oda, 20.000 ayna, koşarken, vsync açık):
+
+| Ekran | Oturulan ölçek | Kare | Değişim |
+| --- | --- | --- | --- |
+| DPR 1 | 1,0 | 16,7 ms (60 fps) | 0 |
+| DPR 2 | 1,25 | 16,7 ms (60 fps) | 1 |
+| DPR 3 | 1,25 | 16,7 ms (60 fps) | 3 |
+
 Ölçüm (1280×800, en ağır beş oda, kararlı hâl):
 
 | Piksel yoğunluğu | Ortanca kare | %99'luk dilim | Bütçeyi aşan kare |
