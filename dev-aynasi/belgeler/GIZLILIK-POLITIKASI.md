@@ -6,8 +6,9 @@
 ## Kısaca
 
 Dev Aynası hiçbir kişisel veri toplamaz. Hesap açmanız gerekmez, e-posta
-istemez, reklam ve analiz izleyicisi içermez. Oyun içinde tuttuğu tek bilgi
-(en iyi süreniz ve ses tercihiniz) yalnızca kendi cihazınızda kalır.
+istemez, reklam ve analiz izleyicisi içermez. Oyunun tuttuğu her şey
+(ilerlemeniz, en iyi süreleriniz, ayarlarınız) yalnızca kendi cihazınızda
+kalır.
 
 ## 1. Toplanan veriler
 
@@ -18,9 +19,20 @@ depolamasında (`localStorage`) yalnızca sizin cihazınızda saklanır:
 | Anahtar | İçerik |
 | --- | --- |
 | `dev-aynasi:en-iyi:<bölüm>` | O bölümdeki en iyi süreniz (saniye) |
+| `dev-aynasi:acilan` | Açtığınız son bölümün numarası |
+| `dev-aynasi:devam` | Yarıda bıraktığınız oyun: bölüm, salon tohumu, geçen süre |
+| `dev-aynasi:sonsuz-rekor` | Sonsuz salonda geçtiğiniz oda sayısı rekoru |
+| `dev-aynasi:ayarlar` | Parlaklık, "az hareket" ve otomatik çözünürlük tercihleri |
+| `dev-aynasi:dil` | Dil seçiminiz (Türkçe ya da İngilizce) |
+| `dev-aynasi:cevrimici` | Çevrimiçi yarış alanlarına **kendi yazdığınız** takma ad, oda kodu ve sunucu adresi |
 
 Bu kayıtlar bize ulaşmaz, başka kimseyle paylaşılmaz. Tarayıcınızın site
-verilerini temizlediğinizde silinirler.
+verilerini temizlediğinizde (Android'de: uygulama verilerini silince)
+hepsi gider.
+
+`dev-aynasi:cevrimici` içindeki takma ad yalnızca bir sonraki yarışta alanı
+sizin için önceden doldurmak üzere saklanır; siz çevrimiçi moda girmedikçe
+hiçbir yere gönderilmez.
 
 ### 1.2 Çevrimiçi yarış (multiplayer)
 Çevrimiçi mod açıldığında, yalnızca oyunun çalışması için gereken şunlar

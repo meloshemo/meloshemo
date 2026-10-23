@@ -18,6 +18,7 @@
     "ikon": "node arac/ikon.js",
     "magaza": "node arac/magaza-gorsel.js",
     "magaza:denetim": "node arac/magaza-denetim.js",
+    "belge:html": "node arac/belge-html.js",
     "masaustu": "node arac/masaustu.js",
     "start": "node arac/sun.js",
     "build": "node arac/paketle.js"

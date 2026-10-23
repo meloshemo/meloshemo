@@ -5,8 +5,8 @@
 ## In short
 
 Dev Aynası collects no personal data. There is no account, no email, no
-advertising or analytics tracker. The only things the game remembers (your best
-time and your sound preference) stay on your own device.
+advertising or analytics tracker. Everything the game remembers — your
+progress, your best times, your settings — stays on your own device.
 
 ## 1. Data we handle
 
@@ -17,10 +17,18 @@ storage, on your device only:
 | Key | Contents |
 | --- | --- |
 | `dev-aynasi:en-iyi:<room>` | Your best time for that room, in seconds |
+| `dev-aynasi:acilan` | The highest room you have unlocked |
+| `dev-aynasi:devam` | An unfinished run: room, hall seed, elapsed time |
+| `dev-aynasi:sonsuz-rekor` | Your record number of rooms in the endless hall |
+| `dev-aynasi:ayarlar` | Brightness, "reduced motion" and auto-resolution preferences |
 | `dev-aynasi:dil` | Your language choice (Turkish or English) |
+| `dev-aynasi:cevrimici` | The nickname, room code and server address **you typed** into the online race fields |
 
 We never receive these values and never share them. Clearing your browser's
-site data deletes them.
+site data — on Android, clearing the app's data — deletes all of them.
+
+The nickname in `dev-aynasi:cevrimici` is kept only to pre-fill the field for
+your next race; it is sent nowhere unless you enter the online mode.
 
 ### 1.2 Online race (multiplayer)
 When the online mode is enabled, only what the game needs to run is sent to the
