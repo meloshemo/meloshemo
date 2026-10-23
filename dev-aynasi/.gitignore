@@ -14,3 +14,18 @@ masaustu/node_modules/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Android paketi
+# www/ üretilen dosyadır (hazirla.js), android/ ise şablondan üretilip
+# sonra elle yapılandırıldı: o yüzden android/ depoda durur, çıktıları
+# ve imza anahtarı durmaz.
+mobil/node_modules/
+mobil/www/
+mobil/android/build/
+mobil/android/app/build/
+mobil/android/.gradle/
+mobil/android/local.properties
+mobil/android/keystore.properties
+mobil/android/app/src/main/assets/public/
+*.keystore
+*.jks

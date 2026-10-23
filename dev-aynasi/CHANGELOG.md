@@ -1,5 +1,67 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.4 — Android paketi
+İlk hedef Android oldu. Oyun kodu değişmedi: tek dosyalık web sürümü bir
+WebView içinde çalışıyor, `game.js` hem telefonda hem masaüstünde aynı.
+
+**Yeni:** `mobil/` klasörü — Capacitor ile kurulmuş Android projesi.
+`com.meloshemo.devaynasi`, API 24–36, tek izin `INTERNET`, yatay kilit,
+tam ekran (durum ve gezinme çubukları gizli), ekran uyumuyor, geri tuşu
+iki basışta çıkarıyor.
+
+**Çevrimiçi yarışta bulunan engel:** Android paketi sayfayı
+`https://localhost` olarak sunuyor. Tarayıcı güvenli bir sayfadan `ws://`
+bağlantısına izin vermiyor ve bunu **sessizce** engelliyor — bağlantı ne
+açılıyor ne hata veriyor, oyuncu "Bağlanılıyor…" yazısında sonsuza kadar
+bekliyor. Oyun artık güvenli sayfada koştuğunu fark edip varsayılan adresi
+`wss://` gösteriyor ve `ws://` yazılırsa bağlanmadan önce söylüyor.
+Geçersiz adreste `new WebSocket`'in attığı senkron hata da yakalanıyor;
+eskiden oyun o yazıda donup kalıyordu.
+
+**Android 15 tuzağı:** geri tuşu önce `onBackPressed()` ile karşılanıyordu.
+Hedef API 36 ve Android 15'ten beri öngörülü geri (predictive back)
+varsayılan olarak açık; o durumda `onBackPressed()` hiç çağrılmıyor. Çift
+basışla çıkış sessizce çalışmaz, oyuncu 20.000 aynalık salonun ortasında
+tek dokunuşla oyundan düşerdi. Geri dağıtıcısına (`OnBackPressedCallback`)
+geçildi; her iki dünyada da çalışıyor.
+
+**Capacitor şablonundaki eksik:** üretilen `styles.xml` `@color/colorPrimary`,
+`colorPrimaryDark` ve `colorAccent` istiyor ama tanımlarını getirmiyordu.
+Derleme "resource not found" ile duracaktı. Renkler oyunun paletinden
+tanımlandı.
+
+**Yeni araçlar:**
+- `npm run denetim:mobil` — oyunu 1920×1080 ve 1080×1920'de, gerçek
+  dokunmatik girdiyle (CDP) açıyor; dört yönde yürüme, karenin iş süresi,
+  ekran taşması ve konsol hatası ölçülüyor. 8/8.
+- `npm run ikon` — ikon setinin tamamını tek SVG'den üretiyor: beş yoğunluk
+  için eski ikon, uyarlanabilir ikonun ön ve arka katmanları, Play'in
+  512×512 mağaza ikonu. Ön katman güvenli alana (108 birimin ortadaki 72'si)
+  sığdırılıyor.
+- `npm run magaza` — Play'in zorunlu tuttuğu 1024×500 özellik grafiğini
+  oyunun kendi tipografisiyle üretiyor (TR + EN).
+- `npm run magaza:denetim` — mağaza metinlerinin karakter sınırlarını ve
+  görsellerin boyut/saydamlık şartlarını ölçüyor. 12/12.
+
+**Mağaza metinleri:** `belgeler/PLAY-MAGAZA-METNI.md` ve
+`belgeler/en/PLAY-STORE-COPY.md` — Play Console'a doğrudan yapıştırılacak
+her alan, artı veri güvenliği formu ve içerik derecelendirme anketi
+cevapları. Gizlilik politikasına Android bölümü eklendi.
+
+**GitHub Actions:** `.aab` ve `.apk` üreten iş akışı. Android SDK bu
+geliştirme kabında kurulamıyor (ağ politikası `dl.google.com`'u kapatıyor)
+ve imza anahtarı zaten depoya girmemeli; ikisi de GitHub'ın makinesinde
+çözülüyor.
+
+**Ölçüm:** telefon denetimi 8/8 (kare iş süresi ortanca 0,6–0,7 ms, dört
+yönde de yürüyor, ekran taşmıyor), mağaza denetimi 12/12, oyun denetimi
+6/6, çevrimiçi 5/5, test 18/18.
+
+Yatay kilit ölçümle karara bağlandı: ışık yarıçapı sabit dünya birimi
+olduğu için yön oyuncuya avantaj vermiyor, ikisi de çalışıyor. Yatay
+seçildi çünkü daha az ekran boşa gidiyor ve HUD ile perdeler zaten geniş
+düzende.
+
 ## 1.9.3 — Çevrimiçi turnuva gerçekten bitiyor
 Yayın kontrolü için çevrimiçi akışı ilk kez uçtan uca, gerçek sunucuyla ve
 gerçek istemcilerle koşturdum. Birim testleri (18/18) sıralama matematiğini

@@ -25,6 +25,10 @@ npm test            # 18 regresyon testi (bağımlılık gerektirmez)
 npm run paketle     # tek dosyalık sürümü üret
 npm run denetim     # tam otomatik denetim (Playwright gerekir)
 npm run denetim:cevrimici   # çevrimiçi turnuva denetimi (ws gerekir)
+npm run denetim:mobil       # telefon ölçülerinde dokunmatik denetim
+npm run ikon                # ikon setini SVG'den üret (Android + Play)
+npm run magaza              # Play özellik grafiğini üret
+npm run magaza:denetim      # mağaza metni sınırları ve görselleri denetle
 npm run sunucu      # çevrimiçi turnuva sunucusu (ws gerekir)
 ```
 
@@ -42,6 +46,10 @@ i18n.js                         TR/EN sözlükler
 test.js                         regresyon testleri
 arac/denetim.js                 oyunun otomatik denetimi
 arac/cevrimici.js               çevrimiçi turnuvanın canlı denetimi
+arac/mobil-denetim.js           telefon ölçülerinde dokunmatik denetim
+arac/ikon.js  arac/magaza-*.js  ikon ve mağaza görselleri
+mobil/                          Android paketi (Capacitor)
+masaustu/                       masaüstü paketi (Electron)
 multiplayer/kural.js            turnuva kuralları (sunucu + testler ortak)
 multiplayer/server.js           WebSocket sunucusu
 multiplayer/net.js              tarayıcı istemcisi
@@ -68,6 +76,9 @@ Bunlar oyuncu geri bildirimiyle oturmuş kararlardır; değiştirmeden önce sor
 5. **Kare düşmez.** Çizim döngüsünde nesne üretilmez, ekranı kaplayan
    boyamalar önbellekten basılır, çözünürlük kare süresine göre kendini
    ayarlar.
+6. **Oyun tek bir koddur.** Android ve masaüstü paketleri aynı `game.js`'i
+   çalıştırır; platforma özel oyun kodu yazılmaz. Paket kabuğu (yön kilidi,
+   tam ekran, geri tuşu) `mobil/` ve `masaustu/` altında kalır.
 
 ## Ölçmeden iddia etme
 

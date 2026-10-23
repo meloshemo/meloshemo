@@ -1,6 +1,6 @@
 {
   "name": "dev-aynasi",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "description": "Dev Aynası — binlerce aynadan yalnızca biri seni devasa gösteriyor. Bir Türkçe deyimin oyunu.",
   "author": "Osman Melih Yılmaz <y.osmanmelih@gmail.com>",
   "license": "SEE LICENSE IN LICENSE",
@@ -14,6 +14,10 @@
     "sunucu": "node multiplayer/server.js",
     "denetim": "node arac/denetim.js",
     "denetim:cevrimici": "node arac/cevrimici.js",
+    "denetim:mobil": "node arac/mobil-denetim.js",
+    "ikon": "node arac/ikon.js",
+    "magaza": "node arac/magaza-gorsel.js",
+    "magaza:denetim": "node arac/magaza-denetim.js",
     "masaustu": "node arac/masaustu.js",
     "start": "node arac/sun.js",
     "build": "node arac/paketle.js"

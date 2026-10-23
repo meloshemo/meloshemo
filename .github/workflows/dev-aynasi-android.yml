@@ -1,0 +1,115 @@
+# Dev Aynası — Android paketini (.aab ve .apk) üretir.
+#
+# Neden burada? Android SDK'sı geliştirme kabında kurulu değil ve imza
+# anahtarı hiçbir zaman depoya girmemeli. GitHub Actions'ın ubuntu
+# makinesinde SDK hazır geliyor, anahtar da repo secret'ından okunuyor.
+#
+# Çalıştırmak: Actions sekmesinden "Run workflow", ya da sürüm etiketi gönder:
+#   git tag dev-aynasi-v1.9.4 && git push --tags
+#
+# Google Play'e yüklenecek dosya .aab'dir. .apk yalnızca telefona doğrudan
+# kurup denemek için üretilir.
+#
+# Gereken repo secret'ları (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64   imza deposunun base64'ü:
+#                             base64 -w0 dev-aynasi.jks
+#   ANDROID_KEYSTORE_PASSWORD depo şifresi
+#   ANDROID_KEY_ALIAS         anahtar adı (ör. dev-aynasi)
+#   ANDROID_KEY_PASSWORD      anahtar şifresi
+#
+# Secret'lar tanımlı değilse paket imzasız üretilir: Play kabul etmez ama
+# derlemenin bozulup bozulmadığını görmek için yeter.
+
+name: Dev Aynası — Android paketi
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["dev-aynasi-v*"]
+
+jobs:
+  paketle:
+    name: Android (.aab + .apk)
+    runs-on: ubuntu-latest
+
+    # Secret'lar `if:` koşullarında doğrudan okunamaz; job seviyesinde env'e
+    # alınıp koşullarda env üzerinden bakılır.
+    env:
+      IMZA_VAR: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      # Oyunun kendisi bozuksa paketlemenin anlamı yok.
+      - name: Oyun testleri
+        working-directory: dev-aynasi
+        run: node test.js
+
+      - name: Capacitor bağımlılıkları
+        working-directory: dev-aynasi/mobil
+        run: npm ci
+
+      # Tek dosyalık oyunu üretip www/ içine koyar, sonra native projeye
+      # kopyalar.
+      - name: Web içeriğini hazırla
+        working-directory: dev-aynasi/mobil
+        run: |
+          node hazirla.js
+          npx cap sync android
+
+      - name: İmza anahtarını aç
+        if: env.IMZA_VAR == 'true'
+        working-directory: dev-aynasi/mobil/android
+        env:
+          DEPO_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          DEPO_SIFRESI: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANAHTAR_ADI: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANAHTAR_SIFRESI: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$DEPO_B64" | base64 -d > imza.jks
+          cat > keystore.properties <<SON
+          depoYolu=../imza.jks
+          depoSifresi=$DEPO_SIFRESI
+          anahtarAdi=$ANAHTAR_ADI
+          anahtarSifresi=$ANAHTAR_SIFRESI
+          SON
+
+      - name: Derle
+        working-directory: dev-aynasi/mobil/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon bundleRelease assembleRelease
+
+      # Anahtar diskte kalmasın.
+      - name: İmza anahtarını sil
+        if: always()
+        working-directory: dev-aynasi/mobil/android
+        run: rm -f imza.jks keystore.properties
+
+      - name: İmza doğrulaması
+        if: env.IMZA_VAR == 'true'
+        working-directory: dev-aynasi/mobil/android
+        run: |
+          AAB=$(find . -name '*-release.aab' | head -1)
+          echo "Paket: $AAB"
+          # jarsigner her JDK'da var; imzasız paketi burada yakalarız.
+          jarsigner -verify -verbose:summary "$AAB" | tail -5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dev-aynasi-android
+          if-no-files-found: error
+          path: |
+            dev-aynasi/mobil/android/app/build/outputs/bundle/release/*.aab
+            dev-aynasi/mobil/android/app/build/outputs/apk/release/*.apk

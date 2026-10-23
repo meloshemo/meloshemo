@@ -102,7 +102,7 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.9.3";
+  const SURUM = "1.9.4";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -1887,6 +1887,29 @@
   // oku da aynı nedenle sunucudan gelir.
   const ONLINE_KEY = "dev-aynasi:cevrimici";
 
+  // Turnuva sunucusunun yayındaki adresi. Sunucu bir yere konduğunda
+  // değişecek tek satır burası. Boş bırakılırsa oyuncu adresi kendi yazar.
+  const SUNUCU = "";
+
+  // Sayfa https üzerinden açıldığında (Android paketi sayfayı
+  // `https://localhost` olarak sunar, web sürümü de https'tedir) tarayıcı
+  // `ws://` bağlantısını karışık içerik sayıp engeller. Engelleme sessizdir:
+  // bağlantı ne açılır ne hata verir, oyuncu sonsuza kadar bekler. Bu yüzden
+  // hem varsayılan adres ortama göre seçilir hem de yanlış şema girilirse
+  // bağlanmadan önce söylenir.
+  const guvenliGerekiyor = () => location.protocol === "https:";
+
+  function varsayilanSunucu() {
+    if (SUNUCU) return SUNUCU;
+    return guvenliGerekiyor() ? "wss://" : "ws://localhost:8787";
+  }
+
+  function adresSorunu(url) {
+    if (!/^wss?:\/\/.+/i.test(url)) return I18n.t("onlineBadUrl");
+    if (guvenliGerekiyor() && /^ws:\/\//i.test(url)) return I18n.t("onlineNeedsWss");
+    return null;
+  }
+
   function cevrimiciAyar() {
     try {
       return JSON.parse(localStorage.getItem(ONLINE_KEY) || "{}");
@@ -1929,7 +1952,15 @@
     duel = false;
     endless = false;
     els.onlineStatus.textContent = I18n.t("onlineConnecting");
-    net = Net.connect(url, { ad, kod: oda });
+    // Geçersiz adreste `new WebSocket` senkron hata atar; yakalanmazsa
+    // oyun "Bağlanılıyor…" yazısında donup kalır.
+    try {
+      net = Net.connect(url, { ad, kod: oda });
+    } catch (err) {
+      cevrimici = false;
+      els.onlineStatus.textContent = I18n.t("onlineBadUrl");
+      return;
+    }
 
     net.on("kapandi", () => {
       if (!running) els.onlineStatus.textContent = I18n.t("onlineFailed");
@@ -2001,7 +2032,7 @@
     const a = cevrimiciAyar();
     els.onlineName.value = a.ad || "";
     els.onlineRoom.value = a.oda || "genel";
-    els.onlineUrl.value = a.url || "ws://localhost:8787";
+    els.onlineUrl.value = a.url || varsayilanSunucu();
     els.onlineStatus.textContent = "";
     els.online.hidden = false;
   });
@@ -2009,7 +2040,9 @@
   els.onlineJoin.addEventListener("click", () => {
     const ad = (els.onlineName.value || "Oyuncu").trim().slice(0, 14);
     const oda = (els.onlineRoom.value || "genel").trim().slice(0, 12);
-    const url = (els.onlineUrl.value || "ws://localhost:8787").trim();
+    const url = (els.onlineUrl.value || varsayilanSunucu()).trim();
+    const sorun = adresSorunu(url);
+    if (sorun) { els.onlineStatus.textContent = sorun; return; }
     cevrimiciAyarKaydet({ ad, oda, url });
     cevrimiciBaglan(url, ad, oda);
   });
@@ -2417,6 +2450,9 @@
       if (Maze.hasWall(maze, cx, cy, "S")) asim = Math.max(asim, p.y - ((cy + 1) * CELL - RADIUS));
       return Math.max(0, asim);
     },
+    // Oyuncunun salon içindeki konumu — dokunmatik denetimi bununla
+    // gerçekten yürüdüğünü ölçüyor.
+    oyuncuKonum: (i = 0) => ({ x: players[i].x, y: players[i].y }),
     koseIstatistik: () => ({ ...koseIstatistik }),
     koseSifirla: () => { koseIstatistik.kezSayisi = 0; koseIstatistik.enBuyukAdim = 0; koseIstatistik.enBuyukOran = 0; },
     rakipSayisi: () => (cevrimici && net ? net.oyuncular().length : -1),

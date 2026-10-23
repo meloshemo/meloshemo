@@ -48,8 +48,17 @@ Yazı tipleri de dahil her şey oyunun içindedir; oyun çevrimdışı da aynı
 yükleniyordu ve bu istek sırasında IP adresiniz Google'a ulaşıyordu. Bu
 bağlantı tamamen kaldırıldı.)
 
-Steam üzerinden dağıtılan sürümde Valve'ın kendi veri işleme kuralları
-geçerlidir; oyunun kendisi Steam'e ek bir veri göndermez.
+Steam üzerinden dağıtılan sürümde Valve'ın, Google Play üzerinden dağıtılan
+sürümde Google'ın kendi veri işleme kuralları geçerlidir; oyunun kendisi bu
+mağazalara ek bir veri göndermez.
+
+### 3.1 Android sürümü
+Android paketi oyunun web sürümünün birebir aynısıdır; bir WebView içinde
+çalışır. Tek izin `INTERNET`'tir ve yalnızca çevrimiçi yarış için
+kullanılır. Tek kişilik oyun internet olmadan da çalışır. Reklam kimliği
+istenmez, analiz paketi (SDK) yoktur, çökme raporu gönderilmez. Android'in
+kendi yedekleme özelliği açıktır: en iyi süreleriniz cihaz yedeğinize
+girebilir — bu yedek Google hesabınızda durur, bize ulaşmaz.
 
 ## 4. Çocuklar
 

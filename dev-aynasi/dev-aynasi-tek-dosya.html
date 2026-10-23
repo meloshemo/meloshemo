@@ -712,7 +712,7 @@ body.sinema canvas { cursor: crosshair; }
               <button id="privacyBtn" class="btn" type="button" data-i18n="privacy">Gizlilik</button>
               <button id="settingsClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
             </div>
-            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.9.3</b></p>
+            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.9.4</b></p>
           </div>
         </div>
 
@@ -911,6 +911,8 @@ body.sinema canvas { cursor: crosshair; }
       onlineConnecting: "Bağlanılıyor…",
       onlineWaiting: (n) => `Salonda ${n} kişi — herkes hazır olunca başlıyor`,
       onlineFailed: "Sunucuya ulaşılamadı. Adresi kontrol et ya da kendi sunucunu çalıştır: npm run sunucu",
+      onlineBadUrl: "Sunucu adresi ws:// ya da wss:// ile başlamalı.",
+      onlineNeedsWss: "Bu sürümde adres wss:// ile başlamalı. Güvenli sayfadan ws:// bağlantısına izin verilmiyor.",
       onlineLeft: "Çevrimiçi yarıştan çıkıldı",
       onlineRound: (n, k) => `${n}. tur · ${k} kişi`,
       onlineFound: (ad, s) => `${ad} aynayı buldu (${s}.)`,
@@ -1020,6 +1022,8 @@ body.sinema canvas { cursor: crosshair; }
       onlineConnecting: "Connecting…",
       onlineWaiting: (n) => `${n} in the hall — starts when everyone is ready`,
       onlineFailed: "Could not reach the server. Check the address, or run your own: npm run sunucu",
+      onlineBadUrl: "The server address must start with ws:// or wss://.",
+      onlineNeedsWss: "On this build the address must start with wss://. A secure page cannot open a ws:// connection.",
       onlineLeft: "Left the online race",
       onlineRound: (n, k) => `Round ${n} · ${k} players`,
       onlineFound: (ad, s) => `${ad} found the mirror (${s})`,
@@ -1673,7 +1677,7 @@ body.sinema canvas { cursor: crosshair; }
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.9.3";
+  const SURUM = "1.9.4";
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -3458,6 +3462,29 @@ body.sinema canvas { cursor: crosshair; }
   // oku da aynı nedenle sunucudan gelir.
   const ONLINE_KEY = "dev-aynasi:cevrimici";
 
+  // Turnuva sunucusunun yayındaki adresi. Sunucu bir yere konduğunda
+  // değişecek tek satır burası. Boş bırakılırsa oyuncu adresi kendi yazar.
+  const SUNUCU = "";
+
+  // Sayfa https üzerinden açıldığında (Android paketi sayfayı
+  // `https://localhost` olarak sunar, web sürümü de https'tedir) tarayıcı
+  // `ws://` bağlantısını karışık içerik sayıp engeller. Engelleme sessizdir:
+  // bağlantı ne açılır ne hata verir, oyuncu sonsuza kadar bekler. Bu yüzden
+  // hem varsayılan adres ortama göre seçilir hem de yanlış şema girilirse
+  // bağlanmadan önce söylenir.
+  const guvenliGerekiyor = () => location.protocol === "https:";
+
+  function varsayilanSunucu() {
+    if (SUNUCU) return SUNUCU;
+    return guvenliGerekiyor() ? "wss://" : "ws://localhost:8787";
+  }
+
+  function adresSorunu(url) {
+    if (!/^wss?:\/\/.+/i.test(url)) return I18n.t("onlineBadUrl");
+    if (guvenliGerekiyor() && /^ws:\/\//i.test(url)) return I18n.t("onlineNeedsWss");
+    return null;
+  }
+
   function cevrimiciAyar() {
     try {
       return JSON.parse(localStorage.getItem(ONLINE_KEY) || "{}");
@@ -3500,7 +3527,15 @@ body.sinema canvas { cursor: crosshair; }
     duel = false;
     endless = false;
     els.onlineStatus.textContent = I18n.t("onlineConnecting");
-    net = Net.connect(url, { ad, kod: oda });
+    // Geçersiz adreste `new WebSocket` senkron hata atar; yakalanmazsa
+    // oyun "Bağlanılıyor…" yazısında donup kalır.
+    try {
+      net = Net.connect(url, { ad, kod: oda });
+    } catch (err) {
+      cevrimici = false;
+      els.onlineStatus.textContent = I18n.t("onlineBadUrl");
+      return;
+    }
 
     net.on("kapandi", () => {
       if (!running) els.onlineStatus.textContent = I18n.t("onlineFailed");
@@ -3572,7 +3607,7 @@ body.sinema canvas { cursor: crosshair; }
     const a = cevrimiciAyar();
     els.onlineName.value = a.ad || "";
     els.onlineRoom.value = a.oda || "genel";
-    els.onlineUrl.value = a.url || "ws://localhost:8787";
+    els.onlineUrl.value = a.url || varsayilanSunucu();
     els.onlineStatus.textContent = "";
     els.online.hidden = false;
   });
@@ -3580,7 +3615,9 @@ body.sinema canvas { cursor: crosshair; }
   els.onlineJoin.addEventListener("click", () => {
     const ad = (els.onlineName.value || "Oyuncu").trim().slice(0, 14);
     const oda = (els.onlineRoom.value || "genel").trim().slice(0, 12);
-    const url = (els.onlineUrl.value || "ws://localhost:8787").trim();
+    const url = (els.onlineUrl.value || varsayilanSunucu()).trim();
+    const sorun = adresSorunu(url);
+    if (sorun) { els.onlineStatus.textContent = sorun; return; }
     cevrimiciAyarKaydet({ ad, oda, url });
     cevrimiciBaglan(url, ad, oda);
   });
@@ -3988,6 +4025,9 @@ body.sinema canvas { cursor: crosshair; }
       if (Maze.hasWall(maze, cx, cy, "S")) asim = Math.max(asim, p.y - ((cy + 1) * CELL - RADIUS));
       return Math.max(0, asim);
     },
+    // Oyuncunun salon içindeki konumu — dokunmatik denetimi bununla
+    // gerçekten yürüdüğünü ölçüyor.
+    oyuncuKonum: (i = 0) => ({ x: players[i].x, y: players[i].y }),
     koseIstatistik: () => ({ ...koseIstatistik }),
     koseSifirla: () => { koseIstatistik.kezSayisi = 0; koseIstatistik.enBuyukAdim = 0; koseIstatistik.enBuyukOran = 0; },
     rakipSayisi: () => (cevrimici && net ? net.oyuncular().length : -1),

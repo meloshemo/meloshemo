@@ -45,8 +45,16 @@ site. Everything — fonts included — ships inside the game, and it works the
 same offline. (Before 1.8.0 the fonts loaded from Google Fonts and that
 request exposed your IP address to Google. That connection is now gone.)
 
-On Steam, Valve's own data practices apply; the game itself sends Steam no
-additional data.
+On Steam, Valve's own data practices apply; on Google Play, Google's do. The
+game itself sends these stores no additional data.
+
+### 3.1 Android build
+The Android package is the web version of the game, unchanged, running inside
+a WebView. Its only permission is `INTERNET`, used solely for the online
+race. Single-player works with no connection at all. No advertising ID is
+requested, there is no analytics SDK, and no crash reports are sent. Android's
+own backup is enabled, so your best times may be included in your device
+backup — that backup lives in your Google account and never reaches us.
 
 ## 4. Children
 

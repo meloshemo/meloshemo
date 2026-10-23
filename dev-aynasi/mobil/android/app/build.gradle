@@ -1,0 +1,97 @@
+apply plugin: 'com.android.application'
+
+// İmza bilgileri depoda durmaz. İki yoldan biriyle gelir:
+//   1. mobil/android/keystore.properties  (yerelde, .gitignore'da)
+//   2. ANAHTAR_* ortam değişkenleri        (GitHub Actions'ta, secret olarak)
+// Hiçbiri yoksa release imzasız üretilir (yalnızca yerel deneme için).
+def imzaOzellikleri = new Properties()
+def imzaDosyasi = rootProject.file("keystore.properties")
+if (imzaDosyasi.exists()) {
+    imzaDosyasi.withInputStream { imzaOzellikleri.load(it) }
+}
+def anahtarYolu = imzaOzellikleri['depoYolu'] ?: System.getenv('ANAHTAR_DEPO_YOLU')
+def anahtarSifre = imzaOzellikleri['depoSifresi'] ?: System.getenv('ANAHTAR_DEPO_SIFRESI')
+def anahtarAdi = imzaOzellikleri['anahtarAdi'] ?: System.getenv('ANAHTAR_ADI')
+def anahtarAnahtarSifre = imzaOzellikleri['anahtarSifresi'] ?: System.getenv('ANAHTAR_SIFRESI')
+def imzaVar = anahtarYolu != null && file(anahtarYolu).exists()
+
+android {
+    namespace = "com.meloshemo.devaynasi"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.meloshemo.devaynasi"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // Sürüm numarası oyunun sürümünden türer: 1.9.3 -> 10903.
+        // Google Play her yüklemede versionCode'un artmasını ister.
+        versionCode 10904
+        versionName "1.9.4"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    if (imzaVar) {
+        signingConfigs {
+            release {
+                storeFile file(anahtarYolu)
+                storePassword anahtarSifre
+                keyAlias anahtarAdi
+                keyPassword anahtarAnahtarSifre
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // Paketin içinde karartılacak Java kodu yok: oyun WebView'de
+            // koşuyor, JS'e proguard dokunmaz. Açık bırakmak derlemeyi
+            // hızlandırıyor ve hata ayıklamayı kolaylaştırıyor.
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (imzaVar) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    packagingOptions {
+        // Oyun tek bir HTML dosyası; sıkıştırma zaten içinde.
+        jniLibs { useLegacyPackaging = false }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    // MainActivity geri tuşunu OnBackPressedCallback ile karşılıyor; bu
+    // sınıf androidx.activity'de. Capacitor zaten dolaylı olarak getiriyor
+    // ama dolaylı bağımlılığa yaslanmak sürüm yükseltmesinde kırılır.
+    implementation "androidx.activity:activity:$androidxActivityVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
