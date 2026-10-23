@@ -27,5 +27,6 @@ mobil/android/.gradle/
 mobil/android/local.properties
 mobil/android/keystore.properties
 mobil/android/app/src/main/assets/public/
+mobil/cikti/
 *.keystore
 *.jks

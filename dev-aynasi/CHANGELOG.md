@@ -57,6 +57,20 @@ ve imza anahtarı zaten depoya girmemeli; ikisi de GitHub'ın makinesinde
 yönde de yürüyor, ekran taşmıyor), mağaza denetimi 12/12, oyun denetimi
 6/6, çevrimiçi 5/5, test 18/18.
 
+**Derleme doğrulandı.** Android SDK kurulup paket gerçekten üretildi:
+`app-release.aab` 4,3 MB, `app-release.apk` 4,5 MB, denemelik imzalı
+`app-debug.apk` 5,5 MB. Paketin içi de denetlendi — `versionCode` 10904,
+`versionName` 1.9.4, `minSdk` 24, `targetSdk` 36, yön
+`sensorLandscape` (6), tek izin `INTERNET`, oyunun tamamı tek dosya olarak
+`assets/public/index.html` (488 KB) ve uyarlanabilir ikon üç katmanıyla
+(arka, ön, tek renk) içeride.
+
+Çalışırken sınanmadı: bu makinede sanallaştırma kapalı (KVM yok), emülatör
+ancak yazılımdan taklitle koşar ve 60 fps'lik bir tuval oyunu için anlamlı
+bir ölçüm vermez. Oyun tarafı gerçek tarayıcıda telefon ölçüleriyle ve
+gerçek dokunmatik girdiyle denetlendi (8/8); sınanmayan tek şey WebView'e
+özgü davranış.
+
 Yatay kilit ölçümle karara bağlandı: ışık yarıçapı sabit dünya birimi
 olduğu için yön oyuncuya avantaj vermiyor, ikisi de çalışıyor. Yatay
 seçildi çünkü daha az ekran boşa gidiyor ve HUD ile perdeler zaten geniş

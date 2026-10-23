@@ -39,7 +39,14 @@ npm run aab          # imzalı .aab (Google Play'e yüklenecek dosya)
 ```
 
 Bu komutlar **Android SDK** ister. Yoksa derleme adımı patlar; kurulum:
-Android Studio ya da `cmdline-tools` + `sdkmanager`.
+Android Studio ya da `cmdline-tools` + `sdkmanager`. Gereken paketler:
+
+```bash
+sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+echo "sdk.dir=/sdk/yolu" > android/local.properties
+```
+
+**Doğrulandı:** 1.9.4 bu kurulumla derlendi — `.aab` 4,3 MB, `.apk` 4,5 MB.
 
 **SDK kurmak istemiyorsan gerek yok:** depodaki
 `.github/workflows/dev-aynasi-android.yml` iş akışı `.aab` ve `.apk`
