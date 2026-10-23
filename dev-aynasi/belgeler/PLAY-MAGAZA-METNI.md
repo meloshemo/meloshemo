@@ -205,8 +205,8 @@ Beklenen derecelendirme: **3+ / Everyone**.
 | Alan | Değer |
 | --- | --- |
 | E-posta | `y.osmanmelih@gmail.com` |
-| Gizlilik politikası URL'si | ⬜ **doldurulacak** — `belgeler/GIZLILIK-POLITIKASI.md` bir adrese konmalı |
-| Web sitesi | ⬜ isteğe bağlı |
+| Gizlilik politikası URL'si | `https://noethon.com/dev-aynasi/gizlilik.html` (EN: `https://noethon.com/dev-aynasi/privacy.html`) |
+| Web sitesi | `https://noethon.com/dev-aynasi/` |
 | Destek telefonu | gerekmiyor |
 
 > **Gizlilik politikası URL'si zorunludur.** Markdown dosyası yetmez; Play
@@ -220,7 +220,7 @@ Beklenen derecelendirme: **3+ / Everyone**.
 - [ ] `com.meloshemo.devaynasi` paket adı onaylandı (sonra değişmez)
 - [ ] İmza anahtarı üretildi ve **yedeklendi** (`mobil/README.md`)
 - [ ] Play App Signing açıldı (Google anahtarı saklar, kaybolma riski biter)
-- [ ] Gizlilik politikası bir adrese kondu ve URL girildi
+- [x] Gizlilik politikası bir adrese kondu (noethon.com/dev-aynasi/) — URL Console'a girilecek
 - [ ] Veri güvenliği formu dolduruldu
 - [ ] İçerik derecelendirme anketi dolduruldu
 - [ ] Ekran görüntüleri ve özellik grafiği yüklendi

@@ -203,7 +203,7 @@ Expected rating: **Everyone / 3+**.
 | Field | Value |
 | --- | --- |
 | Email | `y.osmanmelih@gmail.com` |
-| Privacy policy URL | ⬜ **to fill in** — `belgeler/en/PRIVACY-POLICY.md` must be hosted |
+| Privacy policy URL | `https://noethon.com/dev-aynasi/privacy.html` (TR: `https://noethon.com/dev-aynasi/gizlilik.html`) |
 | Website | ⬜ optional |
 | Support phone | not required |
 
