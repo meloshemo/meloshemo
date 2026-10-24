@@ -4,7 +4,9 @@ const path = require("path");
 // Araç nerede çalıştırılırsa çalıştırılsın proje kökünü bulur.
 const kok = path.resolve(__dirname, "..");
 const yol = (f) => path.join(kok, f);
-const oku = (f) => fs.readFileSync(yol(f), "utf8");
+// Satır sonları LF'e çekilir: Windows'ta git dosyaları CRLF ile çıkarır ve
+// aşağıdaki çok satırlı eşleşme sessizce tutmaz.
+const oku = (f) => fs.readFileSync(yol(f), "utf8").replace(/\r\n/g, "\n");
 
 // Yazı tiplerini CSS'in içine gömer: tek dosyalık sürüm tek başına, hiçbir
 // dosyaya ve hiçbir siteye bağlı olmadan açılabilsin.
@@ -30,5 +32,11 @@ html = html.replace(
   ["multiplayer/net.js", "i18n.js", "maze.js", "game.js"]
     .map((f) => "<script>\n" + oku(f) + "\n</script>").join("\n")
 );
+// Gömülemeyen bir dosya kalırsa tek dosya sessizce bozuk çıkmasın.
+const kalan = html.match(/<script src=|<link rel="stylesheet"/g);
+if (kalan) {
+  console.error("Gömülemeyen dış dosya var:", kalan.length);
+  process.exit(1);
+}
 fs.writeFileSync(yol("dev-aynasi-tek-dosya.html"), html);
 console.log("dev-aynasi-tek-dosya.html yazıldı:", (html.length / 1024).toFixed(0), "KB");
