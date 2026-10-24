@@ -24,8 +24,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Sürüm numarası oyunun sürümünden türer: 1.9.3 -> 10903.
         // Google Play her yüklemede versionCode'un artmasını ister.
-        versionCode 10904
-        versionName "1.9.4"
+        versionCode 10905
+        versionName "1.9.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

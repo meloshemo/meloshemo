@@ -12,8 +12,8 @@ tutuldu (`npm run magaza:denetim` sayar).
 | Alan | Değer |
 | --- | --- |
 | Paket adı (package name) | `com.meloshemo.devaynasi` |
-| Varsayılan dil | Türkçe (tr-TR) |
-| İkinci dil | İngilizce (en-US) |
+| Varsayılan dil | İngilizce (en-US) — çevirisi olmayan her dil bunu görür |
+| Çeviri | Türkçe (tr-TR) |
 | Uygulama türü | Oyun |
 | Kategori | Bulmaca (Puzzle) |
 | Etiketler | Bulmaca, Macera, Tek oyunculu, Çok oyunculu |
@@ -29,7 +29,7 @@ tutuldu (`npm run magaza:denetim` sayar).
 ## 2. Uygulama adı (en fazla 30 karakter)
 
 ```
-Dev Aynası: Hall of Giants
+Dev Aynası
 ```
 
 ---

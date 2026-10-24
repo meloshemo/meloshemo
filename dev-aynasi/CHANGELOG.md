@@ -1,5 +1,25 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.5 — Dile göre ad, Windows'ta paketleme
+Oyun kodu değişmedi.
+
+**Ad dile göre:** Türkçe cihazda uygulamanın adı "Dev Aynası", diğer her
+dilde "Hall of Giants". Android kaynaklarında varsayılan dil artık
+İngilizce (`values/`), Türkçe `values-tr/` altında; `values-en/` gereksiz
+kaldığı için silindi. Eskiden Almanca, Fransızca gibi dillerde geri tuşu
+uyarısı Türkçe çıkıyordu, artık İngilizce. Play mağaza girişi de aynı
+kuralla kuruldu: varsayılan en-US "Hall of Giants", çeviri tr-TR
+"Dev Aynası".
+
+**Windows'ta paketleme:** `arac/paketle.js` Windows'ta scriptleri
+gömmüyordu. Git dosyaları CRLF satır sonuyla çıkarıyor, çok satırlı
+eşleşme sessizce tutmuyor, tek dosya dış `<script src>` bağlantılarıyla
+çıkıyordu — Android paketinde oyun hiç açılmazdı. Okunan dosyalar LF'e
+çekiliyor; gömülemeyen dosya kalırsa araç hata verip duruyor.
+
+**Sürüm kodu:** 10905. 10904 Play Console'a bir kez yüklendiği için
+tekrar kullanılamıyor.
+
 ## 1.9.4 — Android paketi
 İlk hedef Android oldu. Oyun kodu değişmedi: tek dosyalık web sürümü bir
 WebView içinde çalışıyor, `game.js` hem telefonda hem masaüstünde aynı.

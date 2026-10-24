@@ -12,8 +12,8 @@ counts them).
 | Field | Value |
 | --- | --- |
 | Package name | `com.meloshemo.devaynasi` |
-| Default language | Turkish (tr-TR) |
-| Second language | English (en-US) |
+| Default language | English (en-US) — every language without a translation sees this |
+| Translation | Turkish (tr-TR) |
 | App type | Game |
 | Category | Puzzle |
 | Tags | Puzzle, Adventure, Single player, Multiplayer |
@@ -28,7 +28,7 @@ counts them).
 ## 2. App name (max 30 characters)
 
 ```
-Hall of Giants: Dev Aynası
+Hall of Giants
 ```
 
 ---

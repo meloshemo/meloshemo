@@ -1,8 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Dev Aynası</string>
-    <string name="title_activity_main">Dev Aynası</string>
+    <!-- Varsayılan dil İngilizce: Türkçe olmayan her cihaz "Hall of Giants"
+         görür. Türkçe metinler values-tr/ altında. Play mağaza girişi de
+         aynı kuralla kurulu (varsayılan en-US, çeviri tr-TR). -->
+    <string name="app_name">Hall of Giants</string>
+    <string name="title_activity_main">Hall of Giants</string>
     <string name="package_name">com.meloshemo.devaynasi</string>
     <string name="custom_url_scheme">com.meloshemo.devaynasi</string>
-    <string name="cikmak_icin_tekrar">Çıkmak için geri tuşuna bir daha bas</string>
+    <string name="cikmak_icin_tekrar">Press back again to exit</string>
 </resources>
