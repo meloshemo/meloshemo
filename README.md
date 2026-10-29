@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0F0F1A,50:5B2A86,100:B033D9&height=180&section=header&text=Osman%20Melih%20Y%C4%B1lmaz&fontSize=40&fontColor=ffffff&fontAlignY=38&desc=Mobile%20%26%20Web%20Developer%20%C2%B7%20Building%20products%20people%20actually%20use&descSize=15&descAlignY=60" width="100%" alt="header" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0F0F1A,50:5B2A86,100:B033D9&height=180&section=header&text=Osman%20Melih%20Y%C4%B1lmaz&fontSize=40&fontColor=ffffff&fontAlignY=38&desc=Mobile%20and%20Web%20Developer&descSize=15&descAlignY=60" width="100%" alt="header" />
 
 [![Website](https://img.shields.io/badge/hemoai.org-0F0F1A?style=flat-square&logo=googlechrome&logoColor=white)](https://hemoai.org)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/osman-melih-y%C4%B1lmaz-274ba5201)
