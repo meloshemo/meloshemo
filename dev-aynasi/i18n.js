@@ -1,5 +1,6 @@
 // Dev Aynası - dil desteği (Türkçe / English)
-// Tarayıcı dili Türkçe ise TR, değilse EN ile açılır; seçim saklanır.
+// Cihazın birinci dili Türkçe ise TR, değilse her şey EN açılır; oyuncu
+// dili elle değiştirirse seçimi saklanır.
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.I18n = factory();
@@ -13,7 +14,7 @@
       lede: 'Binlerce ayna, hepsi aynı. <em>Yalnızca biri</em> seni devasa gösteriyor.',
       chapter: "Bölüm", time: "Süre", seen: "Bakılan ayna", hint: "Sezgi", duel: "Düello",
       objective: "Hedef",
-      hintBtn: "Sezgi · H", newRoom: "Yeni salon · R",
+      hintBtn: "Sezgi · H", newRoom: "Yeni salon · R", newRoomTouch: "Yeni salon",
       introTitle: "Salona giriyorsun",
       introText: "Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.",
       solo: "Tek başına gir", duelBtn: "Düello · iki kişi",
@@ -58,6 +59,32 @@
       onlineNoHunch: "Sezgi hakkın kalmadı",
       endlessGoal: "Dev aynayı bul — salonlar bitmiyor",
       endlessCard: "Yeni salon, yeni kural. Ne kadar ileri gidebilirsin?",
+      ruleNames: {
+        mirrorControls: "ters kontroller", shiftEvery: "kayan duvarlar", echo: "yankı",
+        neon: "neon", water: "su", storm: "kum fırtınası", grid: "ızgara",
+        openHall: "açık galeri", bazaar: "çarşı", stillness: "durgun su",
+        ice: "buz", lantern: "sönen fener", liars: "yalancı aynalar",
+        fleeing: "kaçan ayna", fog: "sis",
+      },
+      howTo: "Nasıl oynanır",
+      guideTitle: "Nasıl oynanır",
+      guideWalkTitle: "Yürü",
+      guideWalkTouch: "Parmağını ekrana bas ve sürükle: parmağın hangi yöne giderse oraya yürürsün. Bırakınca durursun.",
+      guideWalkKb: "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ya da yön tuşlarıyla yürü, <kbd>Shift</kbd> ile koş. Fareyle: sol tuşu basılı tut, imlecin yönüne yürürsün.",
+      guideLookTitle: "Aynalara bak",
+      guideLookText: "Fenerin yanından geçtiğin aynaları aydınlatır. Neredeyse hepsi seni olduğun boyda gösterir — bunlar sıradan aynalar.",
+      guideGiantTitle: "Dev aynayı bul ve içine yürü",
+      guideGiantText: "Binlerce aynadan yalnızca biri seni <b>altın renkli, panele sığmayan bir dev</b> olarak gösterir. Onu görünce aynaya doğru yürü: içinden geçer, sıradaki odaya varırsın.",
+      guideHunchTitle: "Takılırsan: Sezgi",
+      guideHunchText: "<b>Sezgi</b> düğmesi birkaç saniyeliğine dev aynanın yönünü gösterir. Her odada hakkın sınırlı.",
+      guideRuleTitle: "Her oda yeni bir kural",
+      guideRuleText: "Yirmi odanın her biri farklı bir kuralla gelir. Kural, odaya girerken çıkan kartta ve ekranın altındaki hedefte yazar.",
+      guideStart: "Anladım, başla", guideOk: "Anladım",
+      tipWalkTouch: "Parmağını ekrana bas ve sürükle — o yöne yürürsün",
+      tipWalkKb: "WASD ya da yön tuşlarıyla yürü",
+      tipLook: "Bu aynalar seni olduğun boyda gösteriyor. Altın renkli dev yansımayı ara",
+      tipHunch: "Takıldın mı? Sezgi düğmesi dev aynanın yönünü gösterir",
+      tipFound: "İşte o! Dev aynaya doğru yürü ve içinden geç",
       endlessOver: "Sonsuz salon",
       endlessOverText: (n, rekor) => `${n} salon geçtin. En iyi serin: ${Math.max(n, rekor)}.`,
       resume: "Devam et",
@@ -119,12 +146,12 @@
       ],
     },
     en: {
-      eyebrow: "Hall of Giants · a game about a proverb",
-      title: "Dev Aynası",
+      eyebrow: "A game about a Turkish proverb",
+      title: "Hall of Giants",
       lede: 'A thousand mirrors, all identical. <em>Only one</em> makes you a giant.',
       chapter: "Room", time: "Time", seen: "Mirrors seen", hint: "Hunch", duel: "Duel",
       objective: "Goal",
-      hintBtn: "Hunch · H", newRoom: "New hall · R",
+      hintBtn: "Hunch · H", newRoom: "New hall · R", newRoomTouch: "New hall",
       introTitle: "You step into the hall",
       introText: "You see only as far as your lantern reaches. Find the giant mirror.",
       solo: "Enter alone", duelBtn: "Duel · two players",
@@ -176,6 +203,25 @@
         ice: "ice", lantern: "dying lantern", liars: "lying mirrors",
         fleeing: "fleeing mirror", fog: "fog",
       },
+      howTo: "How to play",
+      guideTitle: "How to play",
+      guideWalkTitle: "Walk",
+      guideWalkTouch: "Press your finger on the screen and drag: you walk in the direction your finger moves. Let go to stop.",
+      guideWalkKb: "Walk with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrow keys, run with <kbd>Shift</kbd>. With a mouse: hold the left button and you walk toward the cursor.",
+      guideLookTitle: "Look at the mirrors",
+      guideLookText: "Your lantern lights up the mirrors you pass. Almost all of them show you at your real size — those are ordinary mirrors.",
+      guideGiantTitle: "Find the giant mirror and walk into it",
+      guideGiantText: "Out of thousands, only one mirror shows you as <b>a golden giant, too big for the pane</b>. When you see it, walk into it: you pass through to the next room.",
+      guideHunchTitle: "Stuck? Use a Hunch",
+      guideHunchText: "The <b>Hunch</b> button points toward the giant mirror for a few seconds. You only get a few per room.",
+      guideRuleTitle: "Every room, a new rule",
+      guideRuleText: "Each of the twenty rooms brings a different rule. It is written on the card when you enter and in the goal at the bottom of the screen.",
+      guideStart: "Got it — start", guideOk: "Got it",
+      tipWalkTouch: "Press and drag your finger — you walk that way",
+      tipWalkKb: "Walk with WASD or the arrow keys",
+      tipLook: "These mirrors show your real size. Look for the golden giant",
+      tipHunch: "Stuck? The Hunch button points toward the giant mirror",
+      tipFound: "That's it! Walk into the giant mirror",
       endlessOver: "Endless hall",
       endlessOverText: (n, best) => `You cleared ${n} halls. Your best run: ${Math.max(n, best)}.`,
       resume: "Continue",
@@ -238,14 +284,19 @@
     },
   };
 
-  let lang = "tr";
+  // Yalnızca cihazın birinci dili Türkçeyse Türkçe; başka her durumda
+  // (dil okunamazsa da) İngilizce. Türkçe olmayan bir telefonda oyun hiçbir
+  // koşulda Türkçe açılmaz.
+  const cihazDili = () => {
+    const l = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+    return l.toLowerCase().startsWith("tr") ? "tr" : "en";
+  };
+  let lang = "en";
   try {
     const saved = localStorage.getItem(KEY);
-    lang = saved === "tr" || saved === "en"
-      ? saved
-      : (navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en";
+    lang = saved === "tr" || saved === "en" ? saved : cihazDili();
   } catch (err) {
-    lang = "tr";
+    lang = cihazDili();
   }
 
   const t = (key) => S[lang][key];

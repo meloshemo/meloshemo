@@ -1,5 +1,53 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.6 — Yeni oyuncu rehberi, telefonda yatay düzen, tam ekran ayarlar
+Kapalı testteki oyuncuların iki geri bildirimi üzerine: "yeni oyuncu için
+biraz kafa karıştırıcı, nasıl oynanacağını daha çok anlatın" ve "ayarlar
+açılınca çok daha fazla genişlemeli, açık olduğu belli olsun".
+
+**Telefonda yatay düzen:** 851×393 gibi yatay bir telefon ekranında başlık
+ve gösterge çubuğu ekranı dolduruyor, oyun alanı ve "Tek başına gir"
+düğmesi ekranın altında kalıyordu; ayarlar da oyun alanının içinde,
+görünmeyen yerde açılıyordu. Dokunmatik cihazlarda ve 600 px'ten alçak
+pencerelerde oyun artık menüdeyken de ekranı kaplıyor, oyunun adı menüde
+yazıyor, gösterge çubuğu tek satır. Android uygulamasında "Tam ekran"
+düğmesi kalktı (uygulama zaten tam ekran); en dar telefonlarda tarayıcıda
+simgeye dönüşüyor.
+
+**Paneller tam ekran:** Ayarlar, gizlilik, çevrimiçi yarış ve rehber
+ekranın tamamını kaplıyor, opak; başlık ve "✕ Kapat" üstte sabit.
+Android'de geri tuşu, masaüstünde Esc açık paneli kapatıyor; panel yoksa
+geri tuşu eskisi gibi iki basışta çıkarıyor.
+
+**Nasıl oynanır:** Yeni bir rehber paneli (yürü, aynalara bak, dev aynayı
+bul ve içine yürü, sezgi, her odanın kuralı). İlk kez "Tek başına gir"e
+basan oyuncuya kendiliğinden açılır; menüden ve ayarlardan her zaman
+açılır.
+
+**İlk oda ipuçları:** Ekranın altında, dokunuşu engellemeyen bir şerit
+yeni oyuncuyu sırayla yönlendiriyor: nasıl yürünür → bu aynalar seni
+olduğun boyda gösterir → (35 sn bulamazsa) sezgiyi kullan → dev ayna
+görününce "içine yürü". İlk oda geçilince bir daha çıkmaz. Diğer
+odalarda şerit, oda başında hedefi 5 saniye gösteriyor; çevrimiçi
+yarışın duyuruları da orada çıkıyor (sinematik modda hedef satırı gizli
+olduğu için bunlar daha önce görünmüyordu).
+
+**Dil:** Yalnızca cihazın birinci dili Türkçeyse oyun Türkçe açılıyor;
+başka her durumda İngilizce (eskiden tarayıcı depolaması kapalıysa
+Türkçeye düşüyordu). İngilizce sürümde büyük başlık hâlâ "Dev Aynası"
+yazıyordu; artık "Hall of Giants". Ayna sayıları dile göre biçimleniyor
+(4,755 / 4.755).
+
+**Düzeltme:** Türkçe sonsuz salon kural adları sözlükte eksikti; Türkçe
+cihazda sonsuz salonu açmak hata atıyordu.
+
+**Denetim:** `npm run denetim:mobil` artık 12 gerçek telefon/tablet
+ölçüsünde (640×360'tan 1280×800'e), yatayda, dokunmatik girdiyle; dil
+kuralını, menünün, gösterge çubuğunun, ayarların ve rehberin ekrana
+sığmasını, geri tuşunu ve ilk oda ipuçlarını ölçüyor — 234/234.
+
+**Sürüm kodu:** 10906.
+
 ## 1.9.5 — Dile göre ad, Windows'ta paketleme
 Oyun kodu değişmedi.
 

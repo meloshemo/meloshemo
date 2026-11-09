@@ -410,13 +410,16 @@ kbd {
 .metin p { margin: 0 0 8px; }
 .metin ul { margin: 0 0 8px; padding-left: 18px; }
 
-/* --- sinematik mod: oyun alanı ekranı kaplar --- */
-body.sinema { background: #05040a; }
-body.sinema .app { width: 100%; max-width: none; padding: 0; gap: 0; }
-body.sinema .masthead,
-body.sinema .help,
-body.sinema .objective { display: none; }
-body.sinema .hud {
+/* --- sinematik mod: oyun alanı ekranı kaplar ---
+   `kisa`: telefon/tablet ya da alçak pencere. Orada oyun daha menüdeyken
+   bile ekranı kaplar; yoksa yatay telefonda başlık ve gösterge çubuğu
+   ekranı doldurup oyun alanını katlamanın altına itiyordu. */
+body.sinema, body.kisa { background: #05040a; }
+body.sinema .app, body.kisa .app { width: 100%; max-width: none; padding: 0; gap: 0; }
+body.sinema .masthead, body.kisa .masthead,
+body.sinema .help, body.kisa .help,
+body.sinema .objective, body.kisa .objective { display: none; }
+body.sinema .hud, body.kisa .hud {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 40;
@@ -427,14 +430,20 @@ body.sinema .hud {
   padding: 8px 14px;
   gap: 10px 20px;
 }
-body.sinema .stage { padding: 0; background: none; border-radius: 0; }
-body.sinema canvas {
+body.sinema .stage, body.kisa .stage { padding: 0; background: none; border-radius: 0; }
+body.sinema canvas, body.kisa canvas {
   width: 100vw;
   height: 100vh;
   aspect-ratio: auto;
   border-radius: 0;
 }
-body.sinema .veil { inset: 0; }
+/* Perdeler gösterge çubuğunun altından başlar: başlıkları çubuğun
+   arkasında kalmasın. Çubuğun boyu game.js'te ölçülüp --hud-h'ye yazılır. */
+body.sinema .veil:not(.panel), body.kisa .veil:not(.panel) {
+  inset: 0;
+  padding-top: calc(var(--hud-h, 0px) + 10px);
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
 
 /* Oyun sürerken imleç nişangâh olur: fareyle yürünebildiği belli olsun. */
 body.sinema canvas { cursor: crosshair; }
@@ -447,3 +456,183 @@ body.sinema canvas { cursor: crosshair; }
   /* Klavyesi olmayan cihazda kısayol şeridi yer kaplamasın. */
   .help { display: none; }
 }
+
+/* --- menü başlığı: başlık şeridi gizliyken oyunun adı menüde görünür --- */
+.intro-baslik { display: none; }
+body.sinema .intro-baslik, body.kisa .intro-baslik {
+  display: block;
+  font-size: clamp(1.9rem, 6vh, 3rem);
+}
+body.sinema #intro h2, body.kisa #intro h2 { display: none; }
+
+/* Perde içeriği sahneden uzunsa üstü kırpılmasın: ortalamayı kenar
+   boşlukları yapar, taşınca perde baştan kayar. */
+.veil { justify-content: flex-start; }
+.veil > .frame { margin-block: auto; }
+
+.rehber-btn { border-color: var(--brass); color: var(--brass); }
+.rehber-btn span[aria-hidden] {
+  display: inline-block;
+  width: 1.3em;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+/* --- paneller (ayarlar, gizlilik, çevrimiçi, rehber): tam ekran ---
+   Oyuncu geri bildirimi: ayarların açıldığı yeterince belli değildi.
+   Artık panel ekranın tamamını kaplar, opaktır, başlığı ve kapatma
+   düğmesi üstte sabit durur; Android'de geri tuşu da kapatır. */
+.veil.panel {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  padding: 0 0 max(24px, env(safe-area-inset-bottom));
+  align-items: center;
+  text-align: left;
+  background: #0b0812;
+  backdrop-filter: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.panel-bas {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+  background: rgba(11, 8, 18, 0.97);
+  border-bottom: 1px solid var(--hair);
+}
+.panel-bas h2 { font-size: clamp(1.3rem, 3.2vw, 1.9rem); text-align: left; }
+.btn.kapat { flex: none; border-color: var(--brass); color: var(--brass); }
+.veil.panel > .frame {
+  margin: 0;
+  width: calc(100% - 32px);
+  max-width: 72ch;
+  max-height: none;
+  padding: 18px 0 0;
+  border: none;
+  box-shadow: none;
+}
+.veil.panel .metin { max-height: none; }
+
+/* --- rehber --- */
+.rehber {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+}
+.rehber li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: rgba(20, 14, 28, 0.9);
+  border: 1px solid var(--hair-soft);
+  border-radius: 2px;
+}
+.rehber svg { flex: none; width: 52px; height: 52px; }
+.rehber li > div > b { display: block; margin-bottom: 4px; color: var(--brass); font-weight: 500; font-size: 0.98rem; }
+.rehber li p { font-size: 0.88rem; line-height: 1.5; }
+.rehber li p b { color: var(--ivory); font-weight: 500; }
+.r-cam { fill: rgba(168, 203, 216, 0.08); stroke: var(--glass); stroke-width: 1.5; }
+.r-cam.altin { fill: rgba(216, 178, 106, 0.16); stroke: var(--brass); stroke-width: 2; }
+.r-kisi { fill: none; stroke: var(--ivory); stroke-width: 2; stroke-linecap: round; }
+.r-bas { fill: var(--ivory); }
+.r-dev { fill: var(--brass); }
+.r-dev-cizgi { fill: none; stroke: var(--brass); stroke-width: 4; stroke-linecap: round; }
+.r-parmak { fill: rgba(216, 178, 106, 0.25); stroke: var(--brass); stroke-width: 2; }
+.r-ok { fill: none; stroke: var(--ivory); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.r-ok.altin { stroke: var(--brass); }
+.r-halka { fill: none; stroke: var(--hair); stroke-width: 2; stroke-dasharray: 4 5; }
+
+/* --- oyun içi ipucu şeridi --- */
+.ipucu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 30;
+  width: max-content;
+  max-width: min(92%, 62ch);
+  margin: 0 auto;
+  padding: 10px 18px;
+  background: rgba(8, 5, 14, 0.86);
+  border: 1px solid var(--brass);
+  border-radius: 2px;
+  box-shadow: 0 0 28px rgba(216, 178, 106, 0.18);
+  color: var(--ivory);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+  animation: rise 0.4s ease both;
+}
+
+/* --- alçak ekran (yatay telefon): gösterge çubuğu tek satır --- */
+@media (max-height: 600px) {
+  body.sinema .hud, body.kisa .hud {
+    flex-wrap: nowrap;
+    gap: 0 14px;
+    padding: 6px max(12px, env(safe-area-inset-right)) 6px max(12px, env(safe-area-inset-left));
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  body.sinema .stat, body.kisa .stat { flex: none; white-space: nowrap; }
+  body.sinema .stat .label, body.kisa .stat .label { font-size: 0.52rem; letter-spacing: 0.16em; }
+  body.sinema .stat .value, body.kisa .stat .value { font-size: 1.05rem; }
+  body.sinema .stat .value.small, body.kisa .stat .value.small {
+    font-size: 0.86rem;
+    max-width: 24vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  body.sinema .hud .btn, body.kisa .hud .btn {
+    flex: none;
+    padding: 8px 10px;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .veil .frame { gap: 8px; padding: 8px 14px; border: none; box-shadow: none; }
+  body.sinema #intro .frame, body.kisa #intro .frame { max-width: 640px; }
+  .veil h2 { font-size: 1.35rem; }
+  .veil p { font-size: 0.86rem; line-height: 1.45; }
+  .ipucu { font-size: 0.86rem; padding: 8px 14px; }
+  .veil .modes { gap: 8px; }
+  .veil .modes .btn, .rehber-btn { padding: 8px 12px; }
+  .code-row { padding-top: 4px; }
+}
+/* En dar telefonlarda (640–700 px) toplam ayna sayısı çubuktan düşer;
+   bakılan sayı kalır. */
+@media (max-height: 600px) and (max-width: 700px) {
+  body.sinema .stat .value small, body.kisa .stat .value small { display: none; }
+  body.sinema .hud, body.kisa .hud { gap: 0 10px; }
+  /* "Tam ekran" yazısı yerine çerçeve simgesi; yazı ekran okuyucuya kalır. */
+  body.sinema #fsBtn, body.kisa #fsBtn {
+    position: relative;
+    width: 36px;
+    align-self: stretch;
+    font-size: 0;
+    letter-spacing: 0;
+  }
+  body.sinema #fsBtn::before, body.kisa #fsBtn::before {
+    content: "";
+    position: absolute;
+    inset: 30% 28%;
+    border: 1.5px solid currentColor;
+    border-radius: 1px;
+  }
+}
+
+/* Android uygulaması zaten tam ekran: "Tam ekran" düğmesi orada boşuna yer kaplar. */
+body.uygulama #fsBtn { display: none; }

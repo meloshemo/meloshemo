@@ -27,7 +27,8 @@ import com.getcapacitor.BridgeActivity;
  *    durabiliyor (XVII. bölüm bunu şart koşuyor — orada durgunluk oyunun
  *    kuralı). Ekranın kendi kendine kapanması oyunu bitirirdi.
  *
- * 3. Geri tuşu iki basışta çıkarır. Tek basışta çıkmak, 20.000 aynalık bir
+ * 3. Geri tuşu önce açık paneli (ayarlar, rehber, gizlilik) kapatır; panel
+ *    yoksa iki basışta çıkarır. Tek basışta çıkmak, 20.000 aynalık bir
  *    salonun ortasında kazara dokunuşla her şeyi kaybetmek demekti.
  */
 public class MainActivity extends BridgeActivity {
@@ -72,6 +73,22 @@ public class MainActivity extends BridgeActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                // Önce oyuna sorulur: ayarlar, rehber ya da gizlilik açıksa
+                // geri tuşu onu kapatır, uygulamadan çıkış sayılmaz.
+                if (getBridge() == null || getBridge().getWebView() == null) {
+                    cikisaSay();
+                    return;
+                }
+                getBridge().getWebView().evaluateJavascript(
+                        "(window.__geriTusu && window.__geriTusu()) ? 1 : 0",
+                        sonuc -> {
+                            if (!"1".equals(sonuc)) {
+                                cikisaSay();
+                            }
+                        });
+            }
+
+            private void cikisaSay() {
                 long now = System.currentTimeMillis();
                 if (now - sonGeriBasisi < CIKIS_PENCERESI_MS) {
                     // Kendimizi devre dışı bırakıp geri olayını yeniden

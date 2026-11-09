@@ -28,14 +28,18 @@ const yaz = (ad, gecti, ayrinti = "") => {
 (async () => {
   // Kare süresi ölçülebilsin diye dikey senkron kapatılır: açıkken bütün
   // kareler tam 16,7 ms'ye yığılır ve ölçüm anlamsızlaşır.
+  // CHROME ortam değişkeni verilirse makinedeki tarayıcı kullanılır.
   const tarayici = await chromium.launch({
     args: ["--disable-frame-rate-limit", "--disable-gpu-vsync"],
+    ...(process.env.CHROME ? { executablePath: process.env.CHROME } : {}),
   });
   const sayfa = await tarayici.newPage({ viewport: { width: 1280, height: 800 } });
   const hatalar = [];
   sayfa.on("pageerror", (e) => hatalar.push(String(e)));
   await sayfa.goto(URL);
   await sayfa.click("#enterSolo");
+  // İlk girişte "Nasıl oynanır" rehberi açılır; denetim oyuncu gibi geçer.
+  if (await sayfa.isVisible("#guide")) await sayfa.click("#guideStart");
   await sayfa.waitForTimeout(500);
   const D = (fn, ...a) => sayfa.evaluate(fn, ...a);
   const odaSayisi = await D(() => window.__devAynasi.state && 20);

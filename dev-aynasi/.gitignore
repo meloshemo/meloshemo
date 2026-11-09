@@ -30,3 +30,6 @@ mobil/android/app/src/main/assets/public/
 mobil/cikti/
 *.keystore
 *.jks
+
+# Mobil denetimin ürettiği ekran görüntüleri (her çalıştırmada yeniden)
+basin/android/mobil/

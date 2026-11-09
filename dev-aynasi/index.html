@@ -44,6 +44,7 @@
 
         <div class="veil" id="intro">
           <div class="frame">
+            <h1 class="intro-baslik" data-i18n="title">Dev Aynası</h1>
             <h2 data-i18n="introTitle">Salona giriyorsun</h2>
             <p data-i18n="introText">Fenerin nereye yetiyorsa orayı görürsün. Dev aynayı bul.</p>
             <button id="resumeBtn" class="btn solid" type="button" hidden data-i18n="resume">Devam et</button>
@@ -55,6 +56,7 @@
               <button id="enterEndless" class="btn" type="button" data-i18n="endlessBtn">Sonsuz salon</button>
               <button id="enterOnline" class="btn" type="button" data-i18n="onlineBtn">Çevrimiçi yarış</button>
             </div>
+            <button id="howToBtn" class="btn rehber-btn" type="button"><span aria-hidden="true">?</span> <span data-i18n="howTo">Nasıl oynanır</span></button>
             <p class="keys keys-kb" data-i18n="keys" data-i18n-html></p>
             <p class="keys keys-touch" data-i18n="touchKeys" data-i18n-html></p>
             <div class="code-row">
@@ -66,8 +68,11 @@
         </div>
 
         <div class="veil panel" id="online" hidden>
-          <div class="frame">
+          <div class="panel-bas">
             <h2 data-i18n="onlineTitle">Çevrimiçi yarış</h2>
+            <button class="btn kapat" type="button" data-kapat="online"><span aria-hidden="true">✕</span> <span data-i18n="close">Kapat</span></button>
+          </div>
+          <div class="frame wide">
             <p class="fine" data-i18n="onlineNote">Aynı salonda herkes aynı anda arar. En son bulan elenir; tek kişi kalana kadar sürer.</p>
             <div class="code-row">
               <label for="onlineName" data-i18n="onlineName">Takma ad</label>
@@ -98,8 +103,11 @@
         </div>
 
         <div class="veil panel" id="settings" hidden>
-          <div class="frame wide">
+          <div class="panel-bas">
             <h2 data-i18n="settingsTitle">Ayarlar</h2>
+            <button class="btn kapat" type="button" data-kapat="settings"><span aria-hidden="true">✕</span> <span data-i18n="close">Kapat</span></button>
+          </div>
+          <div class="frame wide">
 
             <label class="satir">
               <span data-i18n="brightness">Parlaklık</span>
@@ -137,20 +145,80 @@
             </div>
 
             <div class="modes">
+              <button id="settingsHowTo" class="btn" type="button" data-i18n="howTo">Nasıl oynanır</button>
               <button id="privacyBtn" class="btn" type="button" data-i18n="privacy">Gizlilik</button>
               <button id="settingsClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
             </div>
-            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.9.5</b></p>
+            <p class="fine"><span data-i18n="version">Sürüm</span> <b id="version">1.9.6</b></p>
           </div>
         </div>
 
         <div class="veil panel" id="privacy" hidden>
-          <div class="frame wide">
+          <div class="panel-bas">
             <h2 data-i18n="privacyTitle">Gizlilik</h2>
+            <button class="btn kapat" type="button" data-kapat="privacy"><span aria-hidden="true">✕</span> <span data-i18n="close">Kapat</span></button>
+          </div>
+          <div class="frame wide">
             <div id="privacyText" class="metin"></div>
             <button id="privacyClose" class="btn solid" type="button" data-i18n="close">Kapat</button>
           </div>
         </div>
+
+        <!-- Yeni oyuncu rehberi: ilk "Tek başına gir"de kendiliğinden açılır,
+             menüden ve ayarlardan her zaman açılabilir. -->
+        <div class="veil panel" id="guide" hidden>
+          <div class="panel-bas">
+            <h2 data-i18n="guideTitle">Nasıl oynanır</h2>
+            <button class="btn kapat" type="button" data-kapat="guide"><span aria-hidden="true">✕</span> <span data-i18n="close">Kapat</span></button>
+          </div>
+          <div class="frame wide">
+            <ol class="rehber">
+              <li>
+                <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="22" cy="40" r="7" class="r-parmak" /><path d="M29 40 H52 M44 32 L52 40 L44 48" class="r-ok" /></svg>
+                <div>
+                  <b data-i18n="guideWalkTitle">Yürü</b>
+                  <p class="keys-touch" data-i18n="guideWalkTouch"></p>
+                  <p class="keys-kb" data-i18n="guideWalkKb" data-i18n-html></p>
+                </div>
+              </li>
+              <li>
+                <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="10" width="14" height="44" class="r-cam" /><rect x="25" y="10" width="14" height="44" class="r-cam" /><rect x="44" y="10" width="14" height="44" class="r-cam" /><path d="M13 30 v12 M10 36 h6 M32 30 v12 M29 36 h6 M51 30 v12 M48 36 h6" class="r-kisi" /><circle cx="13" cy="27" r="2.4" class="r-bas" /><circle cx="32" cy="27" r="2.4" class="r-bas" /><circle cx="51" cy="27" r="2.4" class="r-bas" /></svg>
+                <div>
+                  <b data-i18n="guideLookTitle">Aynalara bak</b>
+                  <p data-i18n="guideLookText"></p>
+                </div>
+              </li>
+              <li>
+                <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="4" width="36" height="56" class="r-cam altin" /><circle cx="32" cy="14" r="7" class="r-dev" /><path d="M32 21 v26 M20 30 h24 M32 47 l-9 14 M32 47 l9 14" class="r-dev-cizgi" /></svg>
+                <div>
+                  <b data-i18n="guideGiantTitle">Dev aynayı bul ve içine yürü</b>
+                  <p data-i18n="guideGiantText" data-i18n-html></p>
+                </div>
+              </li>
+              <li>
+                <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" class="r-halka" /><path d="M32 46 V18 M22 28 L32 18 L42 28" class="r-ok altin" /></svg>
+                <div>
+                  <b data-i18n="guideHunchTitle">Takılırsan: Sezgi</b>
+                  <p data-i18n="guideHunchText" data-i18n-html></p>
+                </div>
+              </li>
+              <li>
+                <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="10" width="40" height="44" rx="2" class="r-cam" /><path d="M20 24 h24 M20 32 h24 M20 40 h14" class="r-kisi" /></svg>
+                <div>
+                  <b data-i18n="guideRuleTitle">Her oda yeni bir kural</b>
+                  <p data-i18n="guideRuleText"></p>
+                </div>
+              </li>
+            </ol>
+            <div class="modes">
+              <button id="guideStart" class="btn solid" type="button">Anladım</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Oyun içi ipucu şeridi: ilk odada yeni oyuncuyu adım adım yönlendirir,
+             her oda başında da hedefi birkaç saniye gösterir. Dokunuşu engellemez. -->
+        <p class="ipucu" id="ipucu" hidden aria-live="polite"></p>
 
         <div class="veil" id="overlay" hidden>
           <div class="frame">

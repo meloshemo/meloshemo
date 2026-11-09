@@ -25,6 +25,8 @@
     privacyText: $("privacyText"), version: $("version"),
     progressCode: $("progressCode"), copyProgress: $("copyProgress"),
     progressPaste: $("progressPaste"), applyProgress: $("applyProgress"),
+    guide: $("guide"), guideStart: $("guideStart"), howToBtn: $("howToBtn"),
+    settingsHowTo: $("settingsHowTo"), ipucu: $("ipucu"),
   };
 
   const CELL = 72;
@@ -102,7 +104,18 @@
   const AYAR_KEY = "dev-aynasi:ayarlar";
   const ACIK_KEY = "dev-aynasi:acilan";
   const DEVAM_KEY = "dev-aynasi:devam";
-  const SURUM = "1.9.5";
+  const REHBER_KEY = "dev-aynasi:rehber";   // "Nasıl oynanır" bir kez görüldü
+  const KOC_KEY = "dev-aynasi:koc";         // ilk odanın ipuçları tamamlandı
+  const SURUM = "1.9.6";
+
+  // Parmakla oynanan cihaz mı, Android uygulamasının içinde miyiz?
+  // Yalnızca yerleşimi ve düğme yazılarını etkiler; oyun kodu aynıdır.
+  const dokunmatik = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  const uygulama = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (uygulama) document.body.classList.add("uygulama");
+  const bayrakOku = (k) => { try { return localStorage.getItem(k) === "1"; } catch (err) { return false; } };
+  const bayrakYaz = (k) => { try { localStorage.setItem(k, "1"); } catch (err) { /* yok say */ } };
+  const sayi = (n) => n.toLocaleString(I18n.lang === "tr" ? "tr-TR" : "en-US");
 
   // Ayarlar ve açılan bölümler tarayıcıda saklanır.
   const ayarlar = Object.assign(
@@ -793,7 +806,7 @@
     finished = null;
     startedAt = performance.now();
     keys.clear();
-    els.total.textContent = mirrorCount.toLocaleString("tr-TR");
+    els.total.textContent = sayi(mirrorCount);
     els.chapter.textContent = endless
       ? `${I18n.t("endless")} · ${endlessCount + 1}`
       : chapterText().name;
@@ -947,7 +960,13 @@
   }
 
   // --- çizim ---
+  // Alçak ekran ya da dokunmatik cihaz: oyun alanı menüde de ekranı kaplar.
+  const kisaMi = () => dokunmatik || window.innerHeight <= 600;
   function resize() {
+    document.body.classList.toggle("kisa", kisaMi());
+    const hud = document.querySelector(".hud");
+    const yuzer = document.body.classList.contains("kisa") || document.body.classList.contains("sinema");
+    document.documentElement.style.setProperty("--hud-h", yuzer && hud ? `${Math.ceil(hud.getBoundingClientRect().height)}px` : "0px");
     const ratio = scale();
     const rect = canvas.getBoundingClientRect();
     canvas.width = Math.round(rect.width * ratio);
@@ -1537,7 +1556,7 @@
 
   function updateHud() {
     els.time.textContent = formatTime(running || finished ? elapsedNow() : 0);
-    els.seen.textContent = players.reduce((n, p) => n + p.seen.size, 0).toLocaleString("tr-TR");
+    els.seen.textContent = sayi(players.reduce((n, p) => n + p.seen.size, 0));
     els.hints.textContent = players.map((p) => p.hints).join(" · ");
     els.hintBtn.disabled = !running || !!finished || players[0].hints === 0;
     if (duel) {
@@ -1597,7 +1616,7 @@
       els.ledgerBest.textContent = I18n.t("bestRun");
     }
     els.overlayTime.textContent = formatTime(elapsed);
-    els.overlaySeen.textContent = `${seenTotal.toLocaleString("tr-TR")} / ${mirrorCount.toLocaleString("tr-TR")}`;
+    els.overlaySeen.textContent = `${sayi(seenTotal)} / ${sayi(mirrorCount)}`;
     els.overlay.hidden = false;
     updateHud();
   }
@@ -1618,7 +1637,8 @@
       echo.x = (size - 0.5) * CELL;
       echo.y = (size - 0.5) * CELL;
       p.hints = Math.max(0, p.hints - 1);
-        els.objective.textContent = I18n.t("echoHit");
+      els.objective.textContent = I18n.t("echoHit");
+      hedefiDuyur(0, 3000);
       updateHud();
     }
   }
@@ -1684,7 +1704,7 @@
     // ve kaç tane koyduğumuzu zaten biliyoruz. (Eskiden her kaymada on binlerce
     // nesne üretiliyordu; kareyi kırk milisaniye kilitleyen asıl iş buydu.)
     mirrorCount = mirrorCount - kaldirilan + eklenen;
-    els.total.textContent = mirrorCount.toLocaleString("tr-TR");
+    els.total.textContent = sayi(mirrorCount);
     shiftFlash = 1;
   }
 
@@ -1723,10 +1743,13 @@
       els.cardTitle.textContent = `${I18n.t("endless")} · ${endlessCount + 1}`;
       els.cardText.textContent = sonsuzKartMetni();
       els.chapterCard.hidden = false;
+      hedefiDuyur(2000);
       kaydetSonsuzRekor();
       updateHud();
       return;
     }
+    // İlk odayı geçen oyuncu artık yolu biliyor: ipuçları bir daha çıkmaz.
+    kocBitir();
     chapterIndex = Math.min(chapterIndex + 1, CHAPTERS.length - 1);
     acilaniKaydet(chapterIndex);
     const gecenSure = startedAt;
@@ -1736,7 +1759,70 @@
     els.cardTitle.textContent = chapterText().name;
     els.cardText.textContent = chapterText().card;
     els.chapterCard.hidden = false;
+    hedefiDuyur(2600);
     updateHud();
+  }
+
+  // --- ipucu şeridi -------------------------------------------------------
+  // İlk odada yeni oyuncuyu sırayla yönlendirir: nasıl yürünür, neye
+  // bakılır, takılınca sezgi, dev ayna görününce içine yürü. Diğer odalarda
+  // oda başında hedefi birkaç saniye gösterir; sinematik modda hedef satırı
+  // gizli olduğu için oyuncu kuralı başka yerden göremiyordu.
+  let koc = null;               // { asama, t, x, y } — yalnızca ilk odada
+  let hedefBas = 0, hedefSon = 0, hedefMetni = "";
+  let gosterilenIpucu = null;
+  function hedefiDuyur(gecikme = 0, sure = 5000) {
+    hedefBas = performance.now() + gecikme;
+    hedefSon = hedefBas + sure;
+    hedefMetni = els.objective.textContent;
+  }
+  function kocBaslat() {
+    const p = players[0];
+    koc = bayrakOku(KOC_KEY) ? null : { asama: "yuru", t: performance.now(), x: p.x, y: p.y };
+  }
+  function kocBitir() {
+    if (!koc) return;
+    koc = null;
+    bayrakYaz(KOC_KEY);
+  }
+  function kocAnahtari(now, devGorunuyor) {
+    const p = players[0];
+    if (devGorunuyor) { koc.asama = "buldu"; return "tipFound"; }
+    if (koc.asama === "buldu") { koc.asama = "ara"; koc.t = now; }
+    if (koc.asama === "yuru") {
+      if (Math.hypot(p.x - koc.x, p.y - koc.y) < CELL * 1.2) return dokunmatik ? "tipWalkTouch" : "tipWalkKb";
+      koc.asama = "bak";
+      koc.t = now;
+    }
+    if (koc.asama === "bak") {
+      if (now - koc.t < 7000) return "tipLook";
+      koc.asama = "ara";
+      koc.t = now;
+    }
+    if (koc.asama === "ara") {
+      // Yarım dakikadan uzun süre bulamayan oyuncuya sezgi hatırlatılır.
+      if (p.hints === 0 || now - koc.t < 35000) return null;
+      koc.asama = "sezgi";
+      koc.t = now;
+    }
+    if (now < p.hintUntil || p.hints === 0 || now - koc.t > 10000) {
+      koc.asama = "ara";
+      koc.t = now;
+      return null;
+    }
+    return "tipHunch";
+  }
+  function ipucuGuncelle(now, devGorunuyor) {
+    let metin = null;
+    if (running && !finished && !carding) {
+      const anahtar = koc && !cevrimici && !duel ? kocAnahtari(now, devGorunuyor) : null;
+      if (anahtar) metin = I18n.t(anahtar);
+      else if (now >= hedefBas && now < hedefSon) metin = hedefMetni;
+    }
+    if (metin === gosterilenIpucu) return;
+    gosterilenIpucu = metin;
+    els.ipucu.hidden = !metin;
+    if (metin) els.ipucu.textContent = metin;
   }
 
   function loop(now) {
@@ -1803,6 +1889,7 @@
             if (chapter.returnTrip) {
               phase = "donus";
               els.objective.textContent = I18n.t("doorObjective");
+              hedefiDuyur(0);
               p.foundAt = 0;
                       } else if (duel) {
               p.done = elapsedNow();
@@ -1818,6 +1905,7 @@
       });
       updateHud();
     }
+    ipucuGuncelle(now, !!visible[0]);
     // Karenin işi burada bitti: ölçek denetleyicisi bu süreye bakar.
     if (running) {
       const isSuresi = performance.now() - isBasi;
@@ -1840,8 +1928,11 @@
     if (k === "m" && duel) useHint(players[1]);
     if (k === "r") restart();
     if (k === "f") tamEkranDegistir();
-    if (k === "Escape" && document.body.classList.contains("sinema")) tamEkranKapat();
-    if (!running && (k === "Enter" || k === " ")) startSolo();
+    if (k === "Escape") {
+      if (geriTusu()) return;
+      if (document.body.classList.contains("sinema")) tamEkranKapat();
+    }
+    if (!running && !panelAcik() && (k === "Enter" || k === " ")) girisSolo();
   });
   window.addEventListener("keyup", (e) => {
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
@@ -1925,6 +2016,8 @@
     cevrimiciDurum = metin;
     cevrimiciDurumA = performance.now() + sure;
     els.objective.textContent = metin;
+    // Sinematik modda hedef satırı gizli: duyuru ipucu şeridinde de çıkar.
+    hedefiDuyur(0, sure);
   }
 
   function cevrimiciSalonKur(bilgi) {
@@ -1939,7 +2032,7 @@
     finished = null;
     carding = 0;
     els.chapterCard.hidden = true;
-    els.total.textContent = (bilgi.aynaSayisi || mirrorCount).toLocaleString("tr-TR");
+    els.total.textContent = sayi(bilgi.aynaSayisi || mirrorCount);
     updateHud();
   }
 
@@ -2068,9 +2161,34 @@
     }
     running = true;
     startedAt = performance.now();
+    koc = null;
+    if (!isDuel && !sonsuz && chapterIndex === 0) kocBaslat();
+    hedefiDuyur(endless ? 2600 : 0);
     updateHud();
   }
   const startSolo = () => { devamSil(); begin(false, randomSeed()); };
+
+  // --- rehber: "Nasıl oynanır" ---------------------------------------------
+  // İlk kez "Tek başına gir"e basan oyuncu önce nasıl oynanacağını görür;
+  // sonra menüden ve ayarlardan istediği zaman açar.
+  let rehberleBasla = false;
+  function rehberAc(basla) {
+    rehberleBasla = basla;
+    els.guideStart.textContent = I18n.t(basla ? "guideStart" : "guideOk");
+    els.guide.hidden = false;
+    els.guide.scrollTop = 0;
+  }
+  function rehberKapat(basla) {
+    els.guide.hidden = true;
+    bayrakYaz(REHBER_KEY);
+    const baslat = basla && rehberleBasla;
+    rehberleBasla = false;
+    if (baslat) startSolo();
+  }
+  const girisSolo = () => (bayrakOku(REHBER_KEY) ? startSolo() : rehberAc(true));
+  els.guideStart.addEventListener("click", () => rehberKapat(true));
+  els.howToBtn.addEventListener("click", () => rehberAc(false));
+  els.settingsHowTo.addEventListener("click", () => rehberAc(false));
 
   // Kayıtlı oyunu kaldığı yerden sürdürür: aynı bölüm, aynı salon, süre
   // kaldığı saniyeden devam eder.
@@ -2100,7 +2218,7 @@
     begin(duel, randomSeed(), endless ? 0 : chapterIndex, endless);
   }
 
-  els.enterSolo.addEventListener("click", startSolo);
+  els.enterSolo.addEventListener("click", girisSolo);
   els.resumeBtn.addEventListener("click", devamEt);
   els.enterDuel.addEventListener("click", startDuel);
   els.enterEndless.addEventListener("click", startEndless);
@@ -2196,6 +2314,30 @@
     resize();
   });
 
+  // --- paneller: üstteki ✕ düğmesi, Esc ve Android geri tuşu ------------
+  // En üstteki açık panel önce kapanır (gizlilik ve rehber ayarların
+  // üstünde açılabilir).
+  const PANEL_KAPAT = {
+    guide: () => rehberKapat(false),
+    privacy: () => { els.privacy.hidden = true; },
+    online: () => { els.online.hidden = true; },
+    settings: () => ayarlariKapat(),
+  };
+  const PANEL_SIRASI = ["guide", "privacy", "online", "settings"];
+  const panelAcik = () => PANEL_SIRASI.some((id) => !els[id].hidden);
+  document.querySelectorAll("[data-kapat]").forEach((b) => {
+    b.addEventListener("click", () => PANEL_KAPAT[b.dataset.kapat]());
+  });
+  function geriTusu() {
+    const id = PANEL_SIRASI.find((k) => !els[k].hidden);
+    if (!id) return false;
+    PANEL_KAPAT[id]();
+    return true;
+  }
+  // Android kabuğu geri tuşunda bunu sorar: true dönerse bir panel kapandı,
+  // uygulamadan çıkılmaz.
+  window.__geriTusu = geriTusu;
+
   els.settingsBtn.addEventListener("click", ayarlariAc);
   els.settingsClose.addEventListener("click", ayarlariKapat);
   els.copyProgress.addEventListener("click", () => {
@@ -2260,10 +2402,21 @@
     I18n.apply();
     els.langBtn.textContent = I18n.lang === "tr" ? "EN" : "TR";
     els.chapter.textContent = chapterText().name;
-    els.objective.textContent = phase === "donus" ? I18n.t("doorObjective") : chapterText().objective;
+    els.objective.textContent = phase === "donus" ? I18n.t("doorObjective")
+      : endless ? I18n.t("endlessGoal") : chapterText().objective;
     els.cardTitle.textContent = chapterText().name;
     els.cardText.textContent = chapterText().card;
     document.title = I18n.t("title");
+    // Dokunmatik cihazda klavye kısayolu yazmanın anlamı yok; çubuk da dar.
+    if (dokunmatik) {
+      els.hintBtn.textContent = I18n.t("hint");
+      els.restart.textContent = I18n.t("newRoomTouch");
+    }
+    els.guideStart.textContent = I18n.t(rehberleBasla ? "guideStart" : "guideOk");
+    els.total.textContent = sayi(mirrorCount);
+    hedefMetni = els.objective.textContent;
+    gosterilenIpucu = null;
+    resize();
     if (!els.intro.hidden) devamDugmesiniKur();
   }
   els.langBtn.addEventListener("click", () => {
