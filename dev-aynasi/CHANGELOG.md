@@ -1,5 +1,29 @@
 # Değişiklik Günlüğü — Dev Aynası
 
+## 1.9.7 — Çevrimiçi yarış yayında
+Çevrimiçi yarış artık uygulamadan doğrudan çalışıyor. Eskiden `SUNUCU`
+boştu: oyuncu "Çevrimiçi yarış"a basınca adres alanında yalnızca `wss://`
+duruyor, bağlanılacak bir sunucu yoktu.
+
+**Sunucu:** `multiplayer/server.js` Render'da (Frankfurt, ücretsiz plan)
+çalışıyor: `wss://dev-aynasi.onrender.com`. Kod değişmedi; Render'ın
+verdiği portu `PORT`'tan okuyor, `npm install` ile `ws` kuruluyor.
+
+**Uyuyan sunucu:** Ücretsiz plan, bir süre bağlanan olmazsa sunucuyu
+uyutuyor; ilk istekte 30–60 sn'de kalkıyor. Çevrimiçi paneli açılır
+açılmaz sunucuya bir uyandırma isteği gidiyor. Bağlantı yine de düşerse
+oyuncu "sunucuya ulaşılamadı · npm run sunucu" yerine "sunucu uyanıyor,
+birkaç saniye içinde kendiliğinden bağlanacak" görüyor (istemci zaten 3 sn'de
+bir yeniden deniyordu). Eski sürümden kalmış yarım adres (`wss://`)
+yayındaki sunucuya dönüyor.
+
+**Ölçüm:** İki ayrı tarayıcı oyuncusu (biri İngilizce, biri Türkçe,
+851×393 dokunmatik) oyunun kendi arayüzünden yayındaki sunucuya bağlandı:
+ikisi aynı salona düştü (aynı tohum, 2 kişilik 9.553 ayna), birbirini
+gördü, konsol hatası yok, salona giriş 5,6 sn.
+
+**Sürüm kodu:** 10907.
+
 ## 1.9.6 — Yeni oyuncu rehberi, telefonda yatay düzen, tam ekran ayarlar
 Kapalı testteki oyuncuların iki geri bildirimi üzerine: "yeni oyuncu için
 biraz kafa karıştırıcı, nasıl oynanacağını daha çok anlatın" ve "ayarlar

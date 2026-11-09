@@ -106,7 +106,7 @@
   const DEVAM_KEY = "dev-aynasi:devam";
   const REHBER_KEY = "dev-aynasi:rehber";   // "Nasıl oynanır" bir kez görüldü
   const KOC_KEY = "dev-aynasi:koc";         // ilk odanın ipuçları tamamlandı
-  const SURUM = "1.9.6";
+  const SURUM = "1.9.7";
 
   // Parmakla oynanan cihaz mı, Android uygulamasının içinde miyiz?
   // Yalnızca yerleşimi ve düğme yazılarını etkiler; oyun kodu aynıdır.
@@ -1980,7 +1980,7 @@
 
   // Turnuva sunucusunun yayındaki adresi. Sunucu bir yere konduğunda
   // değişecek tek satır burası. Boş bırakılırsa oyuncu adresi kendi yazar.
-  const SUNUCU = "";
+  const SUNUCU = "wss://dev-aynasi.onrender.com";
 
   // Sayfa https üzerinden açıldığında (Android paketi sayfayı
   // `https://localhost` olarak sunar, web sürümü de https'tedir) tarayıcı
@@ -2055,8 +2055,11 @@
       return;
     }
 
+    // Bağlantı düşerse net.js 3 sn'de bir yeniden dener. Yayındaki sunucu
+    // uyanıyorsa bu birkaç deneme sürer: oyuncuya "ulaşılamadı" yerine
+    // beklemesi söylenir.
     net.on("kapandi", () => {
-      if (!running) els.onlineStatus.textContent = I18n.t("onlineFailed");
+      if (!running) els.onlineStatus.textContent = I18n.t(url === SUNUCU ? "onlineWaking" : "onlineFailed");
     });
     net.on("hata", (m) => { els.onlineStatus.textContent = m.sebep || "hata"; });
 
@@ -2125,10 +2128,19 @@
     const a = cevrimiciAyar();
     els.onlineName.value = a.ad || "";
     els.onlineRoom.value = a.oda || "genel";
-    els.onlineUrl.value = a.url || varsayilanSunucu();
+    // Eski sürümden kalmış yarım adres ("wss://") yayındaki sunucuya döner.
+    els.onlineUrl.value = a.url && /^wss?:\/\/.+/i.test(a.url) ? a.url : varsayilanSunucu();
     els.onlineStatus.textContent = "";
     els.online.hidden = false;
+    sunucuyuUyandir();
   });
+  // Yayındaki sunucu ücretsiz planda: bir süre kimse bağlanmazsa uyuyor ve
+  // ilk istekte 30–60 sn'de kalkıyor. Oyuncu paneli açar açmaz bir istek
+  // gönderilir; "Katıl"a bastığında sunucu çoğu zaman uyanmış olur.
+  function sunucuyuUyandir() {
+    if (!SUNUCU || typeof fetch !== "function") return;
+    fetch(SUNUCU.replace(/^ws/i, "http"), { mode: "no-cors", cache: "no-store" }).catch(() => {});
+  }
   els.onlineClose.addEventListener("click", () => { els.online.hidden = true; });
   els.onlineJoin.addEventListener("click", () => {
     const ad = (els.onlineName.value || "Oyuncu").trim().slice(0, 14);
